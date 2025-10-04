@@ -1,3 +1,5 @@
+// ignore_for_file: unnecessary_this
+
 import 'artist_attributes.dart';
 
 enum Genre {
@@ -28,7 +30,7 @@ class Artist {
   Genre? secondaryGenre;
   ArtistAttributes attributes;
   LabelTier labelTier;
-  int money;
+  double money;
   int fanCount;
   List<String> releasedSongs;
   List<String> releasedAlbums;
@@ -45,15 +47,18 @@ class Artist {
     this.secondaryGenre,
     required this.attributes,
     this.labelTier = LabelTier.unsigned,
-    this.money = 1000,
+    required this.money,
     this.fanCount = 0,
-    this.releasedSongs = [],
-    this.releasedAlbums = [],
-    this.relationships = const {},
-    this.awards = [],
+    List<String>? releasedSongs,
+    List<String>? releasedAlbums,
+    Map<String, int>? relationships,
+    this.awards = const [],
     this.weeksSinceDebut = 0,
     this.isRetired = false,
-  });
+  }) : this.releasedSongs = releasedSongs ?? [],
+       this.releasedAlbums = releasedAlbums ?? [],
+       // ignore: prefer_collection_literals
+       this.relationships = relationships ?? Map<String, int>();
 
   Map<String, dynamic> toMap() {
     return {
@@ -95,11 +100,11 @@ class Artist {
         (e) => e.toString() == map['labelTier'],
         orElse: () => LabelTier.unsigned,
       ),
-      money: map['money'] ?? 1000,
+      money: map['money']?.toDouble() ?? 1000.0,
       fanCount: map['fanCount'] ?? 0,
       releasedSongs: List<String>.from(map['releasedSongs'] ?? []),
       releasedAlbums: List<String>.from(map['releasedAlbums'] ?? []),
-      relationships: Map<String, int>.from(map['relationships'] ?? {}),
+      relationships: Map<String, int>.from(map['relationships'] is Map ? map['relationships'] : {}),
       awards: List<String>.from(map['awards'] ?? []),
       weeksSinceDebut: map['weeksSinceDebut'] ?? 0,
       isRetired: map['isRetired'] ?? false,

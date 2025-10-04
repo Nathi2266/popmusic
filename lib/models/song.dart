@@ -8,7 +8,7 @@ class Song {
   final int quality; // 0-100
   final int hypeLevel; // 0-100
   final int weeksSinceRelease;
-  final int streams;
+  int streams;
   final List<String> collaborators;
   final bool isSingle;
   final String? albumId;
@@ -21,7 +21,7 @@ class Song {
     required this.quality,
     this.hypeLevel = 0,
     this.weeksSinceRelease = 0,
-    this.streams = 0,
+    required this.streams,
     this.collaborators = const [],
     this.isSingle = true,
     this.albumId,

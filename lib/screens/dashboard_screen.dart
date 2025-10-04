@@ -5,6 +5,8 @@ import '../widgets/attribute_bar.dart';
 import '../widgets/stat_card.dart';
 import 'performance_screen.dart';
 import '../models/artist.dart'; // Import LabelTier here
+import 'weekly_events_and_proceed_button.dart';
+import 'charts_screen.dart'; // Import the new ChartsScreen
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -28,12 +30,23 @@ class DashboardScreen extends StatelessWidget {
           appBar: AppBar(
             title: Text(player.name),
             backgroundColor: const Color(0xFF16213e),
+            leading: Builder(
+              builder: (BuildContext context) {
+                return IconButton(
+                  icon: const Icon(Icons.menu),
+                  onPressed: () {
+                    Scaffold.of(context).openDrawer();
+                  },
+                  tooltip: MaterialLocalizations.of(context).openAppDrawerTooltip,
+                );
+              },
+            ),
             actions: [
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Center(
                   child: Text(
-                    'Week ${gameState.currentWeek + 1}, ${gameState.currentYear}',
+                    'Week ${gameState.weekOfMonth}, Month ${gameState.currentMonth}, ${gameState.currentYear}',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -41,14 +54,49 @@ class DashboardScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              IconButton(
-                icon: const Icon(Icons.fast_forward),
-                onPressed: () {
-                  gameState.advanceWeek();
-                },
-                tooltip: 'Next Week',
-              ),
+              const ProceedWeekButton(),
             ],
+          ),
+          drawer: Drawer(
+            backgroundColor: const Color(0xFF1a1a2e), // Set a consistent background color
+            child: Column(
+              children: <Widget>[
+                Container(
+                  height: MediaQuery.of(context).padding.top + kToolbarHeight, // Status bar + AppBar height
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF16213e),
+                  ),
+                  child: const SizedBox.shrink(), // Empty child
+                ),
+                // Other drawer items can go here
+                ListTile(
+                  leading: const Icon(Icons.show_chart, color: Colors.white70),
+                  title: const Text('Charts', style: TextStyle(color: Colors.white)),
+                  onTap: () {
+                    Navigator.pop(context); // Close the drawer
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const ChartsScreen()));
+                  },
+                ),
+                const Spacer(), // Pushes the exit button to the bottom
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.exit_to_app),
+                    label: const Text('Exit Game'),
+                    onPressed: () {
+                      // Implement exit game logic here
+                      // For example, navigate to main menu or close the app
+                      Navigator.of(context).popUntil((route) => route.isFirst); // Example: Pop all routes to main menu
+                    },
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size.fromHeight(50), // Make button full width
+                      backgroundColor: Colors.red.shade700,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
           body: SingleChildScrollView(
             child: Padding(

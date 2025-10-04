@@ -100,6 +100,7 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
       genre: _selectedGenre!,
       quality: quality.clamp(0, 100),
       hypeLevel: hypeLevel.clamp(0, 100),
+      streams: 0,
     );
 
     gameState.addSong(song);

@@ -199,7 +199,7 @@ class ArtistDetailScreen extends StatelessWidget {
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       onPressed: () {
-                        // Network action
+                        gameState.networkWithArtist(artist);
                       },
                       icon: const Icon(Icons.chat),
                       label: const Text('Network'),

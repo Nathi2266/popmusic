@@ -68,9 +68,11 @@ class NPCArtists {
         secondaryGenre: secondaryGenre,
         attributes: attributes,
         labelTier: labelTier,
-        money: 1000 + random.nextInt(100000),
+        money: (1000 + random.nextInt(100000)).toDouble(),
         fanCount: (attributes.popularity * 1000).toInt(),
         weeksSinceDebut: random.nextInt(520), // 0-10 years
+        releasedSongs: [],
+        releasedAlbums: [],
       ));
     }
 

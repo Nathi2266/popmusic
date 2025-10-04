@@ -14,6 +14,8 @@ class ArtistAttributes {
   double controversy;
   double wealth;
   double influence;
+  double happiness;
+  double health;
 
   ArtistAttributes({
     this.popularity = 0,
@@ -31,6 +33,8 @@ class ArtistAttributes {
     this.controversy = 0,
     this.wealth = 0,
     this.influence = 0,
+    this.happiness = 50,
+    this.health = 80,
   });
 
   Map<String, double> toMap() {
@@ -50,6 +54,8 @@ class ArtistAttributes {
       'controversy': controversy,
       'wealth': wealth,
       'influence': influence,
+      'happiness': happiness,
+      'health': health,
     };
   }
 
@@ -70,6 +76,8 @@ class ArtistAttributes {
       controversy: map['controversy'] ?? 0,
       wealth: map['wealth'] ?? 0,
       influence: map['influence'] ?? 0,
+      happiness: map['happiness'] ?? 50,
+      health: map['health'] ?? 80,
     );
   }
 
@@ -90,6 +98,8 @@ class ArtistAttributes {
       controversy: controversy,
       wealth: wealth,
       influence: influence,
+      happiness: happiness,
+      health: health,
     );
   }
 }
