@@ -1,0 +1,298 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../services/game_state_service.dart';
+import '../widgets/attribute_bar.dart';
+import '../widgets/stat_card.dart';
+import 'performance_screen.dart';
+import '../models/artist.dart'; // Import LabelTier here
+
+class DashboardScreen extends StatelessWidget {
+  const DashboardScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<GameStateService>(
+      builder: (context, gameState, child) {
+        final player = gameState.player;
+        
+        if (player == null) {
+          return const Center(
+            child: Text(
+              'No player data',
+              style: TextStyle(color: Colors.white),
+            ),
+          );
+        }
+
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(player.name),
+            backgroundColor: const Color(0xFF16213e),
+            actions: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Center(
+                  child: Text(
+                    'Week ${gameState.currentWeek + 1}, ${gameState.currentYear}',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.fast_forward),
+                onPressed: () {
+                  gameState.advanceWeek();
+                },
+                tooltip: 'Next Week',
+              ),
+            ],
+          ),
+          body: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: StatCard(
+                          title: 'Money',
+                          value: '\$${player.money}',
+                          icon: Icons.attach_money,
+                          color: const Color(0xFF4CAF50),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: StatCard(
+                          title: 'Fans',
+                          value: '${player.fanCount}',
+                          icon: Icons.people,
+                          color: const Color(0xFFe94560),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: StatCard(
+                          title: 'Label',
+                          value: _getLabelName(player.labelTier),
+                          icon: Icons.business,
+                          color: const Color(0xFF2196F3),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: StatCard(
+                          title: 'Songs',
+                          value: '${player.releasedSongs.length}',
+                          icon: Icons.music_note,
+                          color: const Color(0xFFFF9800),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  const Text(
+                    'ATTRIBUTES',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      letterSpacing: 2,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  AttributeBar(
+                    label: 'Popularity',
+                    value: player.attributes.popularity,
+                    color: const Color(0xFFe94560),
+                  ),
+                  AttributeBar(
+                    label: 'Reputation',
+                    value: player.attributes.reputation,
+                    color: const Color(0xFF4CAF50),
+                  ),
+                  AttributeBar(
+                    label: 'Performance',
+                    value: player.attributes.performance,
+                    color: const Color(0xFF2196F3),
+                  ),
+                  AttributeBar(
+                    label: 'Talent',
+                    value: player.attributes.talent,
+                    color: const Color(0xFFFF9800),
+                  ),
+                  AttributeBar(
+                    label: 'Production',
+                    value: player.attributes.production,
+                    color: const Color(0xFF9C27B0),
+                  ),
+                  AttributeBar(
+                    label: 'Songwriting',
+                    value: player.attributes.songwriting,
+                    color: const Color(0xFF00BCD4),
+                  ),
+                  AttributeBar(
+                    label: 'Charisma',
+                    value: player.attributes.charisma,
+                    color: const Color(0xFFFFEB3B),
+                  ),
+                  AttributeBar(
+                    label: 'Marketing',
+                    value: player.attributes.marketing,
+                    color: const Color(0xFF8BC34A),
+                  ),
+                  AttributeBar(
+                    label: 'Networking',
+                    value: player.attributes.networking,
+                    color: const Color(0xFF03A9F4),
+                  ),
+                  AttributeBar(
+                    label: 'Creativity',
+                    value: player.attributes.creativity,
+                    color: const Color(0xFFE91E63),
+                  ),
+                  AttributeBar(
+                    label: 'Discipline',
+                    value: player.attributes.discipline,
+                    color: const Color(0xFF607D8B),
+                  ),
+                  AttributeBar(
+                    label: 'Stamina',
+                    value: player.attributes.stamina,
+                    color: const Color(0xFFFF5722),
+                  ),
+                  AttributeBar(
+                    label: 'Controversy',
+                    value: player.attributes.controversy,
+                    color: const Color(0xFFF44336),
+                  ),
+                  AttributeBar(
+                    label: 'Wealth',
+                    value: player.attributes.wealth,
+                    color: const Color(0xFFFFD700),
+                  ),
+                  AttributeBar(
+                    label: 'Influence',
+                    value: player.attributes.influence,
+                    color: const Color(0xFF673AB7),
+                  ),
+                  const SizedBox(height: 24),
+
+                  const Text(
+                    'QUICK ACTIONS',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      letterSpacing: 2,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 12,
+                    children: [
+                      _ActionButton(
+                        label: 'Create Music',
+                        icon: Icons.music_note,
+                        onPressed: () {
+                          // Navigate to music creation
+                        },
+                      ),
+                      _ActionButton(
+                        label: 'Perform',
+                        icon: Icons.mic,
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const PerformanceScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                      _ActionButton(
+                        label: 'Network',
+                        icon: Icons.people,
+                        onPressed: () {
+                          // Navigate to networking
+                        },
+                      ),
+                      _ActionButton(
+                        label: 'Train',
+                        icon: Icons.fitness_center,
+                        onPressed: () {
+                          // Navigate to training
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  String _getLabelName(LabelTier tier) {
+    switch (tier) {
+      case LabelTier.unsigned:
+        return 'Unsigned';
+      case LabelTier.indie:
+        return 'Indie';
+      case LabelTier.major:
+        return 'Major';
+      case LabelTier.superstar:
+        return 'Superstar';
+    }
+  }
+}
+
+class _ActionButton extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  const _ActionButton({
+    required this.label,
+    required this.icon,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: const Color(0xFF2a2a3e),
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 20),
+          const SizedBox(width: 8),
+          Text(label),
+        ],
+      ),
+    );
+  }
+}
