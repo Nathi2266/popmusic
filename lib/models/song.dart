@@ -7,10 +7,14 @@ class Song {
   double weeklyListeners;
   double? lastWeekListeners;
   int weeksSinceRelease;
+  int? lastWeekRank; // Added to track rank from the previous week
+  bool isNewEntry; // Added to indicate if the song is a new entry to the charts
 
   double popularityFactor; // 0..100
   double viralFactor; // 0..100
   double salesPotential; // 0..100
+  String genre; // Added to specify the song's genre
+  List<double> listenerHistory; // Stores weekly listener counts for trend graphs
 
   Song({
     required this.id,
@@ -20,9 +24,13 @@ class Song {
     this.weeklyListeners = 0,
     this.lastWeekListeners,
     this.weeksSinceRelease = 0,
+    this.lastWeekRank, // Initialize lastWeekRank
+    this.isNewEntry = true, // New songs are initially new entries
     this.popularityFactor = 10,
     this.viralFactor = 5,
     this.salesPotential = 10,
+    this.genre = 'Pop', // Default genre
+    this.listenerHistory = const [], // Initialize as an empty list
   });
 
   Map<String, dynamic> toMap() {
@@ -34,9 +42,13 @@ class Song {
       'weeklyListeners': weeklyListeners,
       'lastWeekListeners': lastWeekListeners,
       'weeksSinceRelease': weeksSinceRelease,
+      'lastWeekRank': lastWeekRank, // Add to map
+      'isNewEntry': isNewEntry, // Add to map
       'popularityFactor': popularityFactor,
       'viralFactor': viralFactor,
       'salesPotential': salesPotential,
+      'genre': genre,
+      'listenerHistory': listenerHistory, // Add to map
     };
   }
 
@@ -49,9 +61,13 @@ class Song {
       weeklyListeners: map['weeklyListeners']?.toDouble() ?? 0.0,
       lastWeekListeners: map['lastWeekListeners']?.toDouble(),
       weeksSinceRelease: map['weeksSinceRelease'] ?? 0,
+      lastWeekRank: map['lastWeekRank']?.toInt(), // Retrieve from map
+      isNewEntry: map['isNewEntry'] ?? true, // Retrieve from map, default to true
       popularityFactor: map['popularityFactor']?.toDouble() ?? 10.0,
       viralFactor: map['viralFactor']?.toDouble() ?? 5.0,
       salesPotential: map['salesPotential']?.toDouble() ?? 10.0,
+      genre: map['genre'] ?? 'Pop',
+      listenerHistory: List<double>.from(map['listenerHistory'] ?? []), // Retrieve from map
     );
   }
 }
