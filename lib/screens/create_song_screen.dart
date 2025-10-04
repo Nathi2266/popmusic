@@ -3,7 +3,10 @@ import 'package:provider/provider.dart';
 import 'dart:math';
 import '../services/game_state_service.dart';
 import '../models/song.dart';
-import '../models/artist.dart';
+// Removed Artist import as it's no longer used directly
+// import '../models/artist.dart';
+// Removed Genre import as it's no longer used
+// import '../models/genre.dart';
 import 'songwriting_minigame_screen.dart';
 import 'production_minigame_screen.dart';
 
@@ -16,7 +19,8 @@ class CreateSongScreen extends StatefulWidget {
 
 class _CreateSongScreenState extends State<CreateSongScreen> {
   final _titleController = TextEditingController();
-  Genre? _selectedGenre;
+  // Removed _selectedGenre as genre is no longer part of Song model
+  // Genre? _selectedGenre;
   int _songwritingScore = 0;
   int _productionScore = 0;
   bool _hasPlayedSongwriting = false;
@@ -68,44 +72,47 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
       return;
     }
 
-    if (_selectedGenre == null) {
+    final gameState = Provider.of<GameStateService>(context, listen: false);
+    final player = gameState.player;
+
+    if (player == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a genre')),
+        const SnackBar(content: Text('Player data not available')),
       );
       return;
     }
 
-    final gameState = Provider.of<GameStateService>(context, listen: false);
-    final player = gameState.player;
-
-    if (player == null) return;
-
-    // Calculate song quality based on minigame scores and attributes
     final songwritingComponent = _hasPlayedSongwriting
         ? _songwritingScore
-        : player.attributes.songwriting.toInt();
+        : (player.attributes['songwriting'] ?? 0).toInt();
     final productionComponent = _hasPlayedProduction
         ? _productionScore
-        : player.attributes.production.toInt();
-    
-    final quality = ((songwritingComponent + productionComponent) / 2).toInt();
-    final hypeLevel = (player.attributes.marketing * 0.5 + 
-                       player.attributes.charisma * 0.3 + 
-                       Random().nextInt(20)).toInt();
+        : (player.attributes['production'] ?? 0).toInt();
+
+    final popularityFactor = ((songwritingComponent + productionComponent) / 2).clamp(0, 100).toDouble();
+    final viralFactor = (player.attributes['marketing'] ?? 0 * 0.5 + 
+                       (player.attributes['charisma'] ?? 0) * 0.3 + 
+                       Random().nextInt(20)).clamp(0, 100).toDouble();
+    final salesPotential = (player.attributes['networking'] ?? 0 * 0.4 + 
+                          (player.attributes['wealth'] ?? 0) * 0.3 + 
+                          Random().nextInt(30)).clamp(0, 100).toDouble();
 
     final song = Song(
       id: 'song_${DateTime.now().millisecondsSinceEpoch}',
       title: _titleController.text.trim(),
       artistId: player.id,
-      genre: _selectedGenre!,
-      quality: quality.clamp(0, 100),
-      hypeLevel: hypeLevel.clamp(0, 100),
-      streams: 0,
+      totalStreams: 0,
+      weeklyListeners: 0,
+      weeksSinceRelease: 0,
+      popularityFactor: popularityFactor,
+      viralFactor: viralFactor,
+      salesPotential: salesPotential,
     );
 
     gameState.addSong(song);
-    gameState.updatePlayerMoney(-500); // Cost to release
-    gameState.updatePlayerAttribute('stamina', -10);
+    gameState.recalculateCharts();
+    gameState.updatePlayerMoney(-500.0);
+    gameState.updatePlayerAttribute('stamina', -10.0);
 
     Navigator.pop(context);
 
@@ -121,7 +128,8 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
   Widget build(BuildContext context) {
     return Consumer<GameStateService>(
       builder: (context, gameState, child) {
-        final player = gameState.player;
+        // Removed player variable as it's no longer used directly
+        // final player = gameState.player;
 
         return Scaffold(
           appBar: AppBar(
@@ -159,38 +167,38 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // Genre Selection
-                const Text(
-                  'Genre',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  children: Genre.values.map((genre) {
-                    final isSelected = _selectedGenre == genre;
-                    return ChoiceChip(
-                      label: Text(_getGenreName(genre)),
-                      selected: isSelected,
-                      onSelected: (selected) {
-                        setState(() {
-                          _selectedGenre = genre;
-                        });
-                      },
-                      backgroundColor: const Color(0xFF2a2a3e),
-                      selectedColor: const Color(0xFFe94560),
-                      labelStyle: TextStyle(
-                        color: isSelected ? Colors.white : Colors.white70,
-                      ),
-                    );
-                  }).toList(),
-                ),
-                const SizedBox(height: 32),
+                // Removed Genre Selection
+                // const Text(
+                //   'Genre',
+                //   style: TextStyle(
+                //     fontSize: 18,
+                //     fontWeight: FontWeight.bold,
+                //     color: Colors.white,
+                //   ),
+                // ),
+                // const SizedBox(height: 12),
+                // Wrap(
+                //   spacing: 12,
+                //   runSpacing: 12,
+                //   children: Genre.values.map((genre) {
+                //     final isSelected = _selectedGenre == genre;
+                //     return ChoiceChip(
+                //       label: Text(_getGenreName(genre)),
+                //       selected: isSelected,
+                //       onSelected: (selected) {
+                //         setState(() {
+                //           _selectedGenre = genre;
+                //         });
+                //       },
+                //       backgroundColor: const Color(0xFF2a2a3e),
+                //       selectedColor: const Color(0xFFe94560),
+                //       labelStyle: TextStyle(
+                //         color: isSelected ? Colors.white : Colors.white70,
+                //       ),
+                //     );
+                //   }).toList(),
+                // ),
+                // const SizedBox(height: 32),
 
                 // Songwriting Minigame
                 _MinigameCard(
@@ -234,7 +242,7 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
                       Text(
                         '\$500',
                         style: TextStyle(
-                          color: player != null && player.money >= 500
+                          color: gameState.playerMoney >= 500
                               ? const Color(0xFF4CAF50)
                               : const Color(0xFFF44336),
                           fontSize: 18,
@@ -250,7 +258,7 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
                 SizedBox(
                   height: 60,
                   child: ElevatedButton(
-                    onPressed: player != null && player.money >= 500
+                    onPressed: gameState.playerMoney >= 500
                         ? _releaseSong
                         : null,
                     style: ElevatedButton.styleFrom(
@@ -279,30 +287,31 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
     );
   }
 
-  String _getGenreName(Genre genre) {
-    switch (genre) {
-      case Genre.pop:
-        return 'Pop';
-      case Genre.rock:
-        return 'Rock';
-      case Genre.hiphop:
-        return 'Hip Hop';
-      case Genre.rnb:
-        return 'R&B';
-      case Genre.electronic:
-        return 'Electronic';
-      case Genre.indie:
-        return 'Indie';
-      case Genre.country:
-        return 'Country';
-      case Genre.jazz:
-        return 'Jazz';
-      case Genre.latin:
-        return 'Latin';
-      case Genre.kpop:
-        return 'K-Pop';
-    }
-  }
+  // Removed _getGenreName as genre is no longer part of Song model
+  // String _getGenreName(Genre genre) {
+  //   switch (genre) {
+  //     case Genre.pop:
+  //       return 'Pop';
+  //     case Genre.rock:
+  //       return 'Rock';
+  //     case Genre.hiphop:
+  //       return 'Hip Hop';
+  //     case Genre.rnb:
+  //       return 'R&B';
+  //     case Genre.electronic:
+  //       return 'Electronic';
+  //     case Genre.indie:
+  //       return 'Indie';
+  //     case Genre.country:
+  //       return 'Country';
+  //     case Genre.jazz:
+  //       return 'Jazz';
+  //     case Genre.latin:
+  //       return 'Latin';
+  //     case Genre.kpop:
+  //       return 'K-Pop';
+  //   }
+  // }
 }
 
 class _MinigameCard extends StatelessWidget {

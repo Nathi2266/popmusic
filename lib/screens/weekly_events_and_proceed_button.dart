@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/game_state_service.dart';
-import '../models/summary_models.dart';
 import '../models/event.dart';
+import '../models/song.dart'; // Added import for Song model
 
 // -----------------------------
 // UI: ProceedWeekButton + EventPopup
@@ -18,7 +18,7 @@ Widget build(BuildContext context) {
    label: const Text('Proceed Week'),
    onPressed: () async {
      final game = Provider.of<GameStateService>(context, listen: false);
-     game.advanceWeek();
+     game.proceedWeek();
      await showDialog(
        context: context,
        builder: (_) => ChangeNotifierProvider.value(
@@ -38,8 +38,9 @@ const EventPopup({super.key});
 Widget build(BuildContext context) {
  final game = Provider.of<GameStateService>(context);
  final events = game.lastWeekEvents;
- final activities = game.lastWeekActivities;
- final topCharts = game.worldSongs.take(5).toList();
+ // Removed activities as it's no longer used
+ // final activities = game.lastWeekActivities;
+ final topCharts = game.getTopSongs(5); // Changed to use getTopSongs and return Song objects
 
  return Dialog(
    insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
@@ -54,7 +55,7 @@ Widget build(BuildContext context) {
              children: [
                const Icon(Icons.event_note),
                const SizedBox(width: 10),
-               Expanded(child: Text('Week ${game.weekOfMonth} • Month ${game.currentMonth} • ${game.currentYear}', style: const TextStyle(fontWeight: FontWeight.bold))),
+               Expanded(child: Text('Week ${game.weekOfMonth} • Month ${game.month} • ${game.year}', style: const TextStyle(fontWeight: FontWeight.bold))),
                TextButton(
                  onPressed: () => Navigator.of(context).pop(),
                  child: const Text('Close'),
@@ -73,18 +74,19 @@ Widget build(BuildContext context) {
                      const Text('Events', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
                      ...events.map((e) => _buildEventCard(e)),
                    ],
-                   if (activities.isNotEmpty) ...[
-                     const Text('Artist Activities', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                     ...activities.map((a) => _buildActivityRow(a)),
-                   ],
+                   // Removed Artist Activities section
+                   // if (activities.isNotEmpty) ...[
+                   //   const Text('Artist Activities', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                   //   ...activities.map((a) => _buildActivityRow(a)),
+                   // ],
                    const Text('Top Charts', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                   ...topCharts.map((s) => _buildChartRow(s)),
+                   ...topCharts.map((s) => _buildChartRow(s, game)), // Pass game to access artist info
                    const Text('Player Summary', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                   Text('${game.player!.name} • Money: \$${game.player!.money.toStringAsFixed(0)}'),
+                   Text('${game.player!.name} • Money: \$${game.playerMoney.toStringAsFixed(0)}'), // Updated money access
                    Wrap(
                      spacing: 8,
                      runSpacing: 6,
-                     children: game.player!.attributes.toMap().entries.map((e) => Chip(label: Text('${e.key}: ${e.value.toStringAsFixed(0)}%'))).toList(),
+                     children: game.player!.attributes.entries.map((e) => Chip(label: Text('${e.key}: ${e.value.toStringAsFixed(0)}%'))).toList(), // Updated attribute access
                    ),
                  ],
                ),
@@ -124,21 +126,24 @@ Widget _buildEventCard(GameEvent e) {
  );
 }
 
-Widget _buildActivityRow(ArtistActivity a) {
- return ListTile(
-   dense: true,
-   leading: const Icon(Icons.person),
-   title: Text(a.artistName),
-   subtitle: Text(a.activity),
- );
-}
+// Removed _buildActivityRow
+// Widget _buildActivityRow(ArtistActivity a) {
+//   return ListTile(
+//     dense: true,
+//     leading: const Icon(Icons.person),
+//     title: Text(a.artistName),
+//     subtitle: Text(a.activity),
+//   );
+// }
 
-Widget _buildChartRow(SongSummary s) {
- return ListTile(
-   dense: true,
-   leading: const Icon(Icons.music_note),
-   title: Text(s.title),
-   subtitle: Text('${s.artistName} • ${s.streams.toStringAsFixed(0)} streams'),
- );
+Widget _buildChartRow(Song s, GameStateService game) { // Changed to Song and added GameStateService parameter
+  final artist = game.getArtistById(s.artistId);
+  return ListTile(
+    dense: true,
+    leading: const Icon(Icons.music_note),
+    title: Text(s.title),
+    subtitle: Text('${artist?.name ?? 'Unknown Artist'} • ${s.weeklyListeners.toStringAsFixed(0)} listeners'), // Updated to weeklyListeners
+    trailing: Text('${s.totalStreams.toStringAsFixed(0)} streams'), // Updated to totalStreams
+  );
 }
 }

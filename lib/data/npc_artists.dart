@@ -1,5 +1,4 @@
 import '../models/artist.dart';
-import '../models/artist_attributes.dart';
 import 'dart:math';
 
 class NPCArtists {
@@ -32,62 +31,56 @@ class NPCArtists {
     final List<Artist> npcs = [];
 
     for (int i = 0; i < 100; i++) {
-      final attributes = ArtistAttributes(
-        popularity: random.nextDouble() * 100,
-        reputation: 30 + random.nextDouble() * 70,
-        performance: 30 + random.nextDouble() * 70,
-        talent: 30 + random.nextDouble() * 70,
-        production: 30 + random.nextDouble() * 70,
-        songwriting: 30 + random.nextDouble() * 70,
-        charisma: 30 + random.nextDouble() * 70,
-        marketing: 30 + random.nextDouble() * 70,
-        networking: 30 + random.nextDouble() * 70,
-        creativity: 30 + random.nextDouble() * 70,
-        discipline: 30 + random.nextDouble() * 70,
-        stamina: 30 + random.nextDouble() * 70,
-        controversy: random.nextDouble() * 50,
-        wealth: random.nextDouble() * 100,
-        influence: random.nextDouble() * 100,
-      );
+      final Map<String, double> attributes = {
+        'popularity': random.nextDouble() * 100,
+        'reputation': 30 + random.nextDouble() * 70,
+        'performance': 30 + random.nextDouble() * 70,
+        'talent': 30 + random.nextDouble() * 70,
+        'production': 30 + random.nextDouble() * 70,
+        'songwriting': 30 + random.nextDouble() * 70,
+        'charisma': 30 + random.nextDouble() * 70,
+        'marketing': 30 + random.nextDouble() * 70,
+        'networking': 30 + random.nextDouble() * 70,
+        'creativity': 30 + random.nextDouble() * 70,
+        'discipline': 30 + random.nextDouble() * 70,
+        'stamina': 30 + random.nextDouble() * 70,
+        'controversy': random.nextDouble() * 50,
+        'wealth': random.nextDouble() * 100,
+        'influence': random.nextDouble() * 100,
+        'happiness': 50 + random.nextDouble() * 50, // Added happiness
+        'fan_connection': 10 + random.nextDouble() * 90, // Added fan_connection
+      };
 
-      final primaryGenre = Genre.values[random.nextInt(Genre.values.length)];
-      final hasSecondaryGenre = random.nextBool();
-      Genre? secondaryGenre;
-      if (hasSecondaryGenre) {
-        secondaryGenre = Genre.values[random.nextInt(Genre.values.length)];
-        if (secondaryGenre == primaryGenre) secondaryGenre = null;
-      }
-
-      final labelTier = _getRandomLabelTier(random, attributes.popularity);
+      // Removed Genre and LabelTier related code as they are no longer in Artist model
+      // final primaryGenre = Genre.values[random.nextInt(Genre.values.length)];
+      // final hasSecondaryGenre = random.nextBool();
+      // Genre? secondaryGenre;
+      // if (hasSecondaryGenre) {
+      //   secondaryGenre = Genre.values[random.nextInt(Genre.values.length)];
+      //   if (secondaryGenre == primaryGenre) secondaryGenre = null;
+      // }
+      // final labelTier = _getRandomLabelTier(random, attributes.popularity);
 
       npcs.add(Artist(
         id: 'npc_$i',
         name: artistNames[i],
-        isPlayer: false,
-        primaryGenre: primaryGenre,
-        secondaryGenre: secondaryGenre,
         attributes: attributes,
-        labelTier: labelTier,
-        money: (1000 + random.nextInt(100000)).toDouble(),
-        fanCount: (attributes.popularity * 1000).toInt(),
-        weeksSinceDebut: random.nextInt(520), // 0-10 years
-        releasedSongs: [],
-        releasedAlbums: [],
       ));
     }
 
     return npcs;
   }
 
-  static LabelTier _getRandomLabelTier(Random random, double popularity) {
-    if (popularity > 80) {
-      return random.nextBool() ? LabelTier.superstar : LabelTier.major;
-    } else if (popularity > 50) {
-      return random.nextBool() ? LabelTier.major : LabelTier.indie;
-    } else if (popularity > 20) {
-      return random.nextBool() ? LabelTier.indie : LabelTier.unsigned;
-    } else {
-      return LabelTier.unsigned;
-    }
-  }
+  // Removed _getRandomLabelTier as LabelTier is no longer in Artist model
+  // static LabelTier _getRandomLabelTier(Random random, double popularity) {
+  //   if (popularity > 80) {
+  //     return random.nextBool() ? LabelTier.superstar : LabelTier.major;
+  //   } else if (popularity > 50) {
+  //     return random.nextBool() ? LabelTier.major : LabelTier.indie;
+  //   } else if (popularity > 20) {
+  //     return random.nextBool() ? LabelTier.indie : LabelTier.unsigned;
+  //   } else {
+  //     return LabelTier.unsigned;
+  //   }
+  // }
 }

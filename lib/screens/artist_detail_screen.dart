@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/game_state_service.dart';
-import '../models/artist.dart';
+import '../models/song.dart'; // Added Song import
 import '../widgets/attribute_bar.dart';
+// Removed Genre import
+// import '../models/genre.dart';
 
 class ArtistDetailScreen extends StatelessWidget {
   final String artistId;
@@ -16,13 +18,18 @@ class ArtistDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<GameStateService>(
       builder: (context, gameState, child) {
-        final artist = gameState.npcs.firstWhere(
-          (a) => a.id == artistId,
-          orElse: () => gameState.npcs.first,
-        );
+        final artist = gameState.getArtistById(artistId); // Use getArtistById
 
-        final player = gameState.player;
-        final relationship = player?.relationships[artistId] ?? 0;
+        if (artist == null) {
+          return Scaffold( // Removed const here
+            appBar: AppBar(title: const Text('Artist Not Found')),
+            body: const Center(child: Text('Artist data not available')),
+          );
+        }
+        
+        // Removed player and relationship logic
+        // final player = gameState.player;
+        // final relationship = player?.relationships[artistId] ?? 0;
 
         return Scaffold(
           appBar: AppBar(
@@ -41,7 +48,7 @@ class ArtistDetailScreen extends StatelessWidget {
                       children: [
                         CircleAvatar(
                           radius: 60,
-                          backgroundColor: _getGenreColor(artist.primaryGenre),
+                          backgroundColor: Colors.blueAccent, // Generic color since genre is removed
                           child: Text(
                             artist.name[0],
                             style: const TextStyle(
@@ -61,13 +68,14 @@ class ArtistDetailScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        Text(
-                          _getGenreName(artist.primaryGenre),
-                          style: const TextStyle(
-                            fontSize: 18,
-                            color: Colors.white70,
-                          ),
-                        ),
+                        // Removed genre display
+                        // Text(
+                        //   _getGenreName(artist.primaryGenre),
+                        //   style: const TextStyle(
+                        //     fontSize: 18,
+                        //     color: Colors.white70,
+                        //   ),
+                        // ),
                       ],
                     ),
                   ),
@@ -79,19 +87,19 @@ class ArtistDetailScreen extends StatelessWidget {
                     children: [
                       _StatColumn(
                         label: 'Popularity',
-                        value: '${artist.attributes.popularity.toInt()}',
+                        value: '${(artist.attributes['popularity'] ?? 0).toInt()}',
                         icon: Icons.star,
                         color: Colors.amber,
                       ),
                       _StatColumn(
                         label: 'Fans',
-                        value: '${artist.fanCount}',
+                        value: '${(artist.attributes['fan_connection'] ?? 0 * 100).toInt()}',
                         icon: Icons.people,
                         color: Colors.blue,
                       ),
                       _StatColumn(
                         label: 'Songs',
-                        value: '${artist.releasedSongs.length}',
+                        value: '${gameState.worldSongs.where((s) => s.artistId == artist.id).length}',
                         icon: Icons.music_note,
                         color: Colors.purple,
                       ),
@@ -99,38 +107,52 @@ class ArtistDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
 
-                  // Relationship
-                  if (player != null) ...[
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF2a2a3e),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'Relationship',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text(
-                            _getRelationshipText(relationship),
-                            style: TextStyle(
-                              color: _getRelationshipColor(relationship),
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
+                  // Removed Relationship section
+                  // if (player != null) ...[
+                  //   Container(
+                  //     padding: const EdgeInsets.all(16),
+                  //     decoration: BoxDecoration(
+                  //       color: const Color(0xFF2a2a3e),
+                  //       borderRadius: BorderRadius.circular(12),
+                  //     ),
+                  //     child: Row(
+                  //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  //       children: [
+                  //         const Text(
+                  //           'Relationship',
+                  //           style: TextStyle(
+                  //             color: Colors.white,
+                  //             fontSize: 16,
+                  //             fontWeight: FontWeight.bold,
+                  //           ),
+                  //         ),
+                  //         Text(
+                  //           _getRelationshipText(relationship),
+                  //           style: TextStyle(
+                  //             color: _getRelationshipColor(relationship),
+                  //             fontSize: 16,
+                  //             fontWeight: FontWeight.bold,
+                  //           ),
+                  //         ),
+                  //       ],
+                  //     ),
+                  //   ),
+                  //   const SizedBox(height: 24),
+                  // ],
+
+                  // Artist Songs
+                  const Text(
+                    'SONGS',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      letterSpacing: 2,
                     ),
-                    const SizedBox(height: 24),
-                  ],
+                  ),
+                  const SizedBox(height: 16),
+                  _buildArtistSongsList(gameState.worldSongs.where((s) => s.artistId == artist.id).toList(), gameState),
+                  const SizedBox(height: 24),
 
                   // Attributes
                   const Text(
@@ -144,24 +166,89 @@ class ArtistDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   AttributeBar(
+                    label: 'Popularity',
+                    value: artist.attributes['popularity'] ?? 0,
+                    color: const Color(0xFFe94560),
+                  ),
+                  AttributeBar(
+                    label: 'Reputation',
+                    value: artist.attributes['reputation'] ?? 0,
+                    color: const Color(0xFF4CAF50),
+                  ),
+                  AttributeBar(
                     label: 'Performance',
-                    value: artist.attributes.performance,
+                    value: artist.attributes['performance'] ?? 0,
                     color: const Color(0xFF2196F3),
                   ),
                   AttributeBar(
                     label: 'Talent',
-                    value: artist.attributes.talent,
+                    value: artist.attributes['talent'] ?? 0,
                     color: const Color(0xFFFF9800),
                   ),
                   AttributeBar(
+                    label: 'Production',
+                    value: artist.attributes['production'] ?? 0,
+                    color: const Color(0xFF9C27B0),
+                  ),
+                  AttributeBar(
+                    label: 'Songwriting',
+                    value: artist.attributes['songwriting'] ?? 0,
+                    color: const Color(0xFF00BCD4),
+                  ),
+                  AttributeBar(
                     label: 'Charisma',
-                    value: artist.attributes.charisma,
+                    value: artist.attributes['charisma'] ?? 0,
                     color: const Color(0xFFFFEB3B),
                   ),
                   AttributeBar(
+                    label: 'Marketing',
+                    value: artist.attributes['marketing'] ?? 0,
+                    color: const Color(0xFF8BC34A),
+                  ),
+                  AttributeBar(
+                    label: 'Networking',
+                    value: artist.attributes['networking'] ?? 0,
+                    color: const Color(0xFF03A9F4),
+                  ),
+                  AttributeBar(
                     label: 'Creativity',
-                    value: artist.attributes.creativity,
+                    value: artist.attributes['creativity'] ?? 0,
                     color: const Color(0xFFE91E63),
+                  ),
+                  AttributeBar(
+                    label: 'Discipline',
+                    value: artist.attributes['discipline'] ?? 0,
+                    color: const Color(0xFF607D8B),
+                  ),
+                  AttributeBar(
+                    label: 'Stamina',
+                    value: artist.attributes['stamina'] ?? 0,
+                    color: const Color(0xFFFF5722),
+                  ),
+                  AttributeBar(
+                    label: 'Controversy',
+                    value: artist.attributes['controversy'] ?? 0,
+                    color: const Color(0xFFF44336),
+                  ),
+                  AttributeBar(
+                    label: 'Wealth',
+                    value: artist.attributes['wealth'] ?? 0,
+                    color: const Color(0xFFFFD700),
+                  ),
+                  AttributeBar(
+                    label: 'Influence',
+                    value: artist.attributes['influence'] ?? 0,
+                    color: const Color(0xFF673AB7),
+                  ),
+                  AttributeBar(
+                    label: 'Happiness',
+                    value: artist.attributes['happiness'] ?? 0,
+                    color: const Color(0xFF00C853),
+                  ),
+                  AttributeBar(
+                    label: 'Fan Connection',
+                    value: artist.attributes['fan_connection'] ?? 0,
+                    color: const Color(0xFFE040FB),
                   ),
                   const SizedBox(height: 24),
 
@@ -199,7 +286,10 @@ class ArtistDetailScreen extends StatelessWidget {
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       onPressed: () {
-                        gameState.networkWithArtist(artist);
+                        // gameState.networkWithArtist(artist); // Removed as relationships are no longer tracked in this way
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Networking with ${artist.name} (action not fully implemented)')),
+                        );
                       },
                       icon: const Icon(Icons.chat),
                       label: const Text('Network'),
@@ -222,69 +312,33 @@ class ArtistDetailScreen extends StatelessWidget {
     );
   }
 
-  String _getGenreName(Genre genre) {
-    switch (genre) {
-      case Genre.pop:
-        return 'Pop';
-      case Genre.rock:
-        return 'Rock';
-      case Genre.hiphop:
-        return 'Hip Hop';
-      case Genre.rnb:
-        return 'R&B';
-      case Genre.electronic:
-        return 'Electronic';
-      case Genre.indie:
-        return 'Indie';
-      case Genre.country:
-        return 'Country';
-      case Genre.jazz:
-        return 'Jazz';
-      case Genre.latin:
-        return 'Latin';
-      case Genre.kpop:
-        return 'K-Pop';
+  // Removed _getGenreName, _getGenreColor, _getRelationshipText, _getRelationshipColor
+  // String _getGenreName(Genre genre) { ... }
+  // Color _getGenreColor(Genre genre) { ... }
+  // String _getRelationshipText(int value) { ... }
+  // Color _getRelationshipColor(int value) { ... }
+
+  Widget _buildArtistSongsList(List<Song> songs, GameStateService gameState) {
+    if (songs.isEmpty) {
+      return const Text(
+        'No songs released yet.',
+        style: TextStyle(color: Colors.white70),
+      );
     }
-  }
-
-  Color _getGenreColor(Genre genre) {
-    switch (genre) {
-      case Genre.pop:
-        return const Color(0xFFe94560);
-      case Genre.rock:
-        return const Color(0xFF8B4513);
-      case Genre.hiphop:
-        return const Color(0xFF9C27B0);
-      case Genre.rnb:
-        return const Color(0xFFFF6B9D);
-      case Genre.electronic:
-        return const Color(0xFF00BCD4);
-      case Genre.indie:
-        return const Color(0xFF8BC34A);
-      case Genre.country:
-        return const Color(0xFFFF9800);
-      case Genre.jazz:
-        return const Color(0xFF673AB7);
-      case Genre.latin:
-        return const Color(0xFFF44336);
-      case Genre.kpop:
-        return const Color(0xFFE91E63);
-    }
-  }
-
-  String _getRelationshipText(int value) {
-    if (value >= 80) return 'Best Friends';
-    if (value >= 50) return 'Friends';
-    if (value >= 20) return 'Acquaintances';
-    if (value >= -20) return 'Neutral';
-    if (value >= -50) return 'Dislike';
-    return 'Rivals';
-  }
-
-  Color _getRelationshipColor(int value) {
-    if (value >= 50) return const Color(0xFF4CAF50);
-    if (value >= 0) return const Color(0xFF2196F3);
-    return const Color(0xFFF44336);
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: songs.length,
+      itemBuilder: (context, index) {
+        final song = songs[index];
+        return ListTile(
+          title: Text(song.title, style: const TextStyle(color: Colors.white)),
+          subtitle: Text('Weekly Listeners: ${song.weeklyListeners.toStringAsFixed(0)} • Total Streams: ${song.totalStreams.toStringAsFixed(0)}',
+              style: const TextStyle(color: Colors.white70)),
+          trailing: Text('Weeks: ${song.weeksSinceRelease}', style: const TextStyle(color: Colors.white70)),
+        );
+      },
+    );
   }
 }
 

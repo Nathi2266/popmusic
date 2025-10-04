@@ -12,7 +12,7 @@ class MusicScreen extends StatelessWidget {
     return Consumer<GameStateService>(
       builder: (context, gameState, child) {
         final player = gameState.player;
-        final playerSongs = gameState.allSongs
+        final playerSongs = gameState.worldSongs // Changed from allSongs to worldSongs
             .where((song) => song.artistId == player?.id)
             .toList();
 
@@ -155,7 +155,7 @@ class _SongCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Week ${song.weeksSinceRelease}',
+                        'Weeks: ${song.weeksSinceRelease} • Weekly: ${song.weeklyListeners.toStringAsFixed(0)} listeners',
                         style: const TextStyle(
                           color: Colors.white70,
                           fontSize: 14,
@@ -170,15 +170,15 @@ class _SongCard extends StatelessWidget {
                     Row(
                       children: [
                         const Icon(
-                          Icons.star,
+                          Icons.show_chart,
                           size: 16,
-                          color: Colors.amber,
+                          color: Colors.lightGreenAccent,
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          '${song.quality}',
+                          '${song.popularityFactor.toStringAsFixed(0)}%',
                           style: const TextStyle(
-                            color: Colors.amber,
+                            color: Colors.lightGreenAccent,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
@@ -187,7 +187,7 @@ class _SongCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${song.streams} streams',
+                      'Total Streams: ${song.totalStreams.toStringAsFixed(0)}',
                       style: const TextStyle(
                         color: Colors.white54,
                         fontSize: 12,
@@ -199,7 +199,7 @@ class _SongCard extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             LinearProgressIndicator(
-              value: song.hypeLevel / 100,
+              value: (song.viralFactor.clamp(0.0, 100.0) / 100), // Use viralFactor
               backgroundColor: const Color(0xFF1a1a2e),
               valueColor: const AlwaysStoppedAnimation<Color>(
                 Color(0xFFe94560),
@@ -207,7 +207,7 @@ class _SongCard extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              'Hype: ${song.hypeLevel}%',
+              'Viral Factor: ${song.viralFactor.toStringAsFixed(1)}%',
               style: const TextStyle(
                 color: Colors.white54,
                 fontSize: 12,

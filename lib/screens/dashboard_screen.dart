@@ -4,7 +4,7 @@ import '../services/game_state_service.dart';
 import '../widgets/attribute_bar.dart';
 import '../widgets/stat_card.dart';
 import 'performance_screen.dart';
-import '../models/artist.dart'; // Import LabelTier here
+import '../models/song.dart'; // Added import for Song model
 import 'weekly_events_and_proceed_button.dart';
 import 'charts_screen.dart'; // Import the new ChartsScreen
 
@@ -15,7 +15,7 @@ class DashboardScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<GameStateService>(
       builder: (context, gameState, child) {
-        final player = gameState.player;
+        final player = gameState.player; // Assuming player is still accessible, but its structure has changed.
         
         if (player == null) {
           return const Center(
@@ -42,14 +42,16 @@ class DashboardScreen extends StatelessWidget {
               },
             ),
             actions: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Center(
-                  child: Text(
-                    'Week ${gameState.weekOfMonth}, Month ${gameState.currentMonth}, ${gameState.currentYear}',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+              Expanded( // Wrap Padding in Expanded
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Center(
+                    child: Text(
+                      'Week ${gameState.weekOfMonth}, Month ${gameState.month}, ${gameState.year}',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
@@ -109,7 +111,7 @@ class DashboardScreen extends StatelessWidget {
                       Expanded(
                         child: StatCard(
                           title: 'Money',
-                          value: '\$${player.money}',
+                          value: '\$${gameState.playerMoney.toStringAsFixed(0)}',
                           icon: Icons.attach_money,
                           color: const Color(0xFF4CAF50),
                         ),
@@ -118,7 +120,7 @@ class DashboardScreen extends StatelessWidget {
                       Expanded(
                         child: StatCard(
                           title: 'Fans',
-                          value: '${player.fanCount}',
+                          value: '${gameState.playerFanCount}',
                           icon: Icons.people,
                           color: const Color(0xFFe94560),
                         ),
@@ -128,11 +130,13 @@ class DashboardScreen extends StatelessWidget {
                   const SizedBox(height: 12),
                   Row(
                     children: [
+                      // ignore: prefer_const_constructors
                       Expanded(
-                        child: StatCard(
+                        child: const StatCard(
                           title: 'Label',
-                          value: _getLabelName(player.labelTier),
+                          value: 'Unsigned', // Player starts unsigned
                           icon: Icons.business,
+                          // ignore: unnecessary_const
                           color: const Color(0xFF2196F3),
                         ),
                       ),
@@ -140,13 +144,31 @@ class DashboardScreen extends StatelessWidget {
                       Expanded(
                         child: StatCard(
                           title: 'Songs',
-                          value: '${player.releasedSongs.length}',
+                          value: '${gameState.worldSongs.where((s) => s.artistId == player.id).length}',
                           icon: Icons.music_note,
                           color: const Color(0xFFFF9800),
                         ),
                       ),
                     ],
                   ),
+                  const SizedBox(height: 24),
+
+                  // Display Top 3 Songs
+                  const Text(
+                    'TOP 3 SONGS',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      letterSpacing: 2,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    height: 250, // Fixed height to prevent overflow for a few entries
+                    child: _buildTopSongsList(gameState.getTopSongs(3), context),
+                  ),
+
                   const SizedBox(height: 24),
 
                   const Text(
@@ -162,77 +184,77 @@ class DashboardScreen extends StatelessWidget {
 
                   AttributeBar(
                     label: 'Popularity',
-                    value: player.attributes.popularity,
+                    value: player.attributes['popularity'] ?? 0,
                     color: const Color(0xFFe94560),
                   ),
                   AttributeBar(
                     label: 'Reputation',
-                    value: player.attributes.reputation,
+                    value: player.attributes['reputation'] ?? 0,
                     color: const Color(0xFF4CAF50),
                   ),
                   AttributeBar(
                     label: 'Performance',
-                    value: player.attributes.performance,
+                    value: player.attributes['performance'] ?? 0,
                     color: const Color(0xFF2196F3),
                   ),
                   AttributeBar(
                     label: 'Talent',
-                    value: player.attributes.talent,
+                    value: player.attributes['talent'] ?? 0,
                     color: const Color(0xFFFF9800),
                   ),
                   AttributeBar(
                     label: 'Production',
-                    value: player.attributes.production,
+                    value: player.attributes['production'] ?? 0,
                     color: const Color(0xFF9C27B0),
                   ),
                   AttributeBar(
                     label: 'Songwriting',
-                    value: player.attributes.songwriting,
+                    value: player.attributes['songwriting'] ?? 0,
                     color: const Color(0xFF00BCD4),
                   ),
                   AttributeBar(
                     label: 'Charisma',
-                    value: player.attributes.charisma,
+                    value: player.attributes['charisma'] ?? 0,
                     color: const Color(0xFFFFEB3B),
                   ),
                   AttributeBar(
                     label: 'Marketing',
-                    value: player.attributes.marketing,
+                    value: player.attributes['marketing'] ?? 0,
                     color: const Color(0xFF8BC34A),
                   ),
                   AttributeBar(
                     label: 'Networking',
-                    value: player.attributes.networking,
+                    value: player.attributes['networking'] ?? 0,
                     color: const Color(0xFF03A9F4),
                   ),
                   AttributeBar(
                     label: 'Creativity',
-                    value: player.attributes.creativity,
+                    value: player.attributes['creativity'] ?? 0,
                     color: const Color(0xFFE91E63),
                   ),
                   AttributeBar(
                     label: 'Discipline',
-                    value: player.attributes.discipline,
+                    value: player.attributes['discipline'] ?? 0,
                     color: const Color(0xFF607D8B),
                   ),
                   AttributeBar(
                     label: 'Stamina',
-                    value: player.attributes.stamina,
+                    value: player.attributes['stamina'] ?? 0,
                     color: const Color(0xFFFF5722),
                   ),
                   AttributeBar(
                     label: 'Controversy',
-                    value: player.attributes.controversy,
+                    value: player.attributes['controversy'] ?? 0,
                     color: const Color(0xFFF44336),
                   ),
                   AttributeBar(
                     label: 'Wealth',
-                    value: player.attributes.wealth,
+                    value: player.attributes['wealth'] ?? 0,
                     color: const Color(0xFFFFD700),
                   ),
                   AttributeBar(
                     label: 'Influence',
-                    value: player.attributes.influence,
+                    value: player.attributes['influence'] ?? 0,
                     color: const Color(0xFF673AB7),
                   ),
                   const SizedBox(height: 24),
@@ -296,19 +318,45 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  String _getLabelName(LabelTier tier) {
-    switch (tier) {
-      case LabelTier.unsigned:
-        return 'Unsigned';
-      case LabelTier.indie:
-        return 'Indie';
-      case LabelTier.major:
-        return 'Major';
-      case LabelTier.superstar:
-        return 'Superstar';
+  Widget _buildTopSongsList(List<Song> songs, BuildContext context) {
+    if (songs.isEmpty) {
+      return const Text(
+        'No songs on the charts yet.',
+        style: TextStyle(color: Colors.white70),
+      );
     }
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: songs.length,
+      itemBuilder: (context, index) {
+        final song = songs[index];
+        final artist = Provider.of<GameStateService>(context, listen: false).getArtistById(song.artistId);
+        return ListTile(
+          leading: CircleAvatar(child: Text('#${index + 1}')),
+          title: Text(song.title, style: const TextStyle(color: Colors.white)),
+          subtitle: Text('${artist?.name ?? 'Unknown Artist'} - ${song.weeklyListeners.toStringAsFixed(0)} listeners',
+              style: const TextStyle(color: Colors.white70)),
+          trailing: Text('${song.totalStreams.toStringAsFixed(0)} streams', style: const TextStyle(color: Colors.white70)),
+        );
+      },
+    );
   }
 }
+
+// Remove _getLabelName as LabelTier is no longer in Artist model
+// String _getLabelName(LabelTier tier) {
+//   switch (tier) {
+//     case LabelTier.unsigned:
+//       return 'Unsigned';
+//     case LabelTier.indie:
+//       return 'Indie';
+//     case LabelTier.major:
+//       return 'Major';
+//     case LabelTier.superstar:
+//       return 'Superstar';
+//   }
+// }
 
 class _ActionButton extends StatelessWidget {
   final String label;

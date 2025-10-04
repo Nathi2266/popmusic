@@ -3,7 +3,6 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'screens/main_menu_screen.dart';
 import 'services/game_state_service.dart';
-import 'data/npc_artists.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,7 +21,8 @@ class PopMusicGame extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (_) {
         final gameService = GameStateService();
-        gameService.initializeWorld(NPCArtists.artistNames);
+        // Removed initializeWorld call as it's no longer needed.
+        // gameService.initializeWorld(NPCArtists.artistNames);
         return gameService;
       },
       child: MaterialApp(

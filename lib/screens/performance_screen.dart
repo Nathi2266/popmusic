@@ -23,7 +23,7 @@ class PerformanceScreen extends StatelessWidget {
         }
 
         final availableVenues = VenueData.venues
-            .where((v) => v.popularityRequired <= player.attributes.popularity)
+            .where((v) => v.popularityRequired <= (player.attributes['popularity'] ?? 0))
             .toList();
 
         return Scaffold(
@@ -48,19 +48,19 @@ class PerformanceScreen extends StatelessWidget {
                       children: [
                         _StatItem(
                           label: 'Performance',
-                          value: '${player.attributes.performance.toInt()}',
+                          value: '${(player.attributes['performance'] ?? 0).toInt()}',
                           icon: Icons.mic,
                           color: const Color(0xFF2196F3),
                         ),
                         _StatItem(
                           label: 'Stamina',
-                          value: '${player.attributes.stamina.toInt()}',
+                          value: '${(player.attributes['stamina'] ?? 0).toInt()}',
                           icon: Icons.battery_full,
                           color: const Color(0xFF4CAF50),
                         ),
                         _StatItem(
                           label: 'Charisma',
-                          value: '${player.attributes.charisma.toInt()}',
+                          value: '${(player.attributes['charisma'] ?? 0).toInt()}',
                           icon: Icons.star,
                           color: const Color(0xFFFFEB3B),
                         ),
@@ -86,7 +86,7 @@ class PerformanceScreen extends StatelessWidget {
                 venue: venue,
                 player: player,
                 onPerform: () async {
-                  if (player.attributes.stamina < 20) {
+                  if ((player.attributes['stamina'] ?? 0) < 20) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text('Not enough stamina!'),
@@ -125,7 +125,7 @@ class PerformanceScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 ...VenueData.venues
-                    .where((v) => v.popularityRequired > player.attributes.popularity)
+                    .where((v) => v.popularityRequired > (player.attributes['popularity'] ?? 0))
                     .map((venue) => _LockedVenueCard(venue: venue)),
               ],
             ],
@@ -141,23 +141,21 @@ class PerformanceScreen extends StatelessWidget {
     Venue venue,
     int performanceScore,
   ) {
-    final player = gameState.player!;
+    // final player = gameState.player!;
     
     // Calculate earnings
     final performanceMultiplier = performanceScore / 100;
     final earnings = (venue.basePay * performanceMultiplier).toInt();
     
-    // Calculate fan gain
     final fanGain = (venue.capacity * 0.1 * performanceMultiplier).toInt();
     
-    // Update player
-    gameState.updatePlayerMoney(earnings);
-    player.fanCount += fanGain;
-    gameState.updatePlayerAttribute('performance', performanceScore > 70 ? 1 : 0.5);
-    gameState.updatePlayerAttribute('stamina', -20);
-    gameState.updatePlayerAttribute('popularity', fanGain / 100);
+    gameState.updatePlayerMoney(earnings.toDouble()); // Cast to double
+    gameState.updatePlayerFanCount(fanGain);
+    gameState.updatePlayerAttribute('performance', performanceScore > 70 ? 1.0 : 0.5); // Cast to double
+    gameState.updatePlayerAttribute('stamina', -20.0); // Cast to double
+    gameState.updatePlayerAttribute('popularity', fanGain / 100.0); // Cast to double
+    gameState.recalculateCharts(); // Recalculate charts after performance
     
-    // Show results
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -326,7 +324,7 @@ class _VenueCard extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: player.attributes.stamina >= 20 ? onPerform : null,
+                onPressed: (player.attributes['stamina'] ?? 0) >= 20 ? onPerform : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFe94560),
                   foregroundColor: Colors.white,
@@ -337,7 +335,7 @@ class _VenueCard extends StatelessWidget {
                   ),
                 ),
                 child: Text(
-                  player.attributes.stamina >= 20
+                  (player.attributes['stamina'] ?? 0) >= 20
                       ? 'PERFORM'
                       : 'NOT ENOUGH STAMINA',
                   style: const TextStyle(

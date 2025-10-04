@@ -1,30 +1,28 @@
-import 'artist.dart';
-
 class Song {
   final String id;
   final String title;
   final String artistId;
-  final Genre genre;
-  final int quality; // 0-100
-  final int hypeLevel; // 0-100
-  final int weeksSinceRelease;
-  int streams;
-  final List<String> collaborators;
-  final bool isSingle;
-  final String? albumId;
+
+  double totalStreams;
+  double weeklyListeners;
+  double? lastWeekListeners;
+  int weeksSinceRelease;
+
+  double popularityFactor; // 0..100
+  double viralFactor; // 0..100
+  double salesPotential; // 0..100
 
   Song({
     required this.id,
     required this.title,
     required this.artistId,
-    required this.genre,
-    required this.quality,
-    this.hypeLevel = 0,
+    this.totalStreams = 0,
+    this.weeklyListeners = 0,
+    this.lastWeekListeners,
     this.weeksSinceRelease = 0,
-    required this.streams,
-    this.collaborators = const [],
-    this.isSingle = true,
-    this.albumId,
+    this.popularityFactor = 10,
+    this.viralFactor = 5,
+    this.salesPotential = 10,
   });
 
   Map<String, dynamic> toMap() {
@@ -32,14 +30,13 @@ class Song {
       'id': id,
       'title': title,
       'artistId': artistId,
-      'genre': genre.toString(),
-      'quality': quality,
-      'hypeLevel': hypeLevel,
+      'totalStreams': totalStreams,
+      'weeklyListeners': weeklyListeners,
+      'lastWeekListeners': lastWeekListeners,
       'weeksSinceRelease': weeksSinceRelease,
-      'streams': streams,
-      'collaborators': collaborators,
-      'isSingle': isSingle,
-      'albumId': albumId,
+      'popularityFactor': popularityFactor,
+      'viralFactor': viralFactor,
+      'salesPotential': salesPotential,
     };
   }
 
@@ -48,17 +45,13 @@ class Song {
       id: map['id'],
       title: map['title'],
       artistId: map['artistId'],
-      genre: Genre.values.firstWhere(
-        (e) => e.toString() == map['genre'],
-        orElse: () => Genre.pop,
-      ),
-      quality: map['quality'],
-      hypeLevel: map['hypeLevel'] ?? 0,
+      totalStreams: map['totalStreams']?.toDouble() ?? 0.0,
+      weeklyListeners: map['weeklyListeners']?.toDouble() ?? 0.0,
+      lastWeekListeners: map['lastWeekListeners']?.toDouble(),
       weeksSinceRelease: map['weeksSinceRelease'] ?? 0,
-      streams: map['streams'] ?? 0,
-      collaborators: List<String>.from(map['collaborators'] ?? []),
-      isSingle: map['isSingle'] ?? true,
-      albumId: map['albumId'],
+      popularityFactor: map['popularityFactor']?.toDouble() ?? 10.0,
+      viralFactor: map['viralFactor']?.toDouble() ?? 5.0,
+      salesPotential: map['salesPotential']?.toDouble() ?? 10.0,
     );
   }
 }
