@@ -16,35 +16,12 @@ class GameStateService extends ChangeNotifier {
   List<Song> worldSongs = [];
   List<Artist> worldArtists = [];
   List<GameEvent> lastWeekEvents = [];
-  final List<String> _notifications = []; // New field for notifications
 
-  late Box _gameBox; // Hive box for game state
+  final List<String> availableGenres = ['Pop', 'Rock', 'Hip-Hop', 'R&B', 'Electronic', 'Indie']; // Define available genres
+  String? currentGenreFilter; // Added to filter songs by genre
+  String chartViewMode = 'songs'; // 'songs' or 'artists'
 
-  // Getter for notifications
-  List<String> get notifications => _notifications;
-
-  // Method to add notifications
-  void addNotification(String message) {
-    _notifications.add(message);
-    // You might want to limit the number of notifications or add a timestamp
-    if (_notifications.length > 10) {
-      _notifications.removeAt(0); // Keep only the latest 10 notifications
-    }
-    notifyListeners();
-  }
-
-  final List<String> _songTitles = [
-    "Love Is Nice", "Neon Dreams", "City Lights", "Broken Heart", "Summer Vibes",
-    "Midnight Drive", "Electric Touch", "Golden Hour", "Lost in Translation", "Starlight Serenade",
-    "Whispering Winds", "Crimson Sky", "Echoes in the Dark", "Fading Memories", "Rhythm of Rain",
-    "Silent Symphony", "Velvet Moon", "Wildflower Fields", "Eternal Flame", "Parallel Universe",
-    "Quantum Leap", "Digital Soul", "Cybernetic Love", "Astral Projection", "Cosmic Dust",
-    "Melody of the Machine", "Synthetic Emotion", "Virtual Reality", "Dream Weaver", "Sonic Boom",
-    "Future Shock", "Time Warp", "Gravity Shift", "Aurora Borealis", "Crystal Caves",
-    "Mystic River", "Shadow Play", "Enchanted Forest", "Sunken City", "Dragon's Breath",
-    "Phoenix Rising", "Starfall", "Lunar Eclipse", "Solar Flare", "Nebula Nectar",
-    "Galactic Groove", "Infinity Loop", "Zero Gravity", "Black Hole Blues", "Milky Way Waltz",
-  ];
+  List<Map<String, dynamic>> weeklyChartHistory = []; // Stores historical chart data
 
   // ---------------------------
   // Time progression
@@ -62,10 +39,7 @@ class GameStateService extends ChangeNotifier {
 
     lastWeekEvents.clear(); // Clear events from the previous week
     _generateWeeklyEvents(); // Generate events for the current week
-    _releaseNPCSongsWeekly(); // NPC artists release new songs
-
-    // Player-specific updates
-    _updatePlayerMetrics();
+    _generateNPCSongs(); // Generate new songs from NPCs
 
     // Recalculate charts after events
     recalculateCharts();
@@ -200,6 +174,21 @@ class GameStateService extends ChangeNotifier {
       notifyListeners(); // Notify after global attribute changes
     }
 
+    // New: Viral Boost Event (random song gets a boost)
+    if (worldSongs.isNotEmpty && rng.nextDouble() < 0.15) { // 15% chance of a viral boost
+      final songToBoost = worldSongs[rng.nextInt(worldSongs.length)];
+      final boostAmount = 10 + rng.nextDouble() * 20; // Boost viral factor by 10-30
+      songToBoost.viralFactor = (songToBoost.viralFactor + boostAmount).clamp(0.0, 100.0);
+      lastWeekEvents.add(GameEvent(
+        id: 'event_${DateTime.now().millisecondsSinceEpoch}_viral',
+        title: '${songToBoost.title} Goes Viral!',
+        description: '${songToBoost.title} is trending across social media, leading to a massive surge in listeners!',
+        type: EventType.opportunity,
+        severity: EventSeverity.high,
+      ));
+      notifyListeners();
+    }
+
     // Example: Artist-specific events (scandals or opportunities)
     for (var artist in worldArtists) {
       if (artist.id == _player?.id) continue; // Skip player artist for NPC events
@@ -245,60 +234,34 @@ class GameStateService extends ChangeNotifier {
       }
     }
 
-    // Random viral boost event for a single song (e.g., social media trend)
-    if (worldSongs.isNotEmpty && rng.nextDouble() < 0.15) { // 15% chance for a song to go viral
-      final randomSong = worldSongs[rng.nextInt(worldSongs.length)];
-      final artist = getArtistById(randomSong.artistId);
-      if (artist != null) {
-        final eventTitle = '${randomSong.title} Goes Viral on BuzzApp!';
-        final eventDescription = '${randomSong.title} by ${artist.name} is trending, leading to a massive boost in streams!';
-        lastWeekEvents.add(GameEvent(
-          id: 'event_${DateTime.now().millisecondsSinceEpoch}',
-          title: eventTitle,
-          description: eventDescription,
-          type: EventType.opportunity,
-          severity: EventSeverity.high,
-        ));
-        randomSong.viralFactor = (randomSong.viralFactor + 30.0).clamp(0.0, 100.0); // Significant viral boost
-        randomSong.isViral = true;
-        notifyListeners();
-      }
-    }
-  }
+    // New: Collaboration Event
+    if (worldArtists.length >= 2 && rng.nextDouble() < 0.05) { // 5% chance of a collaboration
+      final artist1 = worldArtists[rng.nextInt(worldArtists.length)];
+      Artist artist2;
+      do {
+        artist2 = worldArtists[rng.nextInt(worldArtists.length)];
+      } while (artist2.id == artist1.id); // Ensure different artists
 
-  // ---------------------------
-  // NPC Song Release
-  // ---------------------------
-  void _releaseNPCSongsWeekly() {
-    final rng = Random();
-    for (var artist in worldArtists) {
-      if (artist.id == _player?.id) continue; // Skip player artist
-
-      // 15% chance for an NPC to release a new song each week
-      if (rng.nextDouble() < 0.15) {
-        // Generate song attributes based on artist attributes and some randomness
-        final songwritingSkill = (artist.attributes['songwriting'] ?? 50).clamp(10.0, 100.0);
-        final productionSkill = (artist.attributes['production'] ?? 50).clamp(10.0, 100.0);
-        final marketingSkill = (artist.attributes['marketing'] ?? 50).clamp(10.0, 100.0);
-        final charismaSkill = (artist.attributes['charisma'] ?? 50).clamp(10.0, 100.0);
-
-        final popularityFactor = ((songwritingSkill * 0.4) + (productionSkill * 0.3) + (rng.nextDouble() * 30)).clamp(10.0, 90.0);
-        final viralFactor = ((marketingSkill * 0.5) + (charismaSkill * 0.3) + (rng.nextDouble() * 20)).clamp(5.0, 80.0);
-        final salesPotential = ((marketingSkill * 0.6) + (rng.nextDouble() * 40)).clamp(10.0, 90.0);
-
-        final newSong = Song(
-          id: 'song_${artist.id}_${DateTime.now().millisecondsSinceEpoch}',
-          title: _songTitles[rng.nextInt(_songTitles.length)], // Use a random title from the list
-          artistId: artist.id,
-          popularityFactor: popularityFactor,
-          viralFactor: viralFactor,
-          salesPotential: salesPotential,
-          totalStreams: 0,
-          weeklyListeners: 0,
-          weeksSinceRelease: 0,
-        );
-        addSong(newSong);
-      }
+      final collabSongTitle = '${artist1.name} & ${artist2.name} - Unity Track';
+      final collabSong = Song(
+        id: 'song_${DateTime.now().millisecondsSinceEpoch}_collab',
+        title: collabSongTitle,
+        artistId: artist1.id, // Assign to artist1, but both benefit
+        // Attributes for collaboration songs can be an average or influenced by both artists
+        popularityFactor: ((artist1.attributes['popularity'] ?? 10) + (artist2.attributes['popularity'] ?? 10)) / 2,
+        viralFactor: ((artist1.attributes['creativity'] ?? 5) + (artist2.attributes['creativity'] ?? 5)) / 2,
+        salesPotential: ((artist1.attributes['marketing'] ?? 10) + (artist2.attributes['marketing'] ?? 10)) / 2,
+        isNewEntry: true,
+      );
+      worldSongs.add(collabSong);
+      lastWeekEvents.add(GameEvent(
+        id: 'event_${DateTime.now().millisecondsSinceEpoch}_collab',
+        title: 'New Collaboration: ${artist1.name} & ${artist2.name}!',
+        description: '${artist1.name} and ${artist2.name} have teamed up for a hot new single!',
+        type: EventType.opportunity,
+        severity: EventSeverity.medium,
+      ));
+      notifyListeners();
     }
   }
 
@@ -314,27 +277,17 @@ class GameStateService extends ChangeNotifier {
   // Chart calculations
   // ---------------------------
   void recalculateCharts() {
-    final List<Song> previousWeekTopSongs = worldSongs.where((song) => song.currentRank != null && song.currentRank! <= 30).toList();
-    previousWeekTopSongs.sort((a, b) => a.currentRank!.compareTo(b.currentRank!));
+    final rng = Random();
+    // Store current ranks before updating for the new week
+    final Map<String, int> currentRanks = {};
+    for (int i = 0; i < worldSongs.length; i++) {
+      currentRanks[worldSongs[i].id] = i + 1;
+    }
 
-    // Reset chart-related properties for all songs
     for (var song in worldSongs) {
-      song.lastWeekRank = song.currentRank; // Store last week's rank
-      song.currentRank = null; // Reset current rank
-      song.isNewEntry = song.weeksOnChart == 0; // If weeksOnChart is 0, it's a new entry
-      song.isViral = false; // Reset viral status
-      if (song.listenerHistory.length >= 4) {
-        song.listenerHistory.removeAt(0); // Keep history to last 4 weeks
-      }
-      song.listenerHistory.add(song.weeklyListeners); // Add current weekly listeners to history
-
-      // Apply song aging: streams taper off after 8-12 weeks unless boosted.
-      // This logic can be expanded with more detailed aging curves.
-      if (song.weeksSinceRelease > 8 && song.viralFactor < 50) { // If not very viral
-        song.popularityFactor *= 0.95; // Gradual decrease
-        song.viralFactor *= 0.9; // Viral factor decreases faster
-        song.salesPotential *= 0.95;
-      }
+      song.lastWeekListeners = song.weeklyListeners;
+      song.lastWeekRank = currentRanks[song.id]; // Assign the rank from the previous week
+      song.isNewEntry = song.weeksSinceRelease == 0; // If weeksSinceRelease is 0, it's a new entry
 
       final listeners = _calculateWeeklyListenersForSong(song);
       song.weeklyListeners = listeners;
@@ -342,65 +295,223 @@ class GameStateService extends ChangeNotifier {
       song.weeksSinceRelease++;
 
       _applySongPerformanceToArtist(song);
+
+      // Update listener history
+      song.listenerHistory.add(song.weeklyListeners);
+      if (song.listenerHistory.length > 4) {
+        song.listenerHistory.removeAt(0); // Keep only the last 4 weeks
+      }
     }
 
-    // Sort all songs by totalStreams to determine new ranks
     worldSongs.sort((a, b) => b.totalStreams.compareTo(a.totalStreams));
 
-    // Update current ranks and track biggest movers
-    int biggestGainerDelta = 0;
-    int biggestDropDelta = 0;
-
-    for (int i = 0; i < worldSongs.length; i++) {
-      final song = worldSongs[i];
-      final newRank = i + 1;
-
-      // Only consider songs that are in the Top 30 for rank tracking for now
-      if (newRank <= 30) {
-        song.currentRank = newRank;
-        if (song.peakRank == null || newRank < song.peakRank!) {
-          song.peakRank = newRank; // Update peak rank if current rank is better
-        }
-        song.weeksOnChart++;
-
-        // Check for rank changes
-        if (song.lastWeekRank != null) {
-          final delta = song.lastWeekRank! - newRank; // Positive delta means moving up
-          if (delta > biggestGainerDelta) {
-            biggestGainerDelta = delta;
-          }
-          if (delta < biggestDropDelta) {
-            biggestDropDelta = delta;
-          }
-          song.isNewEntry = false; // It's not a new entry if it had a last week rank
-        } else {
-          song.isNewEntry = true; // No last week rank, so it's a new entry
-        }
-      }
-    }
-    
-    // Apply cumulative streams to artists
-    for (var artist in worldArtists) {
-      artist.cumulativeStreams = worldSongs.where((song) => song.artistId == artist.id).fold(0.0, (sum, song) => sum + song.totalStreams);
-      // Update label tier based on cumulative streams (example logic)
-      if (artist.cumulativeStreams > 10000000) {
-        artist.labelTier = "Major";
-      } else if (artist.cumulativeStreams > 1000000) {
-        artist.labelTier = "Indie";
-      } else if (artist.cumulativeStreams > 100000) {
-        artist.labelTier = "Underground";
+    // After sorting, update the isNewEntry for existing songs.
+    // If a song wasn't new this week (weeksSinceRelease > 0), then it's no longer a new entry.
+    for (var song in worldSongs) {
+      if (song.weeksSinceRelease > 0) {
+        song.isNewEntry = false;
       }
     }
 
-    // TODO: Implement chart events and player milestones
-    addNotification('Charts have been recalculated for the week.');
+    // Update player's chart peak and check for milestones
+    if (player != null) {
+      for (var playerSong in playerSongs) {
+        final currentRank = worldSongs.indexOf(playerSong) + 1;
+        // Update playerChartPeak
+        if (playerChartPeak == null || currentRank < playerChartPeak!) {
+          playerChartPeak = currentRank;
+        }
+
+        // Check for chart milestones
+        if (playerSong.lastWeekRank == null) { // New entry to charts
+          if (currentRank <= 30) {
+            lastWeekEvents.add(GameEvent(
+              id: 'player_chart_debut_${playerSong.id}',
+              title: '${playerSong.title} Enters Top 30!',
+              description: 'Your song "${playerSong.title}" has entered the Top 30 charts at #$currentRank!',
+              type: EventType.opportunity,
+              severity: EventSeverity.medium,
+            ));
+          }
+        } else if (playerSong.lastWeekRank! > 30 && currentRank <= 30) { // Entered Top 30 this week
+          lastWeekEvents.add(GameEvent(
+            id: 'player_chart_enter_top30_${playerSong.id}',
+            title: '${playerSong.title} Climbs into Top 30!',
+            description: 'Your song "${playerSong.title}" has climbed into the Top 30 charts at #$currentRank!',
+            type: EventType.opportunity,
+            severity: EventSeverity.medium,
+          ));
+        }
+
+        if (currentRank == 1 && (playerSong.lastWeekRank != 1 || playerSong.lastWeekRank == null)) { // Hit #1 this week
+          lastWeekEvents.add(GameEvent(
+            id: 'player_chart_hit_1_${playerSong.id}',
+            title: '${playerSong.title} is #1!',
+            description: 'Congratulations! Your song "${playerSong.title}" has hit #1 on the charts!',
+            type: EventType.opportunity,
+            severity: EventSeverity.high,
+          ));
+        } else if (playerSong.lastWeekRank == 1 && currentRank > 1) { // Dropped from #1
+          lastWeekEvents.add(GameEvent(
+            id: 'player_chart_drop_1_${playerSong.id}',
+            title: '${playerSong.title} Drops from #1',
+            description: 'Your song "${playerSong.title}" has dropped from the #1 spot.',
+            type: EventType.scandal,
+            severity: EventSeverity.low,
+          ));
+        }
+
+        // Check if song dropped off the Top 30 (assuming charts show top 30)
+        if (playerSong.lastWeekRank != null && playerSong.lastWeekRank! <= 30 && currentRank > 30) {
+          lastWeekEvents.add(GameEvent(
+            id: 'player_chart_drop_off_${playerSong.id}',
+            title: '${playerSong.title} Drops Off Top 30',
+            description: 'Your song "${playerSong.title}" has dropped off the Top 30 charts.',
+            type: EventType.scandal,
+            severity: EventSeverity.low,
+          ));
+        }
+      }
+    }
+
+    // Archive current week's top 30 songs
+    final currentWeekTopSongs = worldSongs.take(30).map((song) => {
+      'id': song.id,
+      'title': song.title,
+      'artistId': song.artistId,
+      'totalStreams': song.totalStreams,
+      'weeklyListeners': song.weeklyListeners,
+      'rank': worldSongs.indexOf(song) + 1, // Current rank
+      'week': weekOfMonth,
+      'month': month,
+      'year': year,
+    }).toList();
+    weeklyChartHistory.add({
+      'week': weekOfMonth,
+      'month': month,
+      'year': year,
+      'songs': currentWeekTopSongs,
+    });
+
+    // Keep only the last 52 weeks of history (1 year)
+    if (weeklyChartHistory.length > 52) {
+      weeklyChartHistory.removeAt(0);
+    }
+
+    // "Best Viral Song" Nomination and Award
+    final viralSongsCandidates = worldSongs.where((song) => song.totalStreams >= 1000000 && song.weeksSinceRelease < 8).toList();
+    if (viralSongsCandidates.isNotEmpty && rng.nextDouble() < 0.1) { // 10% chance for a viral award event
+      // Sort by viral factor to pick the 'best' viral song
+      viralSongsCandidates.sort((a, b) => b.viralFactor.compareTo(a.viralFactor));
+      final winningSong = viralSongsCandidates.first;
+      final winningArtist = getArtistById(winningSong.artistId);
+
+      if (winningArtist != null) {
+        // Give money and popularity boost to the winning artist
+        playerMoney += 10000; // Assuming player gets money if their artist wins, or if an NPC artist wins it's general game money
+        updateArtistAttribute(winningArtist.id, 'popularity', 10.0);
+        winningArtist.awardsWon.add('Best Viral Song - $year');
+
+        lastWeekEvents.add(GameEvent(
+          id: 'viral_award_${year}_${winningArtist.id}',
+          title: '${winningArtist.name} Wins Best Viral Song!',
+          description: '${winningArtist.name}\'s song "${winningSong.title}" has been awarded Best Viral Song of the year, earning them \$10,000 and a popularity boost!',
+          type: EventType.opportunity,
+          severity: EventSeverity.high,
+        ));
+
+        // Nominate 3 other artists
+        final otherNominees = viralSongsCandidates.where((song) => song.artistId != winningArtist.id).take(3).toList();
+        for (var nominatedSong in otherNominees) {
+          final nominatedArtist = getArtistById(nominatedSong.artistId);
+          if (nominatedArtist != null) {
+            lastWeekEvents.add(GameEvent(
+              id: 'viral_nominee_${year}_${nominatedArtist.id}',
+              title: '${nominatedArtist.name} Nominated for Best Viral Song!',
+              description: '${nominatedArtist.name}\'s song "${nominatedSong.title}" has been nominated for Best Viral Song of the year!',
+              type: EventType.opportunity,
+              severity: EventSeverity.low,
+            ));
+          }
+        }
+      }
+    }
 
     notifyListeners();
   }
 
+  void _generateNPCSongs() {
+    final rng = Random();
+    // For simplicity, let's say 10% of NPCs release a new song each week
+    for (var artist in worldArtists) {
+      if (artist.id == 'player') continue; // Player releases songs differently
+
+      if (rng.nextDouble() < 0.1) {
+        final newSongTitle = '${artist.name}\'s New Track ${rng.nextInt(100)}'; // Simple title generation
+        final newSong = Song(
+          id: 'song_${DateTime.now().millisecondsSinceEpoch}_${artist.id}',
+          title: newSongTitle,
+          artistId: artist.id,
+          popularityFactor: (artist.attributes['popularity'] ?? 10).clamp(10.0, 90.0), // Base on artist popularity
+          viralFactor: (artist.attributes['creativity'] ?? 5).clamp(5.0, 70.0), // Base on artist creativity
+          salesPotential: (artist.attributes['marketing'] ?? 10).clamp(10.0, 80.0), // Base on artist marketing
+          isNewEntry: true, // Mark as a new entry
+          genre: availableGenres[rng.nextInt(availableGenres.length)], // Assign a random genre
+        );
+        worldSongs.add(newSong);
+      }
+    }
+
+    // NPC song retirement
+    final songsToRetire = worldSongs.where((song) =>
+        song.artistId != 'player' &&
+        song.weeksSinceRelease > 12 && // Older than 12 weeks
+        song.weeklyListeners < 500 && // Low weekly listeners
+        rng.nextDouble() < 0.05 // 5% chance to retire
+    ).toList();
+
+    for (var song in songsToRetire) {
+      worldSongs.removeWhere((s) => s.id == song.id);
+      lastWeekEvents.add(GameEvent(
+        id: 'event_${DateTime.now().millisecondsSinceEpoch}_retire_${song.id}',
+        title: '${getArtistById(song.artistId)?.name ?? 'An Artist'} Retires ${song.title}',
+        description: '${song.title} has run its course and been retired from active rotation.',
+        type: EventType.scandal, // Can be considered a minor setback/natural lifecycle event
+        severity: EventSeverity.low,
+      ));
+    }
+  }
+
   List<Song> getTopSongs(int limit) {
-    // Ensure songs are sorted and filtered to only include those with a currentRank within the limit
-    return worldSongs.where((song) => song.currentRank != null && song.currentRank! <= limit).toList()..sort((a, b) => a.currentRank!.compareTo(b.currentRank!));
+    List<Song> songsToConsider = worldSongs;
+    if (currentGenreFilter != null) {
+      if (currentGenreFilter == 'New Releases') {
+        songsToConsider = worldSongs.where((song) => song.weeksSinceRelease <= 4).toList(); // Changed to filter by weeksSinceRelease
+      } else {
+        songsToConsider = worldSongs.where((song) => song.genre == currentGenreFilter).toList();
+      }
+    }
+
+    songsToConsider.sort((a, b) => b.totalStreams.compareTo(a.totalStreams));
+    return songsToConsider.take(limit).toList();
+  }
+
+  double getArtistCumulativeStreams(String artistId) {
+    return worldSongs.where((song) => song.artistId == artistId).fold(0.0, (sum, song) => sum + song.totalStreams);
+  }
+
+  List<Artist> getTopArtists(int limit) {
+    // Calculate cumulative streams for each artist
+    Map<String, double> artistStreams = {};
+    for (var song in worldSongs) {
+      artistStreams.update(song.artistId, (value) => value + song.totalStreams, ifAbsent: () => song.totalStreams);
+    }
+
+    // Sort artists by cumulative streams
+    List<Artist> sortedArtists = worldArtists.toList();
+    sortedArtists.sort((a, b) => (artistStreams[b.id] ?? 0.0).compareTo(artistStreams[a.id] ?? 0.0));
+
+    return sortedArtists.take(limit).toList();
   }
 
   Artist? getArtistById(String id) {
@@ -514,6 +625,7 @@ class GameStateService extends ChangeNotifier {
 
   double playerMoney = 5000; // Example initial money
   int playerFanCount = 100; // Example initial fan count
+  int? playerChartPeak; // Stores the highest (lowest number) rank a player's song has achieved
 
   void startNewGame(String playerName) {
     _player = Artist(
@@ -546,6 +658,8 @@ class GameStateService extends ChangeNotifier {
     notifyListeners();
     saveGame(); // Save initial game state
   }
+
+  List<Song> get playerSongs => worldSongs.where((song) => song.artistId == _player?.id).toList();
 
   void updatePlayerMoney(double amount) {
     playerMoney += amount;

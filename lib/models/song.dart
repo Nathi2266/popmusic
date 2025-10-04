@@ -19,6 +19,8 @@ class Song {
   double? lastWeekListeners;
   @HiveField(6)
   int weeksSinceRelease;
+  int? lastWeekRank; // Added to track rank from the previous week
+  bool isNewEntry; // Added to indicate if the song is a new entry to the charts
 
   @HiveField(7)
   double popularityFactor; // 0..100
@@ -26,24 +28,8 @@ class Song {
   double viralFactor; // 0..100
   @HiveField(9)
   double salesPotential; // 0..100
-
-  // New fields for charts and performance tracking
-  @HiveField(10)
-  int? lastWeekRank;
-  @HiveField(11)
-  int? currentRank;
-  @HiveField(12)
-  int? peakRank;
-  @HiveField(13)
-  int weeksOnChart;
-  @HiveField(14)
-  bool isNewEntry;
-  @HiveField(15)
-  bool isViral;
-  @HiveField(16)
-  List<String> awards;
-  @HiveField(17)
-  List<double> listenerHistory; // For sparkline graph
+  String genre; // Added to specify the song's genre
+  List<double> listenerHistory; // Stores weekly listener counts for trend graphs
 
   Song({
     required this.id,
@@ -53,19 +39,14 @@ class Song {
     this.weeklyListeners = 0,
     this.lastWeekListeners,
     this.weeksSinceRelease = 0,
+    this.lastWeekRank,
+    this.isNewEntry = true,
     this.popularityFactor = 10,
     this.viralFactor = 5,
     this.salesPotential = 10,
-    // Initialize new fields
-    this.lastWeekRank,
-    this.currentRank,
-    this.peakRank,
-    this.weeksOnChart = 0,
-    this.isNewEntry = true, // Default to true, will be updated by chart logic
-    this.isViral = false,
-    this.awards = const [],
-    this.listenerHistory = const [],
-  });
+    this.genre = 'Pop',
+    List<double>? listenerHistory,
+  }) : listenerHistory = listenerHistory ?? [];
 
   Map<String, dynamic> toMap() {
     return {
@@ -76,18 +57,13 @@ class Song {
       'weeklyListeners': weeklyListeners,
       'lastWeekListeners': lastWeekListeners,
       'weeksSinceRelease': weeksSinceRelease,
+      'lastWeekRank': lastWeekRank, // Add to map
+      'isNewEntry': isNewEntry, // Add to map
       'popularityFactor': popularityFactor,
       'viralFactor': viralFactor,
       'salesPotential': salesPotential,
-      // Add new fields to map
-      'lastWeekRank': lastWeekRank,
-      'currentRank': currentRank,
-      'peakRank': peakRank,
-      'weeksOnChart': weeksOnChart,
-      'isNewEntry': isNewEntry,
-      'isViral': isViral,
-      'awards': awards,
-      'listenerHistory': listenerHistory,
+      'genre': genre,
+      'listenerHistory': listenerHistory, // Add to map
     };
   }
 
@@ -100,18 +76,13 @@ class Song {
       weeklyListeners: map['weeklyListeners']?.toDouble() ?? 0.0,
       lastWeekListeners: map['lastWeekListeners']?.toDouble(),
       weeksSinceRelease: map['weeksSinceRelease'] ?? 0,
+      lastWeekRank: map['lastWeekRank']?.toInt(), // Retrieve from map
+      isNewEntry: map['isNewEntry'] ?? true, // Retrieve from map, default to true
       popularityFactor: map['popularityFactor']?.toDouble() ?? 10.0,
       viralFactor: map['viralFactor']?.toDouble() ?? 5.0,
       salesPotential: map['salesPotential']?.toDouble() ?? 10.0,
-      // Retrieve new fields from map
-      lastWeekRank: map['lastWeekRank'],
-      currentRank: map['currentRank'],
-      peakRank: map['peakRank'],
-      weeksOnChart: map['weeksOnChart'] ?? 0,
-      isNewEntry: map['isNewEntry'] ?? true,
-      isViral: map['isViral'] ?? false,
-      awards: List<String>.from(map['awards'] ?? []),
-      listenerHistory: List<double>.from(map['listenerHistory'] ?? []),
+      genre: map['genre'] ?? 'Pop',
+      listenerHistory: List<double>.from(map['listenerHistory'] ?? []), // Retrieve from map
     );
   }
 }

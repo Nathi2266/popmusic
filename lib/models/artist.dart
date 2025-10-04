@@ -33,33 +33,32 @@ part 'artist.g.dart';
 class Artist {
   @HiveField(0)
   final String id;
-  @HiveField(1)
-  String name;
-  @HiveField(2)
+  final String name;
   Map<String, double> attributes;
-
-  // New fields for artist performance tracking
-  @HiveField(3)
-  double cumulativeStreams; // Total streams across all songs
-  @HiveField(4)
-  String labelTier; // E.g., "Underground", "Indie", "Major"
+  List<String> awardsWon; // Added to track awards won
+  // Example keys: 'popularity', 'reputation', 'happiness', 'talent', 'controversy', 'fan_connection'
 
   Artist({
     required this.id,
     required this.name,
-    required this.attributes,
-    this.cumulativeStreams = 0.0,
-    this.labelTier = "Underground", // Default label tier
-  });
+    Map<String, double>? attributes,
+    List<String>? awardsWon,
+  }) : attributes = attributes ?? {
+          'popularity': 10,
+          'reputation': 10,
+          'happiness': 50,
+          'talent': 10,
+          'controversy': 0,
+          'fan_connection': 10,
+        },
+       this.awardsWon = awardsWon ?? [];
 
   Map<String, dynamic> toMap() {
     return {
       'id': id,
       'name': name,
       'attributes': attributes,
-      // Add new fields to map
-      'cumulativeStreams': cumulativeStreams,
-      'labelTier': labelTier,
+      'awardsWon': awardsWon,
     };
   }
 
@@ -68,9 +67,7 @@ class Artist {
       id: map['id'],
       name: map['name'],
       attributes: Map<String, double>.from(map['attributes'] ?? {}),
-      // Retrieve new fields from map
-      cumulativeStreams: map['cumulativeStreams']?.toDouble() ?? 0.0,
-      labelTier: map['labelTier'] ?? "Underground",
+      awardsWon: List<String>.from(map['awardsWon'] ?? []),
     );
   }
 }
