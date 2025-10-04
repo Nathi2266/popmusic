@@ -2,6 +2,8 @@ class Song {
   final String id;
   final String title;
   final String artistId;
+  String coverArt; // New field
+  double lengthMinutes; // New field
 
   double totalStreams;
   double weeklyListeners;
@@ -20,6 +22,8 @@ class Song {
     required this.id,
     required this.title,
     required this.artistId,
+    this.coverArt = 'assets/images/default_cover.png', // Default value
+    this.lengthMinutes = 3.5, // Default value
     this.totalStreams = 0,
     this.weeklyListeners = 0,
     this.lastWeekListeners,
@@ -49,6 +53,8 @@ class Song {
       'salesPotential': salesPotential,
       'genre': genre,
       'listenerHistory': listenerHistory, // Add to map
+      'coverArt': coverArt, // Add to map
+      'lengthMinutes': lengthMinutes, // Add to map
     };
   }
 
@@ -57,6 +63,8 @@ class Song {
       id: map['id'],
       title: map['title'],
       artistId: map['artistId'],
+      coverArt: map['coverArt'] ?? 'assets/images/default_cover.png', // Retrieve from map
+      lengthMinutes: map['lengthMinutes']?.toDouble() ?? 3.5, // Retrieve from map
       totalStreams: map['totalStreams']?.toDouble() ?? 0.0,
       weeklyListeners: map['weeklyListeners']?.toDouble() ?? 0.0,
       lastWeekListeners: map['lastWeekListeners']?.toDouble(),

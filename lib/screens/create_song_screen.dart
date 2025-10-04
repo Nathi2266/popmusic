@@ -9,6 +9,7 @@ import '../models/song.dart';
 // import '../models/genre.dart';
 import 'songwriting_minigame_screen.dart';
 import 'production_minigame_screen.dart';
+import '../data/titles.dart';
 
 class CreateSongScreen extends StatefulWidget {
   const CreateSongScreen({super.key});
@@ -25,11 +26,73 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
   int _productionScore = 0;
   bool _hasPlayedSongwriting = false;
   bool _hasPlayedProduction = false;
+  String _estimatedRank = 'Calculating...';
+  bool _marketingBoostEnabled = false;
+  double _songLengthMinutes = 3.5; // Default song length
 
   @override
   void dispose() {
     _titleController.dispose();
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _calculateEstimatedRank();
+  }
+
+  void _calculateEstimatedRank() {
+    final gameState = Provider.of<GameStateService>(context, listen: false);
+    final player = gameState.player;
+
+    if (player == null) {
+      setState(() {
+        _estimatedRank = 'N/A';
+      });
+      return;
+    }
+
+    final songwritingComponent = _hasPlayedSongwriting
+        ? _songwritingScore
+        : (player.attributes['songwriting'] ?? 0).toInt();
+    final productionComponent = _hasPlayedProduction
+        ? _productionScore
+        : (player.attributes['production'] ?? 0).toInt();
+
+    // Base score from songwriting and production
+    final baseScore = (songwritingComponent + productionComponent) / 2;
+
+    // Influence of player attributes
+    final charismaFactor = (player.attributes['charisma'] ?? 0) * 0.2;
+    final marketingFactor = (player.attributes['marketing'] ?? 0) * 0.3;
+    final networkingFactor = (player.attributes['networking'] ?? 0) * 0.1;
+
+    double totalScore = baseScore + charismaFactor + marketingFactor + networkingFactor;
+
+    if (_marketingBoostEnabled) {
+      totalScore = totalScore * 1.1; // 10% boost for marketing
+    }
+
+    // Map total score to an estimated rank
+    String rank;
+    if (totalScore >= 95) {
+      rank = 'Top 5';
+    } else if (totalScore >= 90) {
+      rank = 'Top 10';
+    } else if (totalScore >= 80) {
+      rank = 'Top 20';
+    } else if (totalScore >= 70) {
+      rank = 'Top 50';
+    } else if (totalScore >= 60) {
+      rank = 'Top 100';
+    } else {
+      rank = 'Outside Top 100';
+    }
+
+    setState(() {
+      _estimatedRank = rank;
+    });
   }
 
   void _playSongwritingMinigame() async {
@@ -45,6 +108,7 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
         _songwritingScore = score;
         _hasPlayedSongwriting = true;
       });
+      _calculateEstimatedRank();
     }
   }
 
@@ -61,6 +125,7 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
         _productionScore = score;
         _hasPlayedProduction = true;
       });
+      _calculateEstimatedRank();
     }
   }
 
@@ -90,38 +155,99 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
         : (player.attributes['production'] ?? 0).toInt();
 
     final popularityFactor = ((songwritingComponent + productionComponent) / 2).clamp(0, 100).toDouble();
-    final viralFactor = (player.attributes['marketing'] ?? 0 * 0.5 +
+    double currentViralFactor = (player.attributes['marketing'] ?? 0 * 0.5 +
                        (player.attributes['charisma'] ?? 0) * 0.3 +
                        Random().nextInt(20)).clamp(0, 100).toDouble();
+    if (_marketingBoostEnabled) {
+      currentViralFactor = (currentViralFactor * 1.2).clamp(0, 100);
+    }
     final salesPotential = (player.attributes['networking'] ?? 0 * 0.4 +
                           (player.attributes['wealth'] ?? 0) * 0.3 +
                           Random().nextInt(30)).clamp(0, 100).toDouble();
+    final releaseCost = _marketingBoostEnabled ? 1000.0 : 500.0;
 
-    final song = Song(
-      id: 'song_${DateTime.now().millisecondsSinceEpoch}',
-      title: _titleController.text.trim(), // Ensure only the raw title is used
-      artistId: player.id,
-      totalStreams: 0,
-      weeklyListeners: 0,
-      weeksSinceRelease: 0,
-      popularityFactor: popularityFactor,
-      viralFactor: viralFactor,
-      salesPotential: salesPotential,
-    );
+    showDialog(context: context, builder: (BuildContext context) {
+      return AlertDialog(
+        backgroundColor: const Color(0xFF16213e),
+        title: const Text('Confirm Song Release', style: TextStyle(color: Colors.white)),
+        content: SingleChildScrollView(
+          child: ListBody(
+            children: <Widget>[
+              Text('Title: ${_titleController.text.trim()}', style: const TextStyle(color: Colors.white70)),
+              const SizedBox(height: 8),
+              // Placeholder for Cover Art - will implement later
+              Container(
+                width: 100,
+                height: 100,
+                color: Colors.grey,
+                child: const Center(child: Text('Cover Art', style: TextStyle(color: Colors.white70))),
+              ),
+              const SizedBox(height: 8),
+              Text('Estimated Rank: $_estimatedRank', style: const TextStyle(color: Colors.white70)),
+              const SizedBox(height: 8),
+              Text('Viral Factor: ${currentViralFactor.toStringAsFixed(1)}', style: const TextStyle(color: Colors.white70)),
+              const SizedBox(height: 8),
+              Text('Popularity Factor: ${popularityFactor.toStringAsFixed(1)}', style: const TextStyle(color: Colors.white70)),
+              const SizedBox(height: 8),
+              Text('Sales Potential: ${salesPotential.toStringAsFixed(1)}', style: const TextStyle(color: Colors.white70)),
+              const SizedBox(height: 8),
+              Text('Song Length: ${_songLengthMinutes.toStringAsFixed(1)} minutes', style: const TextStyle(color: Colors.white70)),
+              const SizedBox(height: 8),
+              Text('Release Cost: \$${releaseCost.toStringAsFixed(0)}', style: const TextStyle(color: Colors.white70)),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            child: const Text('Cancel', style: TextStyle(color: Color(0xFFe94560))),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF4CAF50),
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () {
+              Navigator.of(context).pop(); // Close the dialog
+              final song = Song(
+                id: 'song_${DateTime.now().millisecondsSinceEpoch}',
+                title: _titleController.text.trim(),
+                artistId: player.id,
+                totalStreams: 0,
+                weeklyListeners: 0,
+                weeksSinceRelease: 0,
+                popularityFactor: popularityFactor,
+                viralFactor: currentViralFactor,
+                salesPotential: salesPotential,
+                lengthMinutes: _songLengthMinutes,
+              );
 
-    gameState.addSong(song);
-    gameState.recalculateCharts();
-    gameState.updatePlayerMoney(-500.0);
-    gameState.updatePlayerAttribute('stamina', -10.0);
+              gameState.addSong(song);
+              gameState.recalculateCharts();
+              gameState.updatePlayerMoney(-releaseCost);
+              gameState.updatePlayerAttribute('stamina', -10.0);
 
-    Navigator.pop(context);
+              Navigator.pop(context);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Released "${song.title}"!'),
-        backgroundColor: const Color(0xFF4CAF50),
-      ),
-    );
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Released "${song.title}"!'),
+                  backgroundColor: const Color(0xFF4CAF50),
+                ),
+              );
+            },
+            child: const Text('Confirm Release'),
+          ),
+        ],
+      );
+    });
+  }
+
+  void _generateRandomTitle() {
+    final randomTitle = autoGeneratedSongTitles[Random().nextInt(autoGeneratedSongTitles.length)];
+    _titleController.text = randomTitle;
   }
 
   @override
@@ -151,19 +277,41 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                TextField(
-                  controller: _titleController,
-                  style: const TextStyle(color: Colors.white, fontSize: 16),
-                  decoration: InputDecoration(
-                    hintText: 'Enter song title (e.g., "Summer Jam")',
-                    hintStyle: const TextStyle(color: Colors.white38),
-                    filled: true,
-                    fillColor: const Color(0xFF2a2a3e),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _titleController,
+                        style: const TextStyle(color: Colors.white, fontSize: 16),
+                        decoration: InputDecoration(
+                          hintText: 'Enter song title (e.g., "Summer Jam")',
+                          hintStyle: const TextStyle(color: Colors.white38),
+                          filled: true,
+                          fillColor: const Color(0xFF2a2a3e),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
+                    const SizedBox(width: 12),
+                    SizedBox(
+                      height: 60,
+                      child: ElevatedButton(
+                        onPressed: _generateRandomTitle,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFe94560),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                        ),
+                        child: const Icon(Icons.casino, size: 28),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 24),
 
@@ -220,7 +368,96 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
                   onPlay: _playProductionMinigame,
                   icon: Icons.tune,
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 16),
+
+                // Estimated Chart Rank
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2a2a3e),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Estimated Debut Rank',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                        ),
+                      ),
+                      Text(
+                        _estimatedRank,
+                        style: const TextStyle(
+                          color: Color(0xFF4CAF50),
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Marketing Boost Option
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2a2a3e),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Spend extra \$500 on marketing',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                        ),
+                      ),
+                      Switch(
+                        value: _marketingBoostEnabled,
+                        onChanged: (value) {
+                          setState(() {
+                            _marketingBoostEnabled = value;
+                            _calculateEstimatedRank(); // Recalculate rank with boost
+                          });
+                        },
+                        // ignore: deprecated_member_use
+                        activeColor: const Color(0xFFe94560),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Song Length Slider
+                const Text(
+                  'Song Length',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Slider(
+                  value: _songLengthMinutes,
+                  min: 2.0,
+                  max: 6.0,
+                  divisions: 8, // 2.0, 2.5, 3.0, ..., 6.0
+                  label: '${_songLengthMinutes.toStringAsFixed(1)} min',
+                  onChanged: (value) {
+                    setState(() {
+                      _songLengthMinutes = value;
+                    });
+                  },
+                  activeColor: const Color(0xFFe94560),
+                  inactiveColor: Colors.white38,
+                ),
+                const SizedBox(height: 24),
 
                 // Cost Info
                 Container(
@@ -240,9 +477,10 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
                         ),
                       ),
                       Text(
-                        '\$500',
+                        '\$${(_marketingBoostEnabled ? 1000 : 500).toStringAsFixed(0)}',
                         style: TextStyle(
-                          color: gameState.playerMoney >= 500
+                          color: gameState.playerMoney >=
+                                  (_marketingBoostEnabled ? 1000 : 500)
                               ? const Color(0xFF4CAF50)
                               : const Color(0xFFF44336),
                           fontSize: 18,
@@ -254,11 +492,26 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
                 ),
                 const SizedBox(height: 24),
 
+                // Stamina Warning
+                if ((gameState.player?.attributes['stamina'] ?? 0) < 10) ...[
+                  const Text(
+                    'Warning: Low stamina may reduce song performance!',
+                    style: TextStyle(
+                      color: Color(0xFFF44336),
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 12),
+                ],
+
                 // Release Button
                 SizedBox(
                   height: 60,
                   child: ElevatedButton(
-                    onPressed: gameState.playerMoney >= 500
+                    onPressed: gameState.playerMoney >=
+                            (_marketingBoostEnabled ? 1000 : 500)
                         ? _releaseSong
                         : null,
                     style: ElevatedButton.styleFrom(
