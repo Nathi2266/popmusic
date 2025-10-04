@@ -296,7 +296,7 @@ class GameStateService extends ChangeNotifier {
         // Give money and popularity boost to the winning artist
         playerMoney += 10000; // Assuming player gets money if their artist wins, or if an NPC artist wins it's general game money
         updateArtistAttribute(winningArtist.id, 'popularity', 10.0);
-        winningArtist.awardsWon.add('Best Viral Song - ${year}');
+        winningArtist.awardsWon.add('Best Viral Song - $year');
 
         lastWeekEvents.add(GameEvent(
           id: 'viral_award_${year}_${winningArtist.id}',
@@ -372,7 +372,7 @@ class GameStateService extends ChangeNotifier {
     List<Song> songsToConsider = worldSongs;
     if (currentGenreFilter != null) {
       if (currentGenreFilter == 'New Releases') {
-        songsToConsider = worldSongs.where((song) => song.isNewEntry).toList();
+        songsToConsider = worldSongs.where((song) => song.weeksSinceRelease <= 4).toList(); // Changed to filter by weeksSinceRelease
       } else {
         songsToConsider = worldSongs.where((song) => song.genre == currentGenreFilter).toList();
       }

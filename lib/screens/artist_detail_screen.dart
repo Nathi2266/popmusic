@@ -50,7 +50,7 @@ class ArtistDetailScreen extends StatelessWidget {
                   ...artistSongs.map((song) => ListTile(
                     title: Text(song.title),
                     subtitle: Text('Streams: ${song.totalStreams.toStringAsFixed(0)} | Weekly: ${song.weeklyListeners.toStringAsFixed(0)}'),
-                  )).toList(),
+                  )),
               ],
             ),
           ),

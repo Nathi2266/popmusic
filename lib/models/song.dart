@@ -31,7 +31,7 @@ class Song {
     this.salesPotential = 10,
     this.genre = 'Pop',
     List<double>? listenerHistory,
-  }) : this.listenerHistory = listenerHistory ?? [];
+  }) : listenerHistory = listenerHistory ?? [];
 
   Map<String, dynamic> toMap() {
     return {

@@ -16,8 +16,8 @@ class ChartsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<GameStateService>(
       builder: (context, game, child) {
-        // Ensure songs are already sorted by totalStreams descending
-        final topSongs = game.getTopSongs(30);
+    // Ensure songs are already sorted by totalStreams descending
+    final topSongs = game.getTopSongs(30);
 
         // Calculate biggest gainer and dropper
         Song? biggestGainer;
@@ -41,11 +41,11 @@ class ChartsScreen extends StatelessWidget {
           }
         }
 
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text('Top 30 — Charts'),
-            centerTitle: true,
-            actions: [
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Top 30 — Charts'),
+        centerTitle: true,
+        actions: [
               // Toggle between songs and artists view
               Expanded(
                 child: Padding(
@@ -81,12 +81,12 @@ class ChartsScreen extends StatelessWidget {
               ),
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Center(child: Text('Week ${game.weekOfMonth} • ${game.month}/${game.year}')),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Center(child: Text('Week ${game.weekOfMonth} • ${game.month}/${game.year}')),
                 ),
-              ),
-            ],
           ),
+        ],
+      ),
           body: Builder(
             builder: (BuildContext context) {
               Widget content;
@@ -95,10 +95,10 @@ class ChartsScreen extends StatelessWidget {
                   content = const Center(child: Text('No songs on the chart yet. Release a track to populate charts.'));
                 } else {
                   content = RefreshIndicator(
-                    onRefresh: () async {
-                      game.recalculateCharts();
-                      return;
-                    },
+              onRefresh: () async {
+                game.recalculateCharts();
+                return;
+              },
                     child: Column(
                       children: [
                         if (game.playerChartPeak != null)
@@ -135,21 +135,22 @@ class ChartsScreen extends StatelessWidget {
                             ),
                           ),
                         Expanded(
-                          child: ListView.builder(
-                            itemCount: topSongs.length,
-                            itemBuilder: (context, idx) {
-                              final entry = topSongs[idx];
-                              final rank = idx + 1;
-                              final delta = entry.weeklyListeners - (entry.lastWeekListeners ?? 0);
-                              final deltaText = delta >= 0 ? '+${delta.toInt()}' : '${delta.toInt()}';
-                              final artist = game.getArtistById(entry.artistId);
+              child: ListView.builder(
+                itemCount: topSongs.length,
+                itemBuilder: (context, idx) {
+                  final entry = topSongs[idx];
+                  final rank = idx + 1;
+                  final delta = entry.weeklyListeners - (entry.lastWeekListeners ?? 0);
+                  final deltaText = delta >= 0 ? '+${delta.toInt()}' : '${delta.toInt()}';
+                  final artist = game.getArtistById(entry.artistId);
 
-                              return Card(
-                                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  return Card(
+                    margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                 color: entry.artistId == game.player?.id ? Colors.blue.shade900 : null, // Highlight player songs
-                                child: ListTile(
-                                  leading: CircleAvatar(
-                                    radius: 22,
+                    child: ListTile(
+                      isThreeLine: true, // Added to provide more vertical space
+                      leading: CircleAvatar(
+                        radius: 22,
                                     child: Text('#$rank'),
                                   ),
                                   title: Row(
@@ -181,65 +182,66 @@ class ChartsScreen extends StatelessWidget {
                                       _buildRankChangeIndicator(rank, entry.lastWeekRank),
                                     ],
                                   ),
-                                  subtitle: SizedBox(
-                                    height: 100, // Fixed height to prevent unbounded constraints
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Expanded(child: Text('Artist: ${artist?.name ?? 'Unknown'} (Pop: ${artist?.attributes['popularity']?.toStringAsFixed(0)}%)')), // Added Expanded
-                                        const SizedBox(height: 2), // Reduced height
-                                        Expanded(
-                                          child: Text(
-                                            'Streams: ${entry.totalStreams.toStringAsFixed(0)} • Weekly: ${entry.weeklyListeners.toStringAsFixed(0)} (${_getWeeklyListenerChangePercentage(entry)}) ',
-                                            style: const TextStyle(fontSize: 12), // Adjusted font size
-                                          ),
-                                        ),
-                                        const SizedBox(height: 2), // Reduced height
-                                        Expanded(
-                                          child: Text(
-                                            'Total Artist Streams: ${game.getArtistCumulativeStreams(entry.artistId).toStringAsFixed(0)} • Label: ${_getArtistLabel(artist)}',
-                                            style: const TextStyle(fontSize: 12, color: Colors.white54), // New line for artist cumulative streams and label
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4), // Reduced height
-                                        SizedBox(
-                                          height: 30,
-                                          child: SparklineChart(data: entry.listenerHistory), // Sparkline chart
-                                        ),
-                                        const SizedBox(height: 4), // Reduced height
-                                        LinearProgressIndicator(
-                                          value: (entry.viralFactor.clamp(0.0, 100.0) / 100),
-                                          minHeight: 6,
-                                          backgroundColor: Colors.grey[300],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  trailing: ConstrainedBox( // Wrap trailing Column with ConstrainedBox
-                                    constraints: const BoxConstraints(maxHeight: 50), // Set a max height
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Text(deltaText, style: TextStyle(color: delta >= 0 ? Colors.green : Colors.red, fontWeight: FontWeight.bold, fontSize: 12)), // Reduced font size
-                                        ElevatedButton(
-                                          onPressed: () {
-                                            // Open a small detail modal for this track
-                                            showDialog(
-                                              context: context,
-                                              builder: (_) => SongDetailDialog(song: entry, artist: artist, game: game),
-                                            );
-                                          },
-                                          style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0)), // Reduced vertical padding to 0
-                                          child: const Text('Details'), // Moved child to the end
-                                        )
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
+                                  subtitle: Column( // Removed SizedBox wrapper
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min, // Ensure it takes minimum space
+                        children: [
+                                      Text('Artist: ${artist?.name ?? 'Unknown'} (Pop: ${artist?.attributes['popularity']?.toStringAsFixed(0)}%)', style: const TextStyle(fontSize: 11)), // Reduced font size
+                                      const SizedBox(height: 1), // Reduced height
+                                      Text(
+                                        'Streams: ${entry.totalStreams.toStringAsFixed(0)} • Weekly: ${entry.weeklyListeners.toStringAsFixed(0)} (${_getWeeklyListenerChangePercentage(entry)}) ',
+                                        style: const TextStyle(fontSize: 11), // Reduced font size
+                                      ),
+                                      const SizedBox(height: 1), // Reduced height
+                                      Text(
+                                        'Total Artist Streams: ${game.getArtistCumulativeStreams(entry.artistId).toStringAsFixed(0)} • Label: ${_getArtistLabel(artist)}',
+                                        style: const TextStyle(fontSize: 11, color: Colors.white54), // Reduced font size
+                                      ),
+                                      const SizedBox(height: 2), // Reduced height
+                                      SizedBox(
+                                        height: 25, // Reduced sparkline height
+                                        child: SparklineChart(data: entry.listenerHistory), // Sparkline chart
+                                      ),
+                          const SizedBox(height: 2), // Reduced height
+                          LinearProgressIndicator(
+                            value: (entry.viralFactor.clamp(0.0, 100.0) / 100),
+                                        minHeight: 5, // Reduced minHeight
+                            backgroundColor: Colors.grey[300],
                           ),
+                        ],
+                      ),
+                                  trailing: FittedBox( // Wrap with FittedBox
+                                    fit: BoxFit.scaleDown, // Scale down if necessary
+                                    alignment: Alignment.centerRight, // Align to right
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisSize: MainAxisSize.min,
+                          children: [
+                                        Text(deltaText, style: TextStyle(color: delta >= 0 ? Colors.green : Colors.red, fontWeight: FontWeight.bold, fontSize: 10)), // Re-added text, smaller font
+                                        const SizedBox(height: 2), // Small separator
+                                        TextButton(
+                              onPressed: () {
+                                // Open a small detail modal for this track
+                                showDialog(
+                                  context: context,
+                                  builder: (_) => SongDetailDialog(song: entry, artist: artist, game: game),
+                                );
+                              },
+                                          style: TextButton.styleFrom(
+                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0), // Minimal padding
+                                            minimumSize: const Size(0, 20), // Very small minimum height
+                                            tapTargetSize: MaterialTapTargetSize.shrinkWrap, // Shrink tap target
+                                          ),
+                                          child: const Text('Details', style: TextStyle(fontSize: 10)), // Smaller text for button
+                            )
+                          ],
                         ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
                       ],
                     ),
                   );
@@ -277,6 +279,7 @@ class ChartsScreen extends StatelessWidget {
                             ),
                             trailing: ElevatedButton(
                               onPressed: () {
+                                // Open Artist Detail Screen (to be implemented later)
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
