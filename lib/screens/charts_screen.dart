@@ -46,19 +46,34 @@ class ChartsScreen extends StatelessWidget {
 
                   return Card(
                     margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    child: ListTile(
+                    child: ListTile( // Removed IntrinsicHeight wrapper
                       leading: CircleAvatar(
                         radius: 22,
                         child: Text('#$rank'), // Moved child to the end
                       ),
-                      title: Text(entry.title, style: const TextStyle(fontWeight: FontWeight.bold)),
-                      subtitle: Column(
+                      title: Text(entry.title.replaceAll("'s New Track", ""), style: const TextStyle(fontWeight: FontWeight.bold)), // Removed "'s New Track" from title
+                      subtitle: Column( // Removed Expanded from here
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const SizedBox(height: 4), // Reduced height
                           Text('Artist: ${artist?.name ?? 'Unknown'}'),
                           const SizedBox(height: 2), // Reduced height
-                          Text('Streams: ${entry.totalStreams.toStringAsFixed(0)} • Weekly: ${entry.weeklyListeners.toStringAsFixed(0)}'),
+                          Row( // Wrap streams and delta in a Row
+                            children: [
+                              Flexible( // Use Flexible instead of Expanded for streams text
+                                child: Text('Streams: ${entry.totalStreams.toStringAsFixed(0)} • Weekly: ${entry.weeklyListeners.toStringAsFixed(0)}', style: const TextStyle(fontSize: 10)), // Reduced font size
+                              ),
+                              const SizedBox(width: 4.0), // Add a small space between the two Flexible widgets
+                              if (delta != 0) // Only show delta if it's not zero
+                                Flexible( // Use Flexible instead of Expanded for deltaText
+                                  child: Text( // Removed Padding
+                                    deltaText, 
+                                    style: TextStyle(color: delta >= 0 ? Colors.green : Colors.red, fontWeight: FontWeight.bold, fontSize: 10), // Keep font size small
+                                    textAlign: TextAlign.right, // Align text to the right
+                                  ),
+                                ),
+                            ],
+                          ),
                           const SizedBox(height: 4), // Reduced height
                           LinearProgressIndicator(
                             value: (entry.viralFactor.clamp(0.0, 100.0) / 100),
@@ -67,27 +82,23 @@ class ChartsScreen extends StatelessWidget {
                           ),
                         ],
                       ),
-                      trailing: ConstrainedBox( // Wrap trailing Column with ConstrainedBox
-                        constraints: const BoxConstraints(maxHeight: 50), // Set a max height
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(deltaText, style: TextStyle(color: delta >= 0 ? Colors.green : Colors.red, fontWeight: FontWeight.bold)),
-                            // const SizedBox(height: 6), // Removed to save space
-                            ElevatedButton(
-                              onPressed: () {
-                                // Open a small detail modal for this track
-                                showDialog(
-                                  context: context,
-                                  builder: (_) => SongDetailDialog(song: entry, artist: artist, game: game),
-                                );
-                              },
-                              style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2)), // Further reduced vertical padding
-                              child: const Text('Details'), // Moved child to the end
-                            )
-                          ],
+                      trailing: SizedBox( // Wrap button in a SizedBox to control height
+                        height: 25, // Explicitly set a small height
+                        child: ElevatedButton(
+                          onPressed: () {
+                            // Open a small detail modal for this track
+                            showDialog(
+                              context: context,
+                              builder: (_) => SongDetailDialog(song: entry, artist: artist, game: game),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.zero, // Set padding to zero
+                            visualDensity: VisualDensity.compact, // Make the button more compact
+                          ),
+                          child: const Text('Details', style: TextStyle(fontSize: 10)), // Reduced button text font size to 10
                         ),
-                      ),
+                      ), // Only ElevatedButton in trailing
                     ),
                   );
                 },

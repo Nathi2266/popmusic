@@ -56,7 +56,22 @@ class DashboardScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              const ProceedWeekButton(),
+              Consumer<GameStateService>(
+                builder: (context, gameState, child) {
+                  return ProceedWeekButton(
+                    onPressed: () async {
+                      gameState.proceedWeek();
+                      await showDialog(
+                        context: context,
+                        builder: (_) => ChangeNotifierProvider.value(
+                          value: gameState,
+                          child: const EventPopup(),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
             ],
           ),
           drawer: Drawer(
@@ -130,11 +145,10 @@ class DashboardScreen extends StatelessWidget {
                   const SizedBox(height: 12),
                   Row(
                     children: [
-                      // ignore: prefer_const_constructors
                       Expanded(
-                        child: const StatCard(
+                        child: StatCard(
                           title: 'Label',
-                          value: 'Unsigned', // Player starts unsigned
+                          value: player.labelTier, // Use player's actual label tier
                           icon: Icons.business,
                           // ignore: unnecessary_const
                           color: const Color(0xFF2196F3),

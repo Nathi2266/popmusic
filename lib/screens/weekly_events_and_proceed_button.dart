@@ -9,26 +9,18 @@ import '../models/song.dart'; // Added import for Song model
 // -----------------------------
 
 class ProceedWeekButton extends StatelessWidget {
-const ProceedWeekButton({super.key});
+  final VoidCallback onPressed;
 
-@override
-Widget build(BuildContext context) {
- return ElevatedButton.icon(
-   icon: const Icon(Icons.skip_next),
-   label: const Text('Proceed Week'),
-   onPressed: () async {
-     final game = Provider.of<GameStateService>(context, listen: false);
-     game.proceedWeek();
-     await showDialog(
-       context: context,
-       builder: (_) => ChangeNotifierProvider.value(
-         value: game,
-         child: const EventPopup(),
-       ),
-     );
-   },
- );
-}
+  const ProceedWeekButton({super.key, required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton.icon(
+      icon: const Icon(Icons.skip_next),
+      label: const Text('Proceed Week'),
+      onPressed: onPressed,
+    );
+  }
 }
 
 class EventPopup extends StatelessWidget {

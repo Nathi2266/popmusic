@@ -1,3 +1,7 @@
+import 'package:hive/hive.dart';
+
+part 'artist.g.dart';
+
 // ignore_for_file: unnecessary_this
 
 // Removed ArtistAttributes import
@@ -25,30 +29,37 @@
 //   superstar
 // }
 
+@HiveType(typeId: 0)
 class Artist {
+  @HiveField(0)
   final String id;
-  final String name;
-  Map<String, double> attributes; 
-  // Example keys: 'popularity', 'reputation', 'happiness', 'talent', 'controversy', 'fan_connection'
+  @HiveField(1)
+  String name;
+  @HiveField(2)
+  Map<String, double> attributes;
+
+  // New fields for artist performance tracking
+  @HiveField(3)
+  double cumulativeStreams; // Total streams across all songs
+  @HiveField(4)
+  String labelTier; // E.g., "Underground", "Indie", "Major"
 
   Artist({
     required this.id,
     required this.name,
-    Map<String, double>? attributes,
-  }) : attributes = attributes ?? {
-          'popularity': 10,
-          'reputation': 10,
-          'happiness': 50,
-          'talent': 10,
-          'controversy': 0,
-          'fan_connection': 10,
-        };
+    required this.attributes,
+    this.cumulativeStreams = 0.0,
+    this.labelTier = "Underground", // Default label tier
+  });
 
   Map<String, dynamic> toMap() {
     return {
       'id': id,
       'name': name,
       'attributes': attributes,
+      // Add new fields to map
+      'cumulativeStreams': cumulativeStreams,
+      'labelTier': labelTier,
     };
   }
 
@@ -57,6 +68,9 @@ class Artist {
       id: map['id'],
       name: map['name'],
       attributes: Map<String, double>.from(map['attributes'] ?? {}),
+      // Retrieve new fields from map
+      cumulativeStreams: map['cumulativeStreams']?.toDouble() ?? 0.0,
+      labelTier: map['labelTier'] ?? "Underground",
     );
   }
 }

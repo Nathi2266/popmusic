@@ -6,36 +6,60 @@ import 'services/game_state_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Initialize Hive
   await Hive.initFlutter();
-  
   runApp(const PopMusicGame());
 }
 
-class PopMusicGame extends StatelessWidget {
+class PopMusicGame extends StatefulWidget {
   const PopMusicGame({super.key});
 
   @override
+  State<PopMusicGame> createState() => _PopMusicGameState();
+}
+
+class _PopMusicGameState extends State<PopMusicGame> {
+  late Future<GameStateService> _gameStateServiceFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _gameStateServiceFuture = _initializeGame();
+  }
+
+  Future<GameStateService> _initializeGame() async {
+    final gameService = GameStateService();
+    await gameService.initHive();
+    return gameService;
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) {
-        final gameService = GameStateService();
-        // Removed initializeWorld call as it's no longer needed.
-        // gameService.initializeWorld(NPCArtists.artistNames);
-        return gameService;
+    return FutureBuilder<GameStateService>(
+      future: _gameStateServiceFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else {
+            return ChangeNotifierProvider<GameStateService>(
+              create: (_) => snapshot.data!,
+              child: MaterialApp(
+                title: 'PopMusic',
+                theme: ThemeData(
+                  primarySwatch: Colors.purple,
+                  brightness: Brightness.dark,
+                  scaffoldBackgroundColor: const Color(0xFF1a1a2e),
+                  fontFamily: 'Arial',
+                ),
+                home: const MainMenuScreen(),
+                debugShowCheckedModeBanner: false,
+              ),
+            );
+          }
+        } else {
+          return const Center(child: CircularProgressIndicator()); // Loading indicator
+        }
       },
-      child: MaterialApp(
-        title: 'PopMusic',
-        theme: ThemeData(
-          primarySwatch: Colors.purple,
-          brightness: Brightness.dark,
-          scaffoldBackgroundColor: const Color(0xFF1a1a2e),
-          fontFamily: 'Arial',
-        ),
-        home: const MainMenuScreen(),
-        debugShowCheckedModeBanner: false,
-      ),
     );
   }
 }
