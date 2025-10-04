@@ -6,6 +6,7 @@ import '../services/game_state_service.dart';
 // Removed LabelTier and ArtistAttributes imports
 // import '../models/artist_attributes.dart';
 // import '../models/label_tier.dart';
+import '../screens/award_detail_screen.dart'; // Added import for AwardDetailScreen
 
 class CareerScreen extends StatelessWidget {
   const CareerScreen({super.key});
@@ -255,8 +256,16 @@ class CareerScreen extends StatelessWidget {
                       const Divider(color: Colors.white24),
                       _StatRow(
                         label: 'Awards Won',
-                        value: '${(player.attributes['awards'] as List<String>?)?.length ?? 0}',
+                        value: '${player.awardsWon.length}',
                         icon: Icons.emoji_events,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => AwardDetailScreen(awards: player.awardsWon),
+                            ),
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -272,7 +281,6 @@ class CareerScreen extends StatelessWidget {
   // Removed _upgradeLabelTier, _getLabelName, _getLabelColor
   // void _upgradeLabelTier( ... ) { ... }
   // String _getLabelName(LabelTier tier) { ... }
-  // Color _getLabelColor(LabelTier tier) { ... }
 }
 
 // Removed _LabelTierCard class
@@ -282,39 +290,44 @@ class _StatRow extends StatelessWidget {
   final String label;
   final String value;
   final IconData icon;
+  final VoidCallback? onTap; // Added onTap callback
 
   const _StatRow({
     required this.label,
     required this.value,
     required this.icon,
+    this.onTap, // Initialize onTap
   });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Row(
-        children: [
-          Icon(icon, color: const Color(0xFFe94560), size: 24),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Text(
-              label,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
+    return InkWell(
+      onTap: onTap, // Assign onTap to InkWell
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Row(
+          children: [
+            Icon(icon, color: const Color(0xFFe94560), size: 24),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                label,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                ),
               ),
             ),
-          ),
-          Text(
-            value,
-            style: const TextStyle(
-              color: Color(0xFFe94560),
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
+            Text(
+              value,
+              style: const TextStyle(
+                color: Color(0xFFe94560),
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

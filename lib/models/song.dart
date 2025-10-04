@@ -24,14 +24,14 @@ class Song {
     this.weeklyListeners = 0,
     this.lastWeekListeners,
     this.weeksSinceRelease = 0,
-    this.lastWeekRank, // Initialize lastWeekRank
-    this.isNewEntry = true, // New songs are initially new entries
+    this.lastWeekRank,
+    this.isNewEntry = true,
     this.popularityFactor = 10,
     this.viralFactor = 5,
     this.salesPotential = 10,
-    this.genre = 'Pop', // Default genre
-    this.listenerHistory = const [], // Initialize as an empty list
-  });
+    this.genre = 'Pop',
+    List<double>? listenerHistory,
+  }) : this.listenerHistory = listenerHistory ?? [];
 
   Map<String, dynamic> toMap() {
     return {

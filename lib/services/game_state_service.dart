@@ -163,6 +163,7 @@ class GameStateService extends ChangeNotifier {
   // Chart calculations
   // ---------------------------
   void recalculateCharts() {
+    final rng = Random();
     // Store current ranks before updating for the new week
     final Map<String, int> currentRanks = {};
     for (int i = 0; i < worldSongs.length; i++) {
@@ -283,6 +284,45 @@ class GameStateService extends ChangeNotifier {
       weeklyChartHistory.removeAt(0);
     }
 
+    // "Best Viral Song" Nomination and Award
+    final viralSongsCandidates = worldSongs.where((song) => song.totalStreams >= 1000000 && song.weeksSinceRelease < 8).toList();
+    if (viralSongsCandidates.isNotEmpty && rng.nextDouble() < 0.1) { // 10% chance for a viral award event
+      // Sort by viral factor to pick the 'best' viral song
+      viralSongsCandidates.sort((a, b) => b.viralFactor.compareTo(a.viralFactor));
+      final winningSong = viralSongsCandidates.first;
+      final winningArtist = getArtistById(winningSong.artistId);
+
+      if (winningArtist != null) {
+        // Give money and popularity boost to the winning artist
+        playerMoney += 10000; // Assuming player gets money if their artist wins, or if an NPC artist wins it's general game money
+        updateArtistAttribute(winningArtist.id, 'popularity', 10.0);
+        winningArtist.awardsWon.add('Best Viral Song - ${year}');
+
+        lastWeekEvents.add(GameEvent(
+          id: 'viral_award_${year}_${winningArtist.id}',
+          title: '${winningArtist.name} Wins Best Viral Song!',
+          description: '${winningArtist.name}\'s song "${winningSong.title}" has been awarded Best Viral Song of the year, earning them \$10,000 and a popularity boost!',
+          type: EventType.opportunity,
+          severity: EventSeverity.high,
+        ));
+
+        // Nominate 3 other artists
+        final otherNominees = viralSongsCandidates.where((song) => song.artistId != winningArtist.id).take(3).toList();
+        for (var nominatedSong in otherNominees) {
+          final nominatedArtist = getArtistById(nominatedSong.artistId);
+          if (nominatedArtist != null) {
+            lastWeekEvents.add(GameEvent(
+              id: 'viral_nominee_${year}_${nominatedArtist.id}',
+              title: '${nominatedArtist.name} Nominated for Best Viral Song!',
+              description: '${nominatedArtist.name}\'s song "${nominatedSong.title}" has been nominated for Best Viral Song of the year!',
+              type: EventType.opportunity,
+              severity: EventSeverity.low,
+            ));
+          }
+        }
+      }
+    }
+
     notifyListeners();
   }
 
@@ -331,7 +371,11 @@ class GameStateService extends ChangeNotifier {
   List<Song> getTopSongs(int limit) {
     List<Song> songsToConsider = worldSongs;
     if (currentGenreFilter != null) {
-      songsToConsider = worldSongs.where((song) => song.genre == currentGenreFilter).toList();
+      if (currentGenreFilter == 'New Releases') {
+        songsToConsider = worldSongs.where((song) => song.isNewEntry).toList();
+      } else {
+        songsToConsider = worldSongs.where((song) => song.genre == currentGenreFilter).toList();
+      }
     }
 
     songsToConsider.sort((a, b) => b.totalStreams.compareTo(a.totalStreams));

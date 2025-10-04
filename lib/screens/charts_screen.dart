@@ -71,7 +71,7 @@ class ChartsScreen extends StatelessWidget {
                   onChanged: (String? newValue) {
                     game.currentGenreFilter = newValue;
                   },
-                  items: ['All', ...game.availableGenres].map<DropdownMenuItem<String>>((String value) {
+                  items: ['All', 'New Releases', ...game.availableGenres].map<DropdownMenuItem<String>>((String value) {
                     return DropdownMenuItem<String>(
                       value: value == 'All' ? null : value,
                       child: Text(value, style: const TextStyle(color: Colors.white)),
@@ -154,7 +154,7 @@ class ChartsScreen extends StatelessWidget {
                                   ),
                                   title: Row(
                                     children: [
-                                      Text(entry.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                                      Expanded(child: Text(entry.title, style: const TextStyle(fontWeight: FontWeight.bold))), // Wrapped with Expanded
                                       if (entry.isNewEntry) ...[
                                         const SizedBox(width: 8),
                                         const Chip(
@@ -181,40 +181,46 @@ class ChartsScreen extends StatelessWidget {
                                       _buildRankChangeIndicator(rank, entry.lastWeekRank),
                                     ],
                                   ),
-                                  subtitle: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      const SizedBox(height: 4), // Reduced height
-                                      Text('Artist: ${artist?.name ?? 'Unknown'} (Pop: ${artist?.attributes['popularity']?.toStringAsFixed(0)}%)'), // Added popularity
-                                      const SizedBox(height: 2), // Reduced height
-                                      Text(
-                                        'Streams: ${entry.totalStreams.toStringAsFixed(0)} • Weekly: ${entry.weeklyListeners.toStringAsFixed(0)} (${_getWeeklyListenerChangePercentage(entry)}) ',
-                                        style: const TextStyle(fontSize: 12), // Adjusted font size
-                                      ),
-                                      Text(
-                                        'Total Artist Streams: ${game.getArtistCumulativeStreams(entry.artistId).toStringAsFixed(0)} • Label: ${_getArtistLabel(artist)}',
-                                        style: const TextStyle(fontSize: 12, color: Colors.white54), // New line for artist cumulative streams and label
-                                      ),
-                                      const SizedBox(height: 4), // Reduced height
-                                      SizedBox(
-                                        height: 30,
-                                        child: SparklineChart(data: entry.listenerHistory), // Sparkline chart
-                                      ),
-                                      const SizedBox(height: 4), // Reduced height
-                                      LinearProgressIndicator(
-                                        value: (entry.viralFactor.clamp(0.0, 100.0) / 100),
-                                        minHeight: 6,
-                                        backgroundColor: Colors.grey[300],
-                                      ),
-                                    ],
+                                  subtitle: SizedBox(
+                                    height: 100, // Fixed height to prevent unbounded constraints
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Expanded(child: Text('Artist: ${artist?.name ?? 'Unknown'} (Pop: ${artist?.attributes['popularity']?.toStringAsFixed(0)}%)')), // Added Expanded
+                                        const SizedBox(height: 2), // Reduced height
+                                        Expanded(
+                                          child: Text(
+                                            'Streams: ${entry.totalStreams.toStringAsFixed(0)} • Weekly: ${entry.weeklyListeners.toStringAsFixed(0)} (${_getWeeklyListenerChangePercentage(entry)}) ',
+                                            style: const TextStyle(fontSize: 12), // Adjusted font size
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2), // Reduced height
+                                        Expanded(
+                                          child: Text(
+                                            'Total Artist Streams: ${game.getArtistCumulativeStreams(entry.artistId).toStringAsFixed(0)} • Label: ${_getArtistLabel(artist)}',
+                                            style: const TextStyle(fontSize: 12, color: Colors.white54), // New line for artist cumulative streams and label
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4), // Reduced height
+                                        SizedBox(
+                                          height: 30,
+                                          child: SparklineChart(data: entry.listenerHistory), // Sparkline chart
+                                        ),
+                                        const SizedBox(height: 4), // Reduced height
+                                        LinearProgressIndicator(
+                                          value: (entry.viralFactor.clamp(0.0, 100.0) / 100),
+                                          minHeight: 6,
+                                          backgroundColor: Colors.grey[300],
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                   trailing: ConstrainedBox( // Wrap trailing Column with ConstrainedBox
                                     constraints: const BoxConstraints(maxHeight: 50), // Set a max height
                                     child: Column(
                                       mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
-                                        Text(deltaText, style: TextStyle(color: delta >= 0 ? Colors.green : Colors.red, fontWeight: FontWeight.bold)),
-                                        // const SizedBox(height: 6), // Removed to save space
+                                        Text(deltaText, style: TextStyle(color: delta >= 0 ? Colors.green : Colors.red, fontWeight: FontWeight.bold, fontSize: 12)), // Reduced font size
                                         ElevatedButton(
                                           onPressed: () {
                                             // Open a small detail modal for this track
@@ -223,7 +229,7 @@ class ChartsScreen extends StatelessWidget {
                                               builder: (_) => SongDetailDialog(song: entry, artist: artist, game: game),
                                             );
                                           },
-                                          style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2)), // Further reduced vertical padding
+                                          style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0)), // Reduced vertical padding to 0
                                           child: const Text('Details'), // Moved child to the end
                                         )
                                       ],
