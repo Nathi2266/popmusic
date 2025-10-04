@@ -19,8 +19,8 @@ class ArtistAdapter extends TypeAdapter<Artist> {
     return Artist(
       id: fields[0] as String,
       name: fields[1] as String,
-      attributes: (fields[2] as Map).cast<String, double>(),
-      cumulativeStreams: fields[3] as double,
+      attributes: (fields[2] as Map?)?.cast<String, double>(),
+      awardsWon: (fields[3] as List?)?.cast<String>(),
       labelTier: fields[4] as String,
     );
   }
@@ -36,7 +36,7 @@ class ArtistAdapter extends TypeAdapter<Artist> {
       ..writeByte(2)
       ..write(obj.attributes)
       ..writeByte(3)
-      ..write(obj.cumulativeStreams)
+      ..write(obj.awardsWon)
       ..writeByte(4)
       ..write(obj.labelTier);
   }

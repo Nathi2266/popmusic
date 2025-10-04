@@ -24,24 +24,25 @@ class SongAdapter extends TypeAdapter<Song> {
       weeklyListeners: fields[4] as double,
       lastWeekListeners: fields[5] as double?,
       weeksSinceRelease: fields[6] as int,
-      popularityFactor: fields[7] as double,
-      viralFactor: fields[8] as double,
-      salesPotential: fields[9] as double,
       lastWeekRank: fields[10] as int?,
       currentRank: fields[11] as int?,
       peakRank: fields[12] as int?,
       weeksOnChart: fields[13] as int,
       isNewEntry: fields[14] as bool,
       isViral: fields[15] as bool,
-      awards: (fields[16] as List).cast<String>(),
-      listenerHistory: (fields[17] as List).cast<double>(),
+      popularityFactor: fields[7] as double,
+      viralFactor: fields[8] as double,
+      salesPotential: fields[9] as double,
+      genre: fields[16] as String,
+      listenerHistory: (fields[17] as List?)?.cast<double>(),
+      awards: (fields[18] as List?)?.cast<String>(),
     );
   }
 
   @override
   void write(BinaryWriter writer, Song obj) {
     writer
-      ..writeByte(18)
+      ..writeByte(19)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -56,12 +57,6 @@ class SongAdapter extends TypeAdapter<Song> {
       ..write(obj.lastWeekListeners)
       ..writeByte(6)
       ..write(obj.weeksSinceRelease)
-      ..writeByte(7)
-      ..write(obj.popularityFactor)
-      ..writeByte(8)
-      ..write(obj.viralFactor)
-      ..writeByte(9)
-      ..write(obj.salesPotential)
       ..writeByte(10)
       ..write(obj.lastWeekRank)
       ..writeByte(11)
@@ -74,10 +69,18 @@ class SongAdapter extends TypeAdapter<Song> {
       ..write(obj.isNewEntry)
       ..writeByte(15)
       ..write(obj.isViral)
+      ..writeByte(7)
+      ..write(obj.popularityFactor)
+      ..writeByte(8)
+      ..write(obj.viralFactor)
+      ..writeByte(9)
+      ..write(obj.salesPotential)
       ..writeByte(16)
-      ..write(obj.awards)
+      ..write(obj.genre)
       ..writeByte(17)
-      ..write(obj.listenerHistory);
+      ..write(obj.listenerHistory)
+      ..writeByte(18)
+      ..write(obj.awards);
   }
 
   @override

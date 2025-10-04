@@ -349,9 +349,14 @@ class DashboardScreen extends StatelessWidget {
         return ListTile(
           leading: CircleAvatar(child: Text('#${index + 1}')),
           title: Text(song.title, style: const TextStyle(color: Colors.white)),
-          subtitle: Text('${artist?.name ?? 'Unknown Artist'} - ${song.weeklyListeners.toStringAsFixed(0)} listeners',
-              style: const TextStyle(color: Colors.white70)),
-          trailing: Text('${song.totalStreams.toStringAsFixed(0)} streams', style: const TextStyle(color: Colors.white70)),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(artist?.name ?? 'Unknown Artist', style: const TextStyle(color: Colors.white70)),
+              Text('Weekly: ${song.weeklyListeners.toStringAsFixed(0)} | Total: ${song.totalStreams.toStringAsFixed(0)}', style: const TextStyle(color: Colors.white70)),
+            ],
+          ),
+          trailing: Text('Rank: ${song.currentRank ?? '--'}', style: const TextStyle(color: Colors.white70)),
         );
       },
     );

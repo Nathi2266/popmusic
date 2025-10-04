@@ -33,9 +33,14 @@ part 'artist.g.dart';
 class Artist {
   @HiveField(0)
   final String id;
+  @HiveField(1)
   final String name;
+  @HiveField(2)
   Map<String, double> attributes;
+  @HiveField(3)
   List<String> awardsWon; // Added to track awards won
+  @HiveField(4)
+  String labelTier; // Added to track the artist's label tier
   // Example keys: 'popularity', 'reputation', 'happiness', 'talent', 'controversy', 'fan_connection'
 
   Artist({
@@ -43,6 +48,7 @@ class Artist {
     required this.name,
     Map<String, double>? attributes,
     List<String>? awardsWon,
+    this.labelTier = 'Unsigned', // Initialize labelTier
   }) : attributes = attributes ?? {
           'popularity': 10,
           'reputation': 10,
@@ -59,6 +65,7 @@ class Artist {
       'name': name,
       'attributes': attributes,
       'awardsWon': awardsWon,
+      'labelTier': labelTier,
     };
   }
 
@@ -68,6 +75,7 @@ class Artist {
       name: map['name'],
       attributes: Map<String, double>.from(map['attributes'] ?? {}),
       awardsWon: List<String>.from(map['awardsWon'] ?? []),
+      labelTier: map['labelTier'] ?? 'Unsigned',
     );
   }
 }

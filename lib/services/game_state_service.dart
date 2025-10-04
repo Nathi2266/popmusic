@@ -17,11 +17,20 @@ class GameStateService extends ChangeNotifier {
   List<Artist> worldArtists = [];
   List<GameEvent> lastWeekEvents = [];
 
+  late Box _gameBox; // Declare _gameBox
+
   final List<String> availableGenres = ['Pop', 'Rock', 'Hip-Hop', 'R&B', 'Electronic', 'Indie']; // Define available genres
   String? currentGenreFilter; // Added to filter songs by genre
   String chartViewMode = 'songs'; // 'songs' or 'artists'
 
   List<Map<String, dynamic>> weeklyChartHistory = []; // Stores historical chart data
+
+  // Placeholder for notifications
+  void addNotification(String message) {
+    // In a real game, this would add a notification to a list
+    // that can be displayed to the user.
+    debugPrint('Notification: $message');
+  }
 
   // ---------------------------
   // Time progression
@@ -44,6 +53,7 @@ class GameStateService extends ChangeNotifier {
     // Recalculate charts after events
     recalculateCharts();
     saveGame(); // Save game state after weekly progression
+    _updatePlayerMetrics(); // Call player metrics update here
   }
 
   void _updatePlayerMetrics() {
@@ -304,6 +314,21 @@ class GameStateService extends ChangeNotifier {
     }
 
     worldSongs.sort((a, b) => b.totalStreams.compareTo(a.totalStreams));
+
+    // Update currentRank, peakRank, and weeksOnChart after sorting
+    for (int i = 0; i < worldSongs.length; i++) {
+      final song = worldSongs[i];
+      final rank = i + 1;
+      song.currentRank = rank;
+      if (song.peakRank == null || rank < song.peakRank!) {
+        song.peakRank = rank;
+      }
+      if (rank <= 30) { // Assuming top 30 is 'on chart'
+        song.weeksOnChart++;
+      } else if (song.weeksOnChart > 0) { // If it drops off chart, stop incrementing
+        // Optionally reset weeksOnChart or handle as needed
+      }
+    }
 
     // After sorting, update the isNewEntry for existing songs.
     // If a song wasn't new this week (weeksSinceRelease > 0), then it's no longer a new entry.
