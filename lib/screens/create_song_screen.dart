@@ -90,16 +90,16 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
         : (player.attributes['production'] ?? 0).toInt();
 
     final popularityFactor = ((songwritingComponent + productionComponent) / 2).clamp(0, 100).toDouble();
-    final viralFactor = (player.attributes['marketing'] ?? 0 * 0.5 + 
-                       (player.attributes['charisma'] ?? 0) * 0.3 + 
+    final viralFactor = (player.attributes['marketing'] ?? 0 * 0.5 +
+                       (player.attributes['charisma'] ?? 0) * 0.3 +
                        Random().nextInt(20)).clamp(0, 100).toDouble();
-    final salesPotential = (player.attributes['networking'] ?? 0 * 0.4 + 
-                          (player.attributes['wealth'] ?? 0) * 0.3 + 
+    final salesPotential = (player.attributes['networking'] ?? 0 * 0.4 +
+                          (player.attributes['wealth'] ?? 0) * 0.3 +
                           Random().nextInt(30)).clamp(0, 100).toDouble();
 
     final song = Song(
       id: 'song_${DateTime.now().millisecondsSinceEpoch}',
-      title: _titleController.text.trim(),
+      title: _titleController.text.trim(), // Ensure only the raw title is used
       artistId: player.id,
       totalStreams: 0,
       weeklyListeners: 0,
@@ -155,7 +155,7 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
                   controller: _titleController,
                   style: const TextStyle(color: Colors.white, fontSize: 16),
                   decoration: InputDecoration(
-                    hintText: 'Enter song title',
+                    hintText: 'Enter song title (e.g., "Summer Jam")',
                     hintStyle: const TextStyle(color: Colors.white38),
                     filled: true,
                     fillColor: const Color(0xFF2a2a3e),

@@ -153,40 +153,16 @@ class ChartsScreen extends StatelessWidget {
                         radius: 22,
                                     child: Text('#$rank'),
                                   ),
-                                  title: Row(
-                                    children: [
-                                      Expanded(child: Text(entry.title, style: const TextStyle(fontWeight: FontWeight.bold))), // Wrapped with Expanded
-                                      if (entry.isNewEntry) ...[
-                                        const SizedBox(width: 8),
-                                        const Chip(
-                                          label: Text('NEW', style: TextStyle(color: Colors.white, fontSize: 10)),
-                                          backgroundColor: Colors.green,
-                                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                          visualDensity: VisualDensity.compact,
-                                        ),
-                                      ],
-                                      if (entry.viralFactor > 70) ...[
-                                        const SizedBox(width: 8),
-                                        const Icon(Icons.local_fire_department, color: Colors.orange, size: 20), // "Hot" icon
-                                      ],
-                                      if (rank == 1) ...[
-                                        const SizedBox(width: 8),
-                                        const Chip(
-                                          label: Text('#1 HIT', style: TextStyle(color: Colors.white, fontSize: 10)),
-                                          backgroundColor: Colors.amber, // Gold color
-                                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                          visualDensity: VisualDensity.compact,
-                                        ),
-                                      ],
-                                      const SizedBox(width: 8),
-                                      _buildRankChangeIndicator(rank, entry.lastWeekRank),
-                                    ],
+                                  title: Text(
+                                    entry.title,
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                                   ),
                                   subtitle: Column( // Removed SizedBox wrapper
                         crossAxisAlignment: CrossAxisAlignment.start,
                                     mainAxisSize: MainAxisSize.min, // Ensure it takes minimum space
                         children: [
-                                      Text('Artist: ${artist?.name ?? 'Unknown'} (Pop: ${artist?.attributes['popularity']?.toStringAsFixed(0)}%)', style: const TextStyle(fontSize: 11)), // Reduced font size
+                                      Text('Artist: ${artist?.name ?? 'Unknown'}', style: const TextStyle(fontSize: 12, color: Colors.white70)), // Display artist separately
+                                      Text('Pop: ${artist?.attributes['popularity']?.toStringAsFixed(0)}%', style: const TextStyle(fontSize: 11)),
                                       const SizedBox(height: 1), // Reduced height
                                       Text(
                                         'Streams: ${entry.totalStreams.toStringAsFixed(0)} • Weekly: ${entry.weeklyListeners.toStringAsFixed(0)} (${_getWeeklyListenerChangePercentage(entry)}) ',
@@ -350,6 +326,7 @@ class ChartsScreen extends StatelessWidget {
     );
   }
 
+  // ignore: unused_element
   Widget _buildRankChangeIndicator(int currentRank, int? lastWeekRank) {
     if (lastWeekRank == null || currentRank == lastWeekRank) {
       return const SizedBox.shrink(); // No change or new entry, no arrow
@@ -456,7 +433,7 @@ class SongDetailDialog extends StatelessWidget {
     final lastWeek = song.lastWeekListeners ?? 0;
     final delta = song.weeklyListeners - lastWeek;
     return AlertDialog(
-      title: Text('${song.title} — ${artist?.name ?? 'Unknown'}'),
+      title: Text(song.title),
       content: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
