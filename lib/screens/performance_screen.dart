@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/game_state_service.dart';
+import '../services/achievement_service.dart';
+import '../services/challenge_service.dart';
 import '../models/venue.dart';
 import '../models/artist.dart';
+import '../models/challenge.dart';
 import 'performance_minigame_screen.dart';
+import '../utils/toast_service.dart';
 
 class PerformanceScreen extends StatelessWidget {
   const PerformanceScreen({super.key});
@@ -87,12 +91,7 @@ class PerformanceScreen extends StatelessWidget {
                 player: player,
                 onPerform: () async {
                   if ((player.attributes['stamina'] ?? 0) < 20) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Not enough stamina!'),
-                        backgroundColor: Color(0xFFF44336),
-                      ),
-                    );
+                    ToastService().showError('Not enough stamina!');
                     return;
                   }
 
@@ -108,6 +107,15 @@ class PerformanceScreen extends StatelessWidget {
                   if (score != null) {
                     if (!context.mounted) return;
                     _processPerformance(context, gameState, venue, score);
+                    
+                    // Check performance achievements
+                    final achievementService = Provider.of<AchievementService>(context, listen: false);
+                    achievementService.incrementProgress('first_performance');
+                    final performanceCount = (gameState.player?.attributes['performanceCount'] ?? 0) + 1;
+                    gameState.updatePlayerAttribute('performanceCount', 1);
+                    if (performanceCount >= 10) {
+                      achievementService.updateProgress('ten_performances', performanceCount.toInt());
+                    }
                   }
                 },
               )),
@@ -149,8 +157,13 @@ class PerformanceScreen extends StatelessWidget {
     
     final fanGain = (venue.capacity * 0.1 * performanceMultiplier).toInt();
     
-    gameState.updatePlayerMoney(earnings.toDouble()); // Cast to double
-    gameState.updatePlayerFanCount(fanGain);
+                    final achievementService = Provider.of<AchievementService>(context, listen: false);
+                    final challengeService = Provider.of<ChallengeService>(context, listen: false);
+                    gameState.updatePlayerMoney(earnings.toDouble(), achievementService: achievementService); // Cast to double
+                    gameState.updatePlayerFanCount(fanGain, achievementService: achievementService);
+                    challengeService.updateProgress(ChallengeType.performShows, 1);
+                    challengeService.updateProgress(ChallengeType.gainFans, fanGain);
+                    challengeService.updateProgress(ChallengeType.earnMoney, earnings);
     gameState.updatePlayerAttribute('performance', performanceScore > 70 ? 1.0 : 0.5); // Cast to double
     gameState.updatePlayerAttribute('stamina', -20.0); // Cast to double
     gameState.updatePlayerAttribute('popularity', fanGain / 100.0); // Cast to double

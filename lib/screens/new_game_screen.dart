@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/game_state_service.dart';
 import 'game_screen.dart';
+import '../utils/toast_service.dart';
 
 class NewGameScreen extends StatefulWidget {
   const NewGameScreen({super.key});
@@ -21,9 +22,7 @@ class _NewGameScreenState extends State<NewGameScreen> {
 
   void _startGame() {
     if (_nameController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter your artist name')),
-      );
+      ToastService().showError('Please enter your artist name');
       return;
     }
 

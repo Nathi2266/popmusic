@@ -3,6 +3,10 @@ import 'package:provider/provider.dart';
 import '../services/game_state_service.dart';
 import 'create_song_screen.dart';
 import '../models/song.dart';
+import '../widgets/shimmer_loader.dart';
+import '../widgets/empty_state.dart';
+import '../widgets/glass_card.dart';
+import '../utils/animations.dart';
 
 class MusicScreen extends StatelessWidget {
   const MusicScreen({super.key});
@@ -61,43 +65,40 @@ class MusicScreen extends StatelessWidget {
 
               // Songs List
               Expanded(
-                child: playerSongs.isEmpty
-                    ? const Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.music_note,
-                              size: 80,
-                              color: Colors.white24,
-                            ),
-                            SizedBox(height: 16),
-                            Text(
-                              'No songs yet',
-                              style: TextStyle(
-                                color: Colors.white54,
-                                fontSize: 18,
-                              ),
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              'Create your first hit!',
-                              style: TextStyle(
-                                color: Colors.white38,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                    : ListView.builder(
+                child: player == null
+                    ? ListView.builder(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
-                        itemCount: playerSongs.length,
+                        itemCount: 3,
                         itemBuilder: (context, index) {
-                          final song = playerSongs[index];
-                          return _SongCard(song: song);
+                          return const ShimmerSongCard();
                         },
-                      ),
+                      )
+                    : playerSongs.isEmpty
+                        ? EmptyState(
+                            icon: Icons.music_note,
+                            title: 'No songs yet',
+                            subtitle: 'Create your first hit and start your music career!',
+                            actionLabel: 'Create Song',
+                            onAction: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const CreateSongScreen(),
+                                ),
+                              );
+                            },
+                          )
+                        : ListView.builder(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            itemCount: playerSongs.length,
+                            itemBuilder: (context, index) {
+                              final song = playerSongs[index];
+                              return AppAnimations.fadeIn(
+                                duration: Duration(milliseconds: 300 + (index * 50)),
+                                child: _SongCard(song: song),
+                              );
+                            },
+                          ),
               ),
             ],
           ),
@@ -114,17 +115,11 @@ class _SongCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      color: const Color(0xFF2a2a3e),
+    return GlassCard(
       margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
             Row(
               children: [
                 Container(
@@ -215,7 +210,6 @@ class _SongCard extends StatelessWidget {
             ),
           ],
         ),
-      ),
     );
   }
 }

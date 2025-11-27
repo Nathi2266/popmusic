@@ -5,6 +5,8 @@ import '../models/artist.dart';
 import '../models/song.dart';
 import '../models/event.dart';
 import '../data/npc_artists.dart'; // Corrected import for NPCArtists
+import '../models/player_level.dart';
+import 'achievement_service.dart';
 
 class GameStateService extends ChangeNotifier {
   int year = 2025;
@@ -614,7 +616,22 @@ class GameStateService extends ChangeNotifier {
 
   void addSong(Song song) {
     worldSongs.add(song);
+    // Award XP for releasing a song
+    addPlayerXp(50);
     notifyListeners();
+  }
+  
+  void checkSongAchievements(AchievementService achievementService) {
+    final playerSongCount = playerSongs.length;
+    if (playerSongCount >= 1) {
+      achievementService.incrementProgress('first_song');
+    }
+    if (playerSongCount >= 10) {
+      achievementService.updateProgress('ten_songs', playerSongCount);
+    }
+    if (playerSongCount >= 50) {
+      achievementService.updateProgress('fifty_songs', playerSongCount);
+    }
   }
 
   void addArtist(Artist artist) {
@@ -716,6 +733,7 @@ class GameStateService extends ChangeNotifier {
   double playerMoney = 5000; // Example initial money
   int playerFanCount = 100; // Example initial fan count
   int? playerChartPeak; // Stores the highest (lowest number) rank a player's song has achieved
+  int playerXp = 0; // Player experience points
 
   void startNewGame(String playerName) {
     _player = Artist(
@@ -745,25 +763,93 @@ class GameStateService extends ChangeNotifier {
     worldArtists.addAll(NPCArtists.generateNPCs()); // Add NPC artists to worldArtists
     playerMoney = 5000;
     playerFanCount = 100;
+    playerXp = 0;
     notifyListeners();
   }
 
   List<Song> get playerSongs => worldSongs.where((song) => song.artistId == _player?.id).toList();
 
-  void updatePlayerMoney(double amount) {
+  void addPlayerXp(int amount) {
+    final oldLevel = PlayerLevel.fromTotalXp(playerXp).level;
+    playerXp += amount;
+    final newLevel = PlayerLevel.fromTotalXp(playerXp).level;
+    
+    if (newLevel > oldLevel) {
+      // Level up!
+      notifyListeners();
+    }
+    notifyListeners();
+  }
+  
+  PlayerLevel getPlayerLevel() {
+    return PlayerLevel.fromTotalXp(playerXp);
+  }
+
+  void updatePlayerMoney(double amount, {AchievementService? achievementService}) {
     playerMoney += amount;
+    
+    // Award XP for earning money
+    if (amount > 0) {
+      addPlayerXp((amount / 100).toInt());
+    }
+    
+    // Check money achievements
+    if (achievementService != null) {
+      if (playerMoney >= 10000) {
+        achievementService.updateProgress('ten_thousand_money', playerMoney.toInt());
+      }
+      if (playerMoney >= 100000) {
+        achievementService.updateProgress('hundred_thousand_money', playerMoney.toInt());
+      }
+    }
+    
     notifyListeners();
   }
 
-  void updatePlayerFanCount(int amount) {
+  void updatePlayerFanCount(int amount, {AchievementService? achievementService}) {
     playerFanCount += amount;
-      notifyListeners();
+    
+    // Award XP for gaining fans
+    if (amount > 0) {
+      addPlayerXp(amount ~/ 10);
+    }
+    
+    // Check fan achievements
+    if (achievementService != null) {
+      if (playerFanCount >= 1000) {
+        achievementService.updateProgress('thousand_fans', playerFanCount);
+      }
+      if (playerFanCount >= 10000) {
+        achievementService.updateProgress('ten_thousand_fans', playerFanCount);
+      }
+      if (playerFanCount >= 100000) {
+        achievementService.updateProgress('hundred_thousand_fans', playerFanCount);
+      }
+    }
+    
+    notifyListeners();
   }
 
   // You might want to add a method to update specific player attributes
   void updatePlayerAttribute(String attribute, double change) {
     if (_player == null) return;
     _player!.attributes[attribute] = ((_player!.attributes[attribute] ?? 0) + change).clamp(0.0, 100.0);
+    notifyListeners();
+  }
+
+  // Reset game state
+  void resetGame() {
+    _player = null;
+    worldSongs.clear();
+    worldArtists.clear();
+    playerMoney = 0;
+    playerFanCount = 0;
+    playerChartPeak = null;
+    year = 2025;
+    month = 1;
+    weekOfMonth = 1;
+    lastWeekEvents.clear();
+    weeklyChartHistory.clear();
     notifyListeners();
   }
 }

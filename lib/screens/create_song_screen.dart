@@ -10,6 +10,8 @@ import '../models/song.dart';
 import 'songwriting_minigame_screen.dart';
 import 'production_minigame_screen.dart';
 import '../data/titles.dart';
+import '../utils/toast_service.dart';
+import '../services/achievement_service.dart';
 
 class CreateSongScreen extends StatefulWidget {
   const CreateSongScreen({super.key});
@@ -131,9 +133,7 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
 
   void _releaseSong() {
     if (_titleController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a song title')),
-      );
+      ToastService().showError('Please enter a song title');
       return;
     }
 
@@ -141,9 +141,7 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
     final player = gameState.player;
 
     if (player == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Player data not available')),
-      );
+      ToastService().showError('Player data not available');
       return;
     }
 
@@ -225,18 +223,15 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
               );
 
               gameState.addSong(song);
+              final achievementService = Provider.of<AchievementService>(context, listen: false);
+              gameState.checkSongAchievements(achievementService);
               gameState.recalculateCharts();
               gameState.updatePlayerMoney(-releaseCost);
               gameState.updatePlayerAttribute('stamina', -10.0);
 
               Navigator.pop(context);
 
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Released "${song.title}"!'),
-                  backgroundColor: const Color(0xFF4CAF50),
-                ),
-              );
+              ToastService().showSuccess('Released "${song.title}"!');
             },
             child: const Text('Confirm Release'),
           ),

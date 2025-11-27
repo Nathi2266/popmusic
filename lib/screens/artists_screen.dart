@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../services/game_state_service.dart';
 import '../models/artist.dart';
 import 'artist_detail_screen.dart';
+import '../widgets/shimmer_loader.dart';
+import '../widgets/empty_state.dart';
 // Removed unused imports for Genre and LabelTier
 // import '../models/artist.dart';
 // import '../models/label_tier.dart';
@@ -112,33 +114,43 @@ class _ArtistsScreenState extends State<ArtistsScreen> {
               ),
             ),
           ),
-          body: filteredArtists.isEmpty
-              ? const Center(
-                  child: Text(
-                    'No artists found',
-                    style: TextStyle(color: Colors.white54, fontSize: 18),
-                  ),
-                )
-              : ListView.builder(
+          body: allArtists.isEmpty
+              ? ListView.builder(
                   padding: const EdgeInsets.all(12),
-                  itemCount: filteredArtists.length,
+                  itemCount: 5,
                   itemBuilder: (context, index) {
-                    final artist = filteredArtists[index];
-                    return _ArtistCard(
-                      artist: artist,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ArtistDetailScreen(
-                              artistId: artist.id,
-                            ),
-                          ),
+                    return const ShimmerCard();
+                  },
+                )
+              : filteredArtists.isEmpty
+                  ? EmptyState(
+                      icon: Icons.search_off,
+                      title: 'No artists found',
+                      subtitle: _searchQuery.isNotEmpty
+                          ? 'Try adjusting your search query'
+                          : 'No artists in the world yet',
+                      iconColor: Colors.white38,
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.all(12),
+                      itemCount: filteredArtists.length,
+                      itemBuilder: (context, index) {
+                        final artist = filteredArtists[index];
+                        return _ArtistCard(
+                          artist: artist,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ArtistDetailScreen(
+                                  artistId: artist.id,
+                                ),
+                              ),
+                            );
+                          },
                         );
                       },
-                    );
-                  },
-                ),
+                    ),
         );
       },
     );

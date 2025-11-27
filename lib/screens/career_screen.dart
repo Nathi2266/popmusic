@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/game_state_service.dart';
+import '../services/achievement_service.dart';
 // Removed Artist import as it's no longer directly used here.
 // import '../models/artist.dart';
 // Removed LabelTier and ArtistAttributes imports
 // import '../models/artist_attributes.dart';
 // import '../models/label_tier.dart';
 import '../screens/award_detail_screen.dart'; // Added import for AwardDetailScreen
+import '../screens/achievements_screen.dart';
+import '../widgets/empty_state.dart';
 
 class CareerScreen extends StatelessWidget {
   const CareerScreen({super.key});
@@ -134,6 +137,99 @@ class CareerScreen extends StatelessWidget {
                 // ),
                 const SizedBox(height: 24),
 
+                // Achievements Section
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'ACHIEVEMENTS',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        letterSpacing: 2,
+                      ),
+                    ),
+                    TextButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const AchievementsScreen(),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.emoji_events, color: Color(0xFFFFD700)),
+                      label: const Text('View All', style: TextStyle(color: Color(0xFFFFD700))),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Consumer<AchievementService>(
+                  builder: (context, achievementService, child) {
+                    final unlocked = achievementService.getUnlockedAchievements();
+                    final recent = unlocked.take(3).toList();
+                    
+                    if (recent.isEmpty) {
+                      return const EmptyState(
+                        icon: Icons.emoji_events,
+                        title: 'No achievements yet',
+                        subtitle: 'Complete actions to unlock achievements!',
+                        iconColor: Color(0xFFFFD700),
+                      );
+                    }
+                    
+                    return Column(
+                      children: recent.map((achievement) {
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF2a2a3e),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: const Color(0xFFFFD700),
+                              width: 2,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Text(
+                                achievement.icon,
+                                style: const TextStyle(fontSize: 32),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      achievement.title,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    Text(
+                                      achievement.description,
+                                      style: const TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                    );
+                  },
+                ),
+                const SizedBox(height: 24),
+
                 // Awards
                 const Text(
                   'AWARDS',
@@ -146,31 +242,11 @@ class CareerScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 (player.attributes['awards'] as List<String>?)?.isEmpty ?? true
-                    ? Container(
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF2a2a3e),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Center(
-                          child: Column(
-                            children: [
-                              Icon(
-                                Icons.emoji_events,
-                                size: 48,
-                                color: Colors.white24,
-                              ),
-                              SizedBox(height: 12),
-                              Text(
-                                'No awards yet',
-                                style: TextStyle(
-                                  color: Colors.white54,
-                                  fontSize: 16,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                    ? const EmptyState(
+                        icon: Icons.emoji_events,
+                        title: 'No awards yet',
+                        subtitle: 'Keep creating hits and performing to earn recognition!',
+                        iconColor: Color(0xFFFFD700),
                       )
                     : Column(
                         children: (player.attributes['awards'] as List<String>)

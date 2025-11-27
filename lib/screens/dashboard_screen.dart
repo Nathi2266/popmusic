@@ -7,6 +7,8 @@ import 'performance_screen.dart';
 import '../models/song.dart'; // Added import for Song model
 import 'weekly_events_and_proceed_button.dart';
 import 'charts_screen.dart'; // Import the new ChartsScreen
+import '../widgets/error_widget.dart';
+import '../widgets/xp_bar.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -18,10 +20,11 @@ class DashboardScreen extends StatelessWidget {
         final player = gameState.player; // Assuming player is still accessible, but its structure has changed.
         
         if (player == null) {
-          return const Center(
-            child: Text(
-              'No player data',
-              style: TextStyle(color: Colors.white),
+          return const Scaffold(
+            body: CustomErrorWidget(
+              message: 'No player data',
+              details: 'Please start a new game to begin playing.',
+              icon: Icons.person_off,
             ),
           );
         }
@@ -106,6 +109,24 @@ class DashboardScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Level and XP
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF2a2a3e),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: const Color(0xFFFFD700).withValues(alpha: 0.3),
+                        width: 2,
+                      ),
+                    ),
+                    child: XpBar(
+                      playerLevel: gameState.getPlayerLevel(),
+                      showLevel: true,
+                      showXpText: true,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                   Row(
                     children: [
                       Expanded(
