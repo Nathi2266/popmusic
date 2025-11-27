@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: popmusic
+    env: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    envVars:
+      - key: FLUTTER_BASE_HREF
+        value: /

@@ -88,106 +88,113 @@ class _ProductionMinigameScreenState extends State<ProductionMinigameScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // Timer and Score
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF2a2a3e),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.timer, color: Colors.white),
-                      const SizedBox(width: 8),
-                      Text(
-                        '$_timeLeft s',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    // Timer and Score
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 12,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF2a2a3e),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.timer, color: Colors.white),
+                              const SizedBox(width: 8),
+                              Text(
+                                '$_timeLeft s',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF2a2a3e),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    'Score: $_score',
-                    style: const TextStyle(
-                      color: Color(0xFFe94560),
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 12,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF2a2a3e),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            'Score: $_score',
+                            style: const TextStyle(
+                              color: Color(0xFFe94560),
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
+                    const SizedBox(height: 24),
 
-            const Text(
-              'Match the target levels!',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
+                    const Text(
+                      'Match the target levels!',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+
+                    // Bass Control
+                    _MixerControl(
+                      label: 'Bass',
+                      value: _bass,
+                      targetValue: _targetBass,
+                      onChanged: (value) {
+                        setState(() {
+                          _bass = value;
+                        });
+                      },
+                      color: const Color(0xFF2196F3),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Treble Control
+                    _MixerControl(
+                      label: 'Treble',
+                      value: _treble,
+                      targetValue: _targetTreble,
+                      onChanged: (value) {
+                        setState(() {
+                          _treble = value;
+                        });
+                      },
+                      color: const Color(0xFFFF9800),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Volume Control
+                    _MixerControl(
+                      label: 'Volume',
+                      value: _volume,
+                      targetValue: _targetVolume,
+                      onChanged: (value) {
+                        setState(() {
+                          _volume = value;
+                        });
+                      },
+                      color: const Color(0xFF4CAF50),
+                    ),
+                  ],
+                ),
               ),
             ),
-            const SizedBox(height: 32),
-
-            // Bass Control
-            _MixerControl(
-              label: 'Bass',
-              value: _bass,
-              targetValue: _targetBass,
-              onChanged: (value) {
-                setState(() {
-                  _bass = value;
-                });
-              },
-              color: const Color(0xFF2196F3),
-            ),
-            const SizedBox(height: 24),
-
-            // Treble Control
-            _MixerControl(
-              label: 'Treble',
-              value: _treble,
-              targetValue: _targetTreble,
-              onChanged: (value) {
-                setState(() {
-                  _treble = value;
-                });
-              },
-              color: const Color(0xFFFF9800),
-            ),
-            const SizedBox(height: 24),
-
-            // Volume Control
-            _MixerControl(
-              label: 'Volume',
-              value: _volume,
-              targetValue: _targetVolume,
-              onChanged: (value) {
-                setState(() {
-                  _volume = value;
-                });
-              },
-              color: const Color(0xFF4CAF50),
-            ),
-            const Spacer(),
 
             // Finish Button
             SizedBox(
