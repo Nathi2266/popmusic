@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 
 import '../models/artist.dart';
+import '../models/artist_appearance.dart';
 import '../models/song.dart';
 import '../models/event.dart';
 import '../data/npc_artists.dart'; // Corrected import for NPCArtists
@@ -735,10 +736,11 @@ class GameStateService extends ChangeNotifier {
   int? playerChartPeak; // Stores the highest (lowest number) rank a player's song has achieved
   int playerXp = 0; // Player experience points
 
-  void startNewGame(String playerName) {
+  void startNewGame(String playerName, {ArtistAppearance? appearance}) {
     _player = Artist(
       id: 'player',
       name: playerName,
+      appearance: appearance ?? ArtistAppearance.defaults,
       attributes: {
         'popularity': 10,
         'reputation': 10,

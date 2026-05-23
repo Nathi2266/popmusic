@@ -1,3 +1,5 @@
+// ignore_for_file: unused_element_parameter
+
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
@@ -10,18 +12,59 @@ import 'widgets/toast_notification.dart';
 import 'widgets/error_boundary.dart';
 import 'theme/app_theme.dart';
 
-void main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Initialize Hive
-  await Hive.initFlutter();
-  
-  // Initialize Services
-  await SettingsService.init();
-  await AchievementService.init();
-  await ChallengeService.init();
-  
-  runApp(const PopMusicGame());
+  runApp(const _BootstrapApp());
+}
+
+class _BootstrapApp extends StatefulWidget {
+  const _BootstrapApp({super.key});
+
+  @override
+  State<_BootstrapApp> createState() => _BootstrapAppState();
+}
+
+class _BootstrapAppState extends State<_BootstrapApp> {
+  late final Future<void> _initFuture = _initialize();
+
+  Future<void> _initialize() async {
+    await Hive.initFlutter();
+    await SettingsService.init();
+    await AchievementService.init();
+    await ChallengeService.init();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<void>(
+      future: _initFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return MaterialApp(
+            theme: AppTheme.getDarkTheme(),
+            home: const Scaffold(
+              body: Center(
+                child: CircularProgressIndicator(),
+              ),
+            ),
+            debugShowCheckedModeBanner: false,
+          );
+        }
+
+        if (snapshot.hasError) {
+          return MaterialApp(
+            home: Scaffold(
+              body: Center(
+                child: Text('Failed to start app: ${snapshot.error}'),
+              ),
+            ),
+          );
+        }
+
+        return const PopMusicGame();
+      },
+    );
+  }
 }
 
 class PopMusicGame extends StatelessWidget {

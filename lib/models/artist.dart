@@ -2,6 +2,7 @@
 
 // Removed ArtistAttributes import
 // import 'artist_attributes.dart';
+import 'artist_appearance.dart';
 
 // Removed Genre enum
 // enum Genre {
@@ -30,6 +31,7 @@ class Artist {
   final String name;
   Map<String, double> attributes;
   List<String> awardsWon; // Added to track awards won
+  ArtistAppearance appearance;
   // Example keys: 'popularity', 'reputation', 'happiness', 'talent', 'controversy', 'fan_connection'
 
   Artist({
@@ -37,6 +39,7 @@ class Artist {
     required this.name,
     Map<String, double>? attributes,
     List<String>? awardsWon,
+    ArtistAppearance? appearance,
   }) : attributes = attributes ?? {
           'popularity': 10,
           'reputation': 10,
@@ -45,7 +48,8 @@ class Artist {
           'controversy': 0,
           'fan_connection': 10,
         },
-       this.awardsWon = awardsWon ?? [];
+       this.awardsWon = awardsWon ?? [],
+       this.appearance = appearance ?? ArtistAppearance.defaults;
 
   Map<String, dynamic> toMap() {
     return {
@@ -53,6 +57,7 @@ class Artist {
       'name': name,
       'attributes': attributes,
       'awardsWon': awardsWon,
+      'appearance': appearance.toMap(),
     };
   }
 
@@ -62,6 +67,9 @@ class Artist {
       name: map['name'],
       attributes: Map<String, double>.from(map['attributes'] ?? {}),
       awardsWon: List<String>.from(map['awardsWon'] ?? []),
+      appearance: map['appearance'] != null
+          ? ArtistAppearance.fromMap(map['appearance'] as Map<String, dynamic>)
+          : ArtistAppearance.defaults,
     );
   }
 }
