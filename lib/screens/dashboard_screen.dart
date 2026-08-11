@@ -5,6 +5,7 @@ import '../widgets/attribute_bar.dart';
 import '../widgets/stat_card.dart';
 import 'performance_screen.dart';
 import '../models/song.dart'; // Added import for Song model
+import '../models/label_tier.dart';
 import 'weekly_events_and_proceed_button.dart';
 import 'charts_screen.dart'; // Import the new ChartsScreen
 import '../widgets/error_widget.dart';
@@ -151,14 +152,12 @@ class DashboardScreen extends StatelessWidget {
                   const SizedBox(height: 12),
                   Row(
                     children: [
-                      // ignore: prefer_const_constructors
                       Expanded(
-                        child: const StatCard(
+                        child: StatCard(
                           title: 'Label',
-                          value: 'Unsigned', // Player starts unsigned
+                          value: player.labelTier.displayName,
                           icon: Icons.business,
-                          // ignore: unnecessary_const
-                          color: const Color(0xFF2196F3),
+                          color: Color(player.labelTier.colorValue),
                         ),
                       ),
                       const SizedBox(width: 12),

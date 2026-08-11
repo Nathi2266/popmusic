@@ -767,6 +767,7 @@ class GameStateService extends ChangeNotifier {
       id: 'player',
       name: playerName,
       appearance: appearance ?? ArtistAppearance.defaults,
+      labelTier: LabelTier.unsigned,
       attributes: {
         'popularity': 10,
         'reputation': 10,
@@ -785,6 +786,7 @@ class GameStateService extends ChangeNotifier {
         'stamina': 80,
         'wealth': 10,
         'influence': 5,
+        'weeksSinceDebut': 0,
       },
     );
     worldArtists.add(_player!); // Add player to worldArtists
@@ -863,6 +865,56 @@ class GameStateService extends ChangeNotifier {
     if (_player == null) return;
     _player!.attributes[attribute] = ((_player!.attributes[attribute] ?? 0) + change).clamp(0.0, 100.0);
     notifyListeners();
+  }
+
+  /// Whether the player meets gates to move to [target] from the previous tier.
+  bool canUpgradeLabelTier(LabelTier target) {
+    if (_player == null) return false;
+    final current = _player!.labelTier;
+    if (current.next != target) return false;
+
+    final popularity = _player!.attributes['popularity'] ?? 0;
+    final songs = playerSongs.length;
+    final fans = playerFanCount;
+    final awards = _player!.awardsWon.length;
+
+    switch (target) {
+      case LabelTier.indie:
+        return popularity >= 25 && songs >= 5;
+      case LabelTier.major:
+        return popularity >= 60 && fans >= 50000 && awards >= 1;
+      case LabelTier.superstar:
+        return popularity >= 85 && fans >= 500000 && awards >= 3;
+      case LabelTier.unsigned:
+        return false;
+    }
+  }
+
+  /// Upgrade player label. Returns false if requirements unmet.
+  bool upgradeLabelTier(LabelTier target) {
+    if (!canUpgradeLabelTier(target)) return false;
+    _player!.labelTier = target;
+    // Signing bump: influence + marketing unlock feel
+    updatePlayerAttribute('influence', target == LabelTier.indie
+        ? 5
+        : target == LabelTier.major
+            ? 10
+            : 15);
+    updatePlayerAttribute('marketing', target == LabelTier.indie
+        ? 5
+        : target == LabelTier.major
+            ? 8
+            : 12);
+    lastWeekEvents.add(GameEvent(
+      id: 'label_upgrade_${target.storageName}_${DateTime.now().millisecondsSinceEpoch}',
+      title: 'Signed: ${target.displayName}!',
+      description:
+          'You moved up to ${target.displayName}. Weekly income is now \$${target.weeklyIncome.toStringAsFixed(0)}.',
+      type: EventType.labelOffer,
+      severity: EventSeverity.high,
+    ));
+    notifyListeners();
+    return true;
   }
 
   // Reset game state

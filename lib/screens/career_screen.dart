@@ -2,14 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/game_state_service.dart';
 import '../services/achievement_service.dart';
-// Removed Artist import as it's no longer directly used here.
-// import '../models/artist.dart';
-// Removed LabelTier and ArtistAttributes imports
-// import '../models/artist_attributes.dart';
-// import '../models/label_tier.dart';
-import '../screens/award_detail_screen.dart'; // Added import for AwardDetailScreen
+import '../models/label_tier.dart';
+import '../screens/award_detail_screen.dart';
 import '../screens/achievements_screen.dart';
 import '../widgets/empty_state.dart';
+import '../utils/toast_service.dart';
 
 class CareerScreen extends StatelessWidget {
   const CareerScreen({super.key});
@@ -38,14 +35,13 @@ class CareerScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Career Overview
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        Colors.blueAccent, // Generic color
-                        Colors.blueAccent.withAlpha((255 * 0.6).round()), // Generic color
+                        Color(player.labelTier.colorValue),
+                        Color(player.labelTier.colorValue).withAlpha((255 * 0.6).round()),
                       ],
                     ),
                     borderRadius: BorderRadius.circular(16),
@@ -53,26 +49,24 @@ class CareerScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Unsigned', // Player starts unsigned, label tier is not in Artist model
-                        style: TextStyle(
+                      Text(
+                        player.labelTier.displayName,
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 8),
-                      // ignore: prefer_const_constructors
-                      const Text(
-                        'Career Level',
-                        style: TextStyle(
+                      Text(
+                        'Weekly income \$${player.labelTier.weeklyIncome.toStringAsFixed(0)}',
+                        style: const TextStyle(
                           color: Colors.white70,
                           fontSize: 16,
                         ),
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        // Removed weeksSinceDebut from Artist model
                         '${(player.attributes['weeksSinceDebut'] ?? 0).toInt()} weeks in the industry',
                         style: const TextStyle(
                           color: Colors.white,
@@ -84,57 +78,52 @@ class CareerScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
 
-                // Removed Label Progression section
-                // const Text(
-                //   'LABEL PROGRESSION',
-                //   style: TextStyle(
-                //     fontSize: 20,
-                //     fontWeight: FontWeight.bold,
-                //     color: Colors.white,
-                //     letterSpacing: 2,
-                //   ),
-                // ),
-                // const SizedBox(height: 16),
-                // _LabelTierCard(
-                //   tier: LabelTier.unsigned,
-                //   isUnlocked: true,
-                //   isCurrent: player.labelTier == LabelTier.unsigned,
-                //   requirements: 'Starting tier',
-                // ),
-                // _LabelTierCard(
-                //   tier: LabelTier.indie,
-                //   isUnlocked: player.attributes.popularity >= 25,
-                //   isCurrent: player.labelTier == LabelTier.indie,
-                //   requirements: '25 Popularity, 10 Songs',
-                //   onUpgrade: player.attributes.popularity >= 25 && 
-                //              player.releasedSongs.length >= 10 &&
-                //              player.labelTier == LabelTier.unsigned
-                //       ? () => _upgradeLabelTier(context, gameState, LabelTier.indie)
-                //       : null,
-                // ),
-                // _LabelTierCard(
-                //   tier: LabelTier.major,
-                //   isUnlocked: player.attributes.popularity >= 60,
-                //   isCurrent: player.labelTier == LabelTier.major,
-                //   requirements: '60 Popularity, 50K Fans',
-                //   onUpgrade: player.attributes.popularity >= 60 && 
-                //              player.fanCount >= 50000 &&
-                //              player.labelTier == LabelTier.indie
-                //       ? () => _upgradeLabelTier(context, gameState, LabelTier.major)
-                //       : null,
-                // ),
-                // _LabelTierCard(
-                //   tier: LabelTier.superstar,
-                //   isUnlocked: player.attributes.popularity >= 85,
-                //   isCurrent: player.labelTier == LabelTier.superstar,
-                //   requirements: '85 Popularity, 500K Fans, 5 Awards',
-                //   onUpgrade: player.attributes.popularity >= 85 && 
-                //              player.fanCount >= 500000 &&
-                //              player.awards.length >= 5 &&
-                //              player.labelTier == LabelTier.major
-                //       ? () => _upgradeLabelTier(context, gameState, LabelTier.superstar)
-                //       : null,
-                // ),
+                const Text(
+                  'LABEL PROGRESSION',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    letterSpacing: 2,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _LabelTierCard(
+                  tier: LabelTier.unsigned,
+                  isUnlocked: true,
+                  isCurrent: player.labelTier == LabelTier.unsigned,
+                  requirements: LabelTier.unsigned.requirementsText,
+                ),
+                _LabelTierCard(
+                  tier: LabelTier.indie,
+                  isUnlocked: player.labelTier.index >= LabelTier.indie.index ||
+                      gameState.canUpgradeLabelTier(LabelTier.indie),
+                  isCurrent: player.labelTier == LabelTier.indie,
+                  requirements: LabelTier.indie.requirementsText,
+                  onUpgrade: gameState.canUpgradeLabelTier(LabelTier.indie)
+                      ? () => _tryUpgrade(context, gameState, LabelTier.indie)
+                      : null,
+                ),
+                _LabelTierCard(
+                  tier: LabelTier.major,
+                  isUnlocked: player.labelTier.index >= LabelTier.major.index ||
+                      gameState.canUpgradeLabelTier(LabelTier.major),
+                  isCurrent: player.labelTier == LabelTier.major,
+                  requirements: LabelTier.major.requirementsText,
+                  onUpgrade: gameState.canUpgradeLabelTier(LabelTier.major)
+                      ? () => _tryUpgrade(context, gameState, LabelTier.major)
+                      : null,
+                ),
+                _LabelTierCard(
+                  tier: LabelTier.superstar,
+                  isUnlocked: player.labelTier.index >= LabelTier.superstar.index ||
+                      gameState.canUpgradeLabelTier(LabelTier.superstar),
+                  isCurrent: player.labelTier == LabelTier.superstar,
+                  requirements: LabelTier.superstar.requirementsText,
+                  onUpgrade: gameState.canUpgradeLabelTier(LabelTier.superstar)
+                      ? () => _tryUpgrade(context, gameState, LabelTier.superstar)
+                      : null,
+                ),
                 const SizedBox(height: 24),
 
                 // Achievements Section
@@ -354,13 +343,104 @@ class CareerScreen extends StatelessWidget {
     );
   }
 
-  // Removed _upgradeLabelTier, _getLabelName, _getLabelColor
-  // void _upgradeLabelTier( ... ) { ... }
-  // String _getLabelName(LabelTier tier) { ... }
+  void _tryUpgrade(
+    BuildContext context,
+    GameStateService gameState,
+    LabelTier tier,
+  ) {
+    final ok = gameState.upgradeLabelTier(tier);
+    if (ok) {
+      ToastService().showSuccess('Welcome to ${tier.displayName}!');
+    } else {
+      ToastService().showError('Requirements not met for ${tier.displayName}');
+    }
+  }
 }
 
-// Removed _LabelTierCard class
-// class _LabelTierCard extends StatelessWidget { ... }
+class _LabelTierCard extends StatelessWidget {
+  final LabelTier tier;
+  final bool isUnlocked;
+  final bool isCurrent;
+  final String requirements;
+  final VoidCallback? onUpgrade;
+
+  const _LabelTierCard({
+    required this.tier,
+    required this.isUnlocked,
+    required this.isCurrent,
+    required this.requirements,
+    this.onUpgrade,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Color(tier.colorValue);
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF2a2a3e),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isCurrent ? color : Colors.white24,
+          width: isCurrent ? 2 : 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            isCurrent
+                ? Icons.star
+                : isUnlocked
+                    ? Icons.lock_open
+                    : Icons.lock,
+            color: isUnlocked ? color : Colors.white38,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  tier.displayName,
+                  style: TextStyle(
+                    color: isUnlocked ? Colors.white : Colors.white54,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  requirements,
+                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                ),
+                Text(
+                  '\$${tier.weeklyIncome.toStringAsFixed(0)}/week',
+                  style: TextStyle(color: color, fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+          if (isCurrent)
+            Chip(
+              label: const Text('Current'),
+              backgroundColor: color.withAlpha(80),
+              labelStyle: const TextStyle(color: Colors.white),
+            )
+          else if (onUpgrade != null)
+            ElevatedButton(
+              onPressed: onUpgrade,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: color,
+                foregroundColor: Colors.black,
+              ),
+              child: const Text('Sign'),
+            ),
+        ],
+      ),
+    );
+  }
+}
 
 class _StatRow extends StatelessWidget {
   final String label;

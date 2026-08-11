@@ -5,6 +5,7 @@ import 'dart:math'; // Import for min and max
 import '../services/game_state_service.dart';
 import '../models/song.dart';
 import '../models/artist.dart';
+import '../models/label_tier.dart';
 import 'artist_detail_screen.dart'; // Added import for ArtistDetailScreen
 
 /// ChartScreen - shows top 30 songs, weekly listeners, delta, and small artist snapshot.
@@ -283,16 +284,7 @@ class ChartsScreen extends StatelessWidget {
 
   String _getArtistLabel(Artist? artist) {
     if (artist == null) return 'Unknown';
-    final popularity = artist.attributes['popularity'] ?? 0;
-    if (popularity >= 80) {
-      return 'Superstar';
-    } else if (popularity >= 50) {
-      return 'Major';
-    } else if (popularity >= 20) {
-      return 'Indie';
-    } else {
-      return 'Underground';
-    }
+    return artist.labelTier.displayName;
   }
 
   String _getWeeklyListenerChangePercentage(Song song) {
