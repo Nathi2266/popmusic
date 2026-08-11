@@ -26,6 +26,7 @@ class Challenge {
   int currentProgress;
   bool isCompleted;
   DateTime? completedAt;
+  bool rewardClaimed;
 
   Challenge({
     required this.id,
@@ -41,6 +42,7 @@ class Challenge {
     this.currentProgress = 0,
     this.isCompleted = false,
     this.completedAt,
+    this.rewardClaimed = false,
   });
 
   bool get isExpired => DateTime.now().isAfter(endDate);

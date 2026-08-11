@@ -65,6 +65,15 @@ class CareerScreen extends StatelessWidget {
                           fontSize: 16,
                         ),
                       ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Chapter: ${gameState.currentChapter}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                       const SizedBox(height: 16),
                       Text(
                         '${(player.attributes['weeksSinceDebut'] ?? 0).toInt()} weeks in the industry',
@@ -75,6 +84,50 @@ class CareerScreen extends StatelessWidget {
                       ),
                     ],
                   ),
+                ),
+                const SizedBox(height: 24),
+
+                const Text(
+                  'STORYLINE',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    letterSpacing: 2,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                _StoryBeatRow(
+                  title: 'Unsigned Hustle',
+                  done: gameState.completedStoryBeats.contains('opening_hustle'),
+                ),
+                _StoryBeatRow(
+                  title: 'Debut Single',
+                  done: gameState.completedStoryBeats.contains('debut_single'),
+                ),
+                _StoryBeatRow(
+                  title: 'The Clip (Scandal)',
+                  done: gameState.completedStoryBeats.contains('first_scandal_arc'),
+                ),
+                _StoryBeatRow(
+                  title: 'Indie Offer',
+                  done: gameState.completedStoryBeats.contains('indie_label_fork'),
+                ),
+                _StoryBeatRow(
+                  title: 'Rival Feud',
+                  done: gameState.completedStoryBeats.contains('rival_feud'),
+                ),
+                _StoryBeatRow(
+                  title: 'Festival Breakthrough',
+                  done: gameState.completedStoryBeats.contains('festival_breakthrough'),
+                ),
+                _StoryBeatRow(
+                  title: 'Viral Season',
+                  done: gameState.completedStoryBeats.contains('viral_season'),
+                ),
+                _StoryBeatRow(
+                  title: 'Major Label Fork',
+                  done: gameState.completedStoryBeats.contains('major_label_fork'),
                 ),
                 const SizedBox(height: 24),
 
@@ -354,6 +407,47 @@ class CareerScreen extends StatelessWidget {
     } else {
       ToastService().showError('Requirements not met for ${tier.displayName}');
     }
+  }
+}
+
+class _StoryBeatRow extends StatelessWidget {
+  final String title;
+  final bool done;
+
+  const _StoryBeatRow({required this.title, required this.done});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFF2a2a3e),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: done ? const Color(0xFF4CAF50) : Colors.white24,
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            done ? Icons.check_circle : Icons.radio_button_unchecked,
+            color: done ? const Color(0xFF4CAF50) : Colors.white38,
+            size: 20,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              title,
+              style: TextStyle(
+                color: done ? Colors.white : Colors.white70,
+                fontWeight: done ? FontWeight.w600 : FontWeight.normal,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

@@ -21,7 +21,10 @@ class GameEvent {
   final int moneyImpact;
   final int fanImpact;
   final List<String> choices;
+  /// Per-choice outcomes. Special keys: `_money`, `_fans`.
   final Map<String, Map<String, double>> choiceOutcomes;
+  bool resolved;
+  String? selectedChoice;
 
   GameEvent({
     required this.id,
@@ -34,5 +37,11 @@ class GameEvent {
     this.fanImpact = 0,
     this.choices = const [],
     this.choiceOutcomes = const {},
+    this.resolved = false,
+    this.selectedChoice,
   });
+
+  bool get isInteractive => choices.isNotEmpty;
+
+  bool get needsPlayerDecision => isInteractive && !resolved;
 }

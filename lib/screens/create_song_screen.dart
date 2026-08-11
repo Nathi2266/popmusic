@@ -22,8 +22,7 @@ class CreateSongScreen extends StatefulWidget {
 
 class _CreateSongScreenState extends State<CreateSongScreen> {
   final _titleController = TextEditingController();
-  // Removed _selectedGenre as genre is no longer part of Song model
-  // Genre? _selectedGenre;
+  String _selectedGenre = 'Pop';
   int _songwritingScore = 0;
   int _productionScore = 0;
   bool _hasPlayedSongwriting = false;
@@ -201,6 +200,8 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
               const SizedBox(height: 8),
               Text('Song Length: ${_songLengthMinutes.toStringAsFixed(1)} minutes', style: const TextStyle(color: Colors.white70)),
               const SizedBox(height: 8),
+              Text('Genre: $_selectedGenre', style: const TextStyle(color: Colors.white70)),
+              const SizedBox(height: 8),
               Text('Release Cost: \$${releaseCost.toStringAsFixed(0)}', style: const TextStyle(color: Colors.white70)),
             ],
           ),
@@ -230,6 +231,7 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
                 viralFactor: currentViralFactor,
                 salesPotential: salesPotential,
                 lengthMinutes: _songLengthMinutes,
+                genre: _selectedGenre,
               );
 
               gameState.addSong(song);
@@ -320,38 +322,64 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // Removed Genre Selection
-                // const Text(
-                //   'Genre',
-                //   style: TextStyle(
-                //     fontSize: 18,
-                //     fontWeight: FontWeight.bold,
-                //     color: Colors.white,
-                //   ),
-                // ),
-                // const SizedBox(height: 12),
-                // Wrap(
-                //   spacing: 12,
-                //   runSpacing: 12,
-                //   children: Genre.values.map((genre) {
-                //     final isSelected = _selectedGenre == genre;
-                //     return ChoiceChip(
-                //       label: Text(_getGenreName(genre)),
-                //       selected: isSelected,
-                //       onSelected: (selected) {
-                //         setState(() {
-                //           _selectedGenre = genre;
-                //         });
-                //       },
-                //       backgroundColor: const Color(0xFF2a2a3e),
-                //       selectedColor: const Color(0xFFe94560),
-                //       labelStyle: TextStyle(
-                //         color: isSelected ? Colors.white : Colors.white70,
-                //       ),
-                //     );
-                //   }).toList(),
-                // ),
-                // const SizedBox(height: 32),
+                const Text(
+                  'Genre',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Consumer<GameStateService>(
+                  builder: (context, game, _) {
+                    final trending = game.trendingGenre;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Trending now: $trending (heat ${game.genreHeatFor(trending).toStringAsFixed(0)})',
+                          style: const TextStyle(
+                            color: Color(0xFFFFD700),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 10,
+                          runSpacing: 10,
+                          children: game.availableGenres.map((genre) {
+                            final selected = _selectedGenre == genre;
+                            final heat = game.genreHeatFor(genre);
+                            return ChoiceChip(
+                              label: Text(
+                                '$genre · ${heat.toStringAsFixed(0)}',
+                              ),
+                              selected: selected,
+                              onSelected: (_) {
+                                setState(() {
+                                  _selectedGenre = genre;
+                                  _calculateEstimatedRank();
+                                });
+                              },
+                              backgroundColor: const Color(0xFF2a2a3e),
+                              selectedColor: genre == trending
+                                  ? const Color(0xFFFFD700)
+                                  : const Color(0xFFe94560),
+                              labelStyle: TextStyle(
+                                color: selected && genre == trending
+                                    ? Colors.black
+                                    : Colors.white,
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+                const SizedBox(height: 24),
 
                 // Songwriting Minigame
                 _MinigameCard(

@@ -173,6 +173,161 @@ class DashboardScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
 
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF16213e),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFe94560).withAlpha(140)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'STORY',
+                          style: TextStyle(
+                            color: Colors.white54,
+                            fontSize: 11,
+                            letterSpacing: 2,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          gameState.currentChapter,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          '${gameState.completedStoryBeats.length} career beats unlocked',
+                          style: const TextStyle(color: Colors.white70, fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          const Color(0xFFFFD700).withAlpha(40),
+                          const Color(0xFF2a2a3e),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFFFD700).withAlpha(100)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.trending_up, color: Color(0xFFFFD700)),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'Trending: ${gameState.trendingGenre} · your lane: ${gameState.playerDominantGenre}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  const Text(
+                    'CHART RIVALS',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      letterSpacing: 2,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  if (gameState.rivals.isEmpty)
+                    const Text(
+                      'No rivals assigned yet.',
+                      style: TextStyle(color: Colors.white54),
+                    )
+                  else
+                    ...gameState.rivals.map((rival) {
+                      final rivalRank = gameState.bestChartRankFor(rival.id);
+                      final playerRank = gameState.bestChartRankFor(player.id);
+                      String pressure;
+                      if (rivalRank == null && playerRank == null) {
+                        pressure = 'Both off-chart';
+                      } else if (rivalRank == null) {
+                        pressure = 'You lead (they unranked)';
+                      } else if (playerRank == null) {
+                        pressure = 'They lead #$rivalRank';
+                      } else if (playerRank < rivalRank) {
+                        pressure = 'You #$playerRank vs them #$rivalRank';
+                      } else if (playerRank > rivalRank) {
+                        pressure = 'Behind: you #$playerRank · them #$rivalRank';
+                      } else {
+                        pressure = 'Tied at #$playerRank';
+                      }
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 10),
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF2a2a3e),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: const Color(0xFFe94560).withAlpha(120),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.sports_mma, color: Color(0xFFe94560)),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    rival.name,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                  Text(
+                                    '${rival.labelTier.displayName} · Pop ${rival.attributes['popularity']?.toStringAsFixed(0) ?? '0'}%',
+                                    style: const TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  Text(
+                                    pressure,
+                                    style: const TextStyle(
+                                      color: Color(0xFFe94560),
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
+
+                  const SizedBox(height: 24),
+
                   // Display Top 3 Songs
                   const Text(
                     'TOP 3 SONGS',

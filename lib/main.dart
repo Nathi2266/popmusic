@@ -32,6 +32,7 @@ class _BootstrapAppState extends State<_BootstrapApp> {
     await SettingsService.init();
     await AchievementService.init();
     await ChallengeService.init();
+    await GameStateService.init();
   }
 
   @override
@@ -75,15 +76,19 @@ class PopMusicGame extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
-          create: (_) {
-            final gameService = GameStateService();
-            // Removed initializeWorld call as it's no longer needed.
-            // gameService.initializeWorld(NPCArtists.artistNames);
-            return gameService;
-          },
+          create: (_) => GameStateService(),
         ),
         ChangeNotifierProvider(create: (_) => SettingsService()),
         ChangeNotifierProvider(create: (_) => AchievementService()),
+        ChangeNotifierProxyProvider<GameStateService, ChallengeService>(
+          create: (_) => ChallengeService(),
+          update: (_, game, challenges) {
+            final service = challenges ?? ChallengeService();
+            service.attachGame(game);
+            game.attachChallenges(service);
+            return service;
+          },
+        ),
       ],
       child: MaterialApp(
         title: 'PopMusic',

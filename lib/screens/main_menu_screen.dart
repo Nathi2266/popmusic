@@ -20,7 +20,7 @@ class MainMenuScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final gameState = Provider.of<GameStateService>(context);
-    final canContinue = gameState.isGameStarted;
+    final canContinue = gameState.canContinue;
 
     return Scaffold(
       body: Stack(
@@ -136,7 +136,17 @@ class MainMenuScreen extends StatelessWidget {
                             ? _MenuButtonStyle.accent
                             : _MenuButtonStyle.disabled,
                         onPressed: canContinue
-                            ? () {
+                            ? () async {
+                                final ok = await gameState.continueOrResume();
+                                if (!context.mounted) return;
+                                if (!ok) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Could not load saved game'),
+                                    ),
+                                  );
+                                  return;
+                                }
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(

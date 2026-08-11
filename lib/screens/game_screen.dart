@@ -3,6 +3,7 @@ import 'dashboard_screen.dart';
 import 'artists_screen.dart';
 import 'music_screen.dart';
 import 'career_screen.dart';
+import 'challenges_screen.dart';
 
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key});
@@ -19,6 +20,7 @@ class _GameScreenState extends State<GameScreen> {
     const MusicScreen(),
     const ArtistsScreen(),
     const CareerScreen(),
+    const ChallengesScreen(),
   ];
 
   @override
@@ -52,6 +54,10 @@ class _GameScreenState extends State<GameScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.star),
             label: 'Career',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.flag),
+            label: 'Challenges',
           ),
         ],
       ),

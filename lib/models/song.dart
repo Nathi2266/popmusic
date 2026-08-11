@@ -75,7 +75,10 @@ class Song {
       viralFactor: map['viralFactor']?.toDouble() ?? 5.0,
       salesPotential: map['salesPotential']?.toDouble() ?? 10.0,
       genre: map['genre'] ?? 'Pop',
-      listenerHistory: List<double>.from(map['listenerHistory'] ?? []), // Retrieve from map
+      listenerHistory: List<double>.from(
+        (map['listenerHistory'] as List? ?? const [])
+            .map((e) => (e as num).toDouble()),
+      ),
     );
   }
 }

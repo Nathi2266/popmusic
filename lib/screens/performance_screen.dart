@@ -162,8 +162,6 @@ class PerformanceScreen extends StatelessWidget {
                     gameState.updatePlayerMoney(earnings.toDouble(), achievementService: achievementService); // Cast to double
                     gameState.updatePlayerFanCount(fanGain, achievementService: achievementService);
                     challengeService.updateProgress(ChallengeType.performShows, 1);
-                    challengeService.updateProgress(ChallengeType.gainFans, fanGain);
-                    challengeService.updateProgress(ChallengeType.earnMoney, earnings);
     gameState.updatePlayerAttribute('performance', performanceScore > 70 ? 1.0 : 0.5); // Cast to double
     gameState.updatePlayerAttribute('stamina', -20.0); // Cast to double
     gameState.updatePlayerAttribute('popularity', fanGain / 100.0); // Cast to double
