@@ -5,6 +5,7 @@ import '../models/artist.dart';
 import '../models/artist_appearance.dart';
 import '../models/song.dart';
 import '../models/event.dart';
+import '../models/label_tier.dart';
 import '../data/npc_artists.dart'; // Corrected import for NPCArtists
 import '../models/player_level.dart';
 import 'achievement_service.dart';
@@ -241,6 +242,15 @@ class GameStateService extends ChangeNotifier {
         month = 1;
         year++;
       }
+    }
+
+    // Weekly player recovery / label stipend
+    if (_player != null) {
+      updatePlayerAttribute('stamina', 20.0);
+      final weeksInIndustry =
+          ((_player!.attributes['weeksSinceDebut'] ?? 0) + 1).clamp(0.0, 9999.0);
+      _player!.attributes['weeksSinceDebut'] = weeksInIndustry;
+      updatePlayerMoney(_player!.labelTier.weeklyIncome);
     }
 
     lastWeekEvents.clear(); // Clear events from the previous week
@@ -500,8 +510,10 @@ class GameStateService extends ChangeNotifier {
       final winningArtist = getArtistById(winningSong.artistId);
 
       if (winningArtist != null) {
-        // Give money and popularity boost to the winning artist
-        playerMoney += 10000; // Assuming player gets money if their artist wins, or if an NPC artist wins it's general game money
+        // Prize money only if the player won (NPC wins must not fund the player)
+        if (winningArtist.id == _player?.id) {
+          playerMoney += 10000;
+        }
         updateArtistAttribute(winningArtist.id, 'popularity', 10.0);
         winningArtist.awardsWon.add('Best Viral Song - $year');
 
@@ -675,8 +687,22 @@ class GameStateService extends ChangeNotifier {
 
     double marketingBoost = 1.0 + ((song.salesPotential / 100.0) * 0.5);
 
-    double listeners =
-        base * recencyBoost * (1 + viral) * controversyEffect * marketingBoost;
+    // Minigame / craft quality: maps 0..100 → ~0.55..1.45 so skill actually moves charts
+    final quality = song.popularityFactor.clamp(0.0, 100.0);
+    final qualityMultiplier = 0.55 + (quality / 100.0) * 0.90;
+
+    // Soft length preference: ~3.0–3.8 min peaks; extremes slightly hurt
+    final length = song.lengthMinutes.clamp(1.0, 8.0);
+    final lengthDistance = (length - 3.4).abs();
+    final lengthMultiplier = (1.08 - (lengthDistance * 0.06)).clamp(0.85, 1.08);
+
+    double listeners = base *
+        recencyBoost *
+        (1 + viral) *
+        controversyEffect *
+        marketingBoost *
+        qualityMultiplier *
+        lengthMultiplier;
 
     final jitter = (rng.nextDouble() - 0.5) * 0.15;
     listeners *= (1 + jitter);

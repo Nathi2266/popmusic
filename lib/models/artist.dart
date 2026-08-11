@@ -1,38 +1,15 @@
 // ignore_for_file: unnecessary_this
 
-// Removed ArtistAttributes import
-// import 'artist_attributes.dart';
 import 'artist_appearance.dart';
-
-// Removed Genre enum
-// enum Genre {
-//   pop,
-//   rock,
-//   hiphop,
-//   rnb,
-//   electronic,
-//   indie,
-//   country,
-//   jazz,
-//   latin,
-//   kpop
-// }
-
-// Removed LabelTier enum
-// enum LabelTier {
-//   unsigned,
-//   indie,
-//   major,
-//   superstar
-// }
+import 'label_tier.dart';
 
 class Artist {
   final String id;
   final String name;
   Map<String, double> attributes;
-  List<String> awardsWon; // Added to track awards won
+  List<String> awardsWon;
   ArtistAppearance appearance;
-  // Example keys: 'popularity', 'reputation', 'happiness', 'talent', 'controversy', 'fan_connection'
+  LabelTier labelTier;
 
   Artist({
     required this.id,
@@ -40,6 +17,7 @@ class Artist {
     Map<String, double>? attributes,
     List<String>? awardsWon,
     ArtistAppearance? appearance,
+    this.labelTier = LabelTier.unsigned,
   }) : attributes = attributes ?? {
           'popularity': 10,
           'reputation': 10,
@@ -58,6 +36,7 @@ class Artist {
       'attributes': attributes,
       'awardsWon': awardsWon,
       'appearance': appearance.toMap(),
+      'labelTier': labelTier.storageName,
     };
   }
 
@@ -70,6 +49,7 @@ class Artist {
       appearance: map['appearance'] != null
           ? ArtistAppearance.fromMap(map['appearance'] as Map<String, dynamic>)
           : ArtistAppearance.defaults,
+      labelTier: LabelTierX.fromName(map['labelTier'] as String?),
     );
   }
 }

@@ -152,16 +152,26 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
         ? _productionScore
         : (player.attributes['production'] ?? 0).toInt();
 
-    final popularityFactor = ((songwritingComponent + productionComponent) / 2).clamp(0, 100).toDouble();
-    double currentViralFactor = (player.attributes['marketing'] ?? 0 * 0.5 +
-                       (player.attributes['charisma'] ?? 0) * 0.3 +
-                       Random().nextInt(20)).clamp(0, 100).toDouble();
+    var popularityFactor =
+        ((songwritingComponent + productionComponent) / 2).clamp(0, 100).toDouble();
+    // Low stamina hurts craft quality (matches release warning copy)
+    final stamina = (player.attributes['stamina'] ?? 0).toDouble();
+    if (stamina < 30) {
+      popularityFactor = (popularityFactor * 0.75).clamp(0, 100).toDouble();
+    }
+    double currentViralFactor = ((player.attributes['marketing'] ?? 0) * 0.5 +
+            (player.attributes['charisma'] ?? 0) * 0.3 +
+            Random().nextInt(20))
+        .clamp(0, 100)
+        .toDouble();
     if (_marketingBoostEnabled) {
       currentViralFactor = (currentViralFactor * 1.2).clamp(0, 100);
     }
-    final salesPotential = (player.attributes['networking'] ?? 0 * 0.4 +
-                          (player.attributes['wealth'] ?? 0) * 0.3 +
-                          Random().nextInt(30)).clamp(0, 100).toDouble();
+    final salesPotential = ((player.attributes['networking'] ?? 0) * 0.4 +
+            (player.attributes['wealth'] ?? 0) * 0.3 +
+            Random().nextInt(30))
+        .clamp(0, 100)
+        .toDouble();
     final releaseCost = _marketingBoostEnabled ? 1000.0 : 500.0;
 
     showDialog(context: context, builder: (BuildContext context) {

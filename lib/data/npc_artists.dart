@@ -1,4 +1,5 @@
 import '../models/artist.dart';
+import '../models/label_tier.dart';
 import 'dart:math';
 
 class NPCArtists {
@@ -51,36 +52,17 @@ class NPCArtists {
         'fan_connection': 10 + random.nextDouble() * 90, // Added fan_connection
       };
 
-      // Removed Genre and LabelTier related code as they are no longer in Artist model
-      // final primaryGenre = Genre.values[random.nextInt(Genre.values.length)];
-      // final hasSecondaryGenre = random.nextBool();
-      // Genre? secondaryGenre;
-      // if (hasSecondaryGenre) {
-      //   secondaryGenre = Genre.values[random.nextInt(Genre.values.length)];
-      //   if (secondaryGenre == primaryGenre) secondaryGenre = null;
-      // }
-      // final labelTier = _getRandomLabelTier(random, attributes.popularity);
+      final popularity = attributes['popularity'] ?? 0;
+      final labelTier = LabelTierX.forNpcPopularity(popularity, random);
 
       npcs.add(Artist(
         id: 'npc_$i',
         name: artistNames[i],
         attributes: attributes,
+        labelTier: labelTier,
       ));
     }
 
     return npcs;
   }
-
-  // Removed _getRandomLabelTier as LabelTier is no longer in Artist model
-  // static LabelTier _getRandomLabelTier(Random random, double popularity) {
-  //   if (popularity > 80) {
-  //     return random.nextBool() ? LabelTier.superstar : LabelTier.major;
-  //   } else if (popularity > 50) {
-  //     return random.nextBool() ? LabelTier.major : LabelTier.indie;
-  //   } else if (popularity > 20) {
-  //     return random.nextBool() ? LabelTier.indie : LabelTier.unsigned;
-  //   } else {
-  //     return LabelTier.unsigned;
-  //   }
-  // }
 }
