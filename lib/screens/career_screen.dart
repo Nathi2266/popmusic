@@ -59,7 +59,7 @@ class CareerScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Weekly income \$${player.labelTier.weeklyIncome.toStringAsFixed(0)}',
+                        'Weekly income \$${player.labelTier.weeklyIncome.toStringAsFixed(0)} · keep ${(player.labelTier.royaltyKeep * 100).toStringAsFixed(0)}% of streams',
                         style: const TextStyle(
                           color: Colors.white70,
                           fontSize: 16,
@@ -356,7 +356,7 @@ class CareerScreen extends StatelessWidget {
                       const Divider(color: Colors.white24),
                       _StatRow(
                         label: 'Total Albums',
-                        value: '${(player.attributes['releasedAlbums'] as List<String>?)?.length ?? 0}',
+                        value: '${gameState.playerAlbums.length}',
                         icon: Icons.album,
                       ),
                       const Divider(color: Colors.white24),
@@ -509,7 +509,7 @@ class _LabelTierCard extends StatelessWidget {
                   style: const TextStyle(color: Colors.white70, fontSize: 12),
                 ),
                 Text(
-                  '\$${tier.weeklyIncome.toStringAsFixed(0)}/week',
+                  '\$${tier.weeklyIncome.toStringAsFixed(0)}/week · ${(tier.royaltyKeep * 100).toStringAsFixed(0)}% streams',
                   style: TextStyle(color: color, fontSize: 12),
                 ),
               ],

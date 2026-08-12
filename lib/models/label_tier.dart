@@ -21,6 +21,20 @@ extension LabelTierX on LabelTier {
     }
   }
 
+  /// Share of streaming royalties the artist keeps (label takes the rest).
+  double get royaltyKeep {
+    switch (this) {
+      case LabelTier.unsigned:
+        return 1.00;
+      case LabelTier.indie:
+        return 0.82;
+      case LabelTier.major:
+        return 0.55;
+      case LabelTier.superstar:
+        return 0.70;
+    }
+  }
+
   /// Weekly label advance / stipend paid in proceedWeek.
   double get weeklyIncome {
     switch (this) {

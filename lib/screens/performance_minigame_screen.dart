@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'dart:async';
 import 'dart:math';
 import '../models/venue.dart';
@@ -17,7 +18,7 @@ class PerformanceMinigameScreen extends StatefulWidget {
 }
 
 class _PerformanceMinigameScreenState extends State<PerformanceMinigameScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   int _score = 0;
   int _combo = 0;
   int _timeLeft = 30;
@@ -25,11 +26,13 @@ class _PerformanceMinigameScreenState extends State<PerformanceMinigameScreen>
   Timer? _timer;
   Timer? _noteTimer;
   Timer? _energyTimer;
+  Ticker? _noteMover;
   final List<_Note> _notes = [];
   final Random _random = Random();
   int _difficulty = 1;
   late AnimationController _comboController;
   final List<_Particle> _particles = [];
+  bool _started = false;
 
   @override
   void initState() {
@@ -38,6 +41,12 @@ class _PerformanceMinigameScreenState extends State<PerformanceMinigameScreen>
       vsync: this,
       duration: const Duration(milliseconds: 500),
     );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && !_started) {
+        _started = true;
+        _startGame();
+      }
+    });
   }
 
   @override
@@ -45,6 +54,7 @@ class _PerformanceMinigameScreenState extends State<PerformanceMinigameScreen>
     _timer?.cancel();
     _noteTimer?.cancel();
     _energyTimer?.cancel();
+    _noteMover?.dispose();
     _comboController.dispose();
     super.dispose();
   }
@@ -88,7 +98,7 @@ class _PerformanceMinigameScreenState extends State<PerformanceMinigameScreen>
     });
 
     _energyTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
-      if (_timeLeft > 0) {
+      if (_timeLeft > 0 && mounted) {
         setState(() {
           _crowdEnergy = (_crowdEnergy - 2).clamp(0, 100);
         });
@@ -96,6 +106,13 @@ class _PerformanceMinigameScreenState extends State<PerformanceMinigameScreen>
         timer.cancel();
       }
     });
+
+    _noteMover?.dispose();
+    _noteMover = createTicker((_) {
+      if (_timeLeft > 0 && mounted) {
+        _updateNotes();
+      }
+    })..start();
   }
 
   void _addNote() {
@@ -112,7 +129,12 @@ class _PerformanceMinigameScreenState extends State<PerformanceMinigameScreen>
     setState(() {
       _notes.removeWhere((note) {
         note.y += 0.02;
-        return note.y > 1.0;
+        if (note.y > 1.0) {
+          _combo = 0;
+          _crowdEnergy = (_crowdEnergy - 2).clamp(0, 100);
+          return true;
+        }
+        return false;
       });
     });
   }
@@ -158,31 +180,16 @@ class _PerformanceMinigameScreenState extends State<PerformanceMinigameScreen>
     _timer?.cancel();
     _noteTimer?.cancel();
     _energyTimer?.cancel();
+    _noteMover?.stop();
+    final venueBonus = (widget.venue.capacity / 5000).clamp(0, 8).toInt();
     final energyBonus = (_crowdEnergy / 2).toInt();
-    final finalScore = ((_score / 10) + energyBonus).clamp(0, 100).toInt();
-    Navigator.pop(context, finalScore);
+    final finalScore =
+        ((_score / 10) + energyBonus + venueBonus).clamp(0, 100).toInt();
+    if (mounted) Navigator.pop(context, finalScore);
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_timeLeft ==
-        (_difficulty == 1
-            ? 45
-            : _difficulty == 2
-                ? 30
-                : 20)) {
-      _startGame();
-    }
-
-    // Update notes position
-    Timer.periodic(const Duration(milliseconds: 16), (timer) {
-      if (_timeLeft > 0) {
-        _updateNotes();
-      } else {
-        timer.cancel();
-      }
-    });
-
     return Scaffold(
       appBar: AppBar(
         title: Text('Performing at ${widget.venue.name}'),

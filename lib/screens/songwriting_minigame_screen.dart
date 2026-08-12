@@ -28,10 +28,13 @@ class _SongwritingMinigameScreenState extends State<SongwritingMinigameScreen>
   int _combo = 0;
   int _timeLeft = 30;
   Timer? _timer;
+  Timer? _categoryTimer;
   WordCategory? _currentCategory;
   int _difficulty = 1; // 1 = Easy, 2 = Medium, 3 = Hard
   late AnimationController _comboController;
   final List<_Particle> _particles = [];
+  List<String> _mixedWords = [];
+  bool _started = false;
 
   @override
   void initState() {
@@ -41,13 +44,29 @@ class _SongwritingMinigameScreenState extends State<SongwritingMinigameScreen>
       duration: const Duration(milliseconds: 500),
     );
     _selectRandomCategory();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && !_started) {
+        _started = true;
+        _startGame();
+      }
+    });
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _categoryTimer?.cancel();
     _comboController.dispose();
     super.dispose();
+  }
+
+  void _refreshMixedWords() {
+    final pool = <String>[];
+    for (final words in _wordCategories.values) {
+      pool.addAll(words);
+    }
+    pool.shuffle();
+    _mixedWords = pool.take(12).toList();
   }
 
   void _selectRandomCategory() {
@@ -67,7 +86,15 @@ class _SongwritingMinigameScreenState extends State<SongwritingMinigameScreen>
       _particles.clear();
     });
 
+    _timer?.cancel();
+    _categoryTimer?.cancel();
+    _refreshMixedWords();
+
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
       setState(() {
         _timeLeft--;
         if (_timeLeft <= 0) {
@@ -76,10 +103,10 @@ class _SongwritingMinigameScreenState extends State<SongwritingMinigameScreen>
       });
     });
 
-    // Change category periodically
-    Timer.periodic(const Duration(seconds: 8), (timer) {
-      if (_timeLeft > 0) {
+    _categoryTimer = Timer.periodic(const Duration(seconds: 8), (timer) {
+      if (_timeLeft > 0 && mounted) {
         _selectRandomCategory();
+        setState(_refreshMixedWords);
       } else {
         timer.cancel();
       }
@@ -88,18 +115,32 @@ class _SongwritingMinigameScreenState extends State<SongwritingMinigameScreen>
 
   void _endGame() {
     _timer?.cancel();
+    _categoryTimer?.cancel();
     final finalScore = (_score * (3.33 / _difficulty)).clamp(0, 100).toInt();
-    Navigator.pop(context, finalScore);
+    if (mounted) Navigator.pop(context, finalScore);
+  }
+
+  WordCategory? _categoryFor(String word) {
+    for (final entry in _wordCategories.entries) {
+      if (entry.value.contains(word)) return entry.key;
+    }
+    return null;
   }
 
   void _selectWord(String word) {
     if (_selectedWords.length < 8) {
       setState(() {
         _selectedWords.add(word);
-        final baseScore = 5 * _difficulty;
-        final comboBonus = _combo * 2;
-        _score += baseScore + comboBonus;
-        _combo++;
+        final onTheme = _categoryFor(word) == _currentCategory;
+        if (onTheme) {
+          final baseScore = 8 * _difficulty;
+          final comboBonus = _combo * 3;
+          _score += baseScore + comboBonus;
+          _combo++;
+        } else {
+          _score += 2 * _difficulty;
+          _combo = 0;
+        }
         
         // Add particle effect
         _particles.add(_Particle(
@@ -135,10 +176,6 @@ class _SongwritingMinigameScreenState extends State<SongwritingMinigameScreen>
 
   @override
   Widget build(BuildContext context) {
-    if (_timeLeft == (_difficulty == 1 ? 45 : _difficulty == 2 ? 30 : 20)) {
-      _startGame();
-    }
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Songwriting'),
@@ -353,13 +390,11 @@ class _SongwritingMinigameScreenState extends State<SongwritingMinigameScreen>
                     mainAxisSpacing: 12,
                     childAspectRatio: 2,
                   ),
-                  itemCount: _currentCategory != null
-                      ? _wordCategories[_currentCategory!]!.length
-                      : 0,
+                  itemCount: _mixedWords.length,
                   itemBuilder: (context, index) {
-                    if (_currentCategory == null) return const SizedBox();
-                    final word = _wordCategories[_currentCategory!]![index];
+                    final word = _mixedWords[index];
                     final isSelected = _selectedWords.contains(word);
+                    final onTheme = _categoryFor(word) == _currentCategory;
                     return AppAnimations.fadeIn(
                       duration: Duration(milliseconds: 200 + (index * 50)),
                       child: ElevatedButton(
@@ -367,7 +402,9 @@ class _SongwritingMinigameScreenState extends State<SongwritingMinigameScreen>
                         style: ElevatedButton.styleFrom(
                           backgroundColor: isSelected
                               ? Colors.white24
-                              : const Color(0xFF2a2a3e),
+                              : onTheme
+                                  ? const Color(0xFF4A148C)
+                                  : const Color(0xFF2a2a3e),
                           foregroundColor: Colors.white,
                           disabledBackgroundColor: Colors.white24,
                           shape: RoundedRectangleBorder(

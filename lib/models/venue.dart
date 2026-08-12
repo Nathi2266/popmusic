@@ -1,3 +1,5 @@
+import 'label_tier.dart';
+
 enum VenueSize {
   small,
   medium,
@@ -11,6 +13,7 @@ class Venue {
   final int capacity;
   final int basePay;
   final int popularityRequired;
+  final LabelTier minLabel;
 
   const Venue({
     required this.name,
@@ -18,6 +21,7 @@ class Venue {
     required this.capacity,
     required this.basePay,
     required this.popularityRequired,
+    this.minLabel = LabelTier.unsigned,
   });
 }
 
@@ -43,6 +47,7 @@ class VenueData {
       capacity: 200,
       basePay: 800,
       popularityRequired: 20,
+      minLabel: LabelTier.unsigned,
     ),
     Venue(
       name: 'Theater',
@@ -50,6 +55,7 @@ class VenueData {
       capacity: 500,
       basePay: 2000,
       popularityRequired: 35,
+      minLabel: LabelTier.indie,
     ),
     Venue(
       name: 'Concert Hall',
@@ -57,6 +63,7 @@ class VenueData {
       capacity: 2000,
       basePay: 8000,
       popularityRequired: 50,
+      minLabel: LabelTier.indie,
     ),
     Venue(
       name: 'Arena',
@@ -64,6 +71,7 @@ class VenueData {
       capacity: 10000,
       basePay: 40000,
       popularityRequired: 70,
+      minLabel: LabelTier.major,
     ),
     Venue(
       name: 'Stadium',
@@ -71,6 +79,7 @@ class VenueData {
       capacity: 50000,
       basePay: 200000,
       popularityRequired: 85,
+      minLabel: LabelTier.superstar,
     ),
   ];
 }

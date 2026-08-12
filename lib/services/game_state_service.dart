@@ -11,6 +11,7 @@ import '../models/label_tier.dart';
 import '../data/npc_artists.dart'; // Corrected import for NPCArtists
 import '../models/player_level.dart';
 import '../models/challenge.dart';
+import '../models/album.dart';
 import 'achievement_service.dart';
 import 'challenge_service.dart';
 
@@ -20,9 +21,14 @@ class GameStateService extends ChangeNotifier {
   static Box? _saveBox;
 
   ChallengeService? _challenges;
+  AchievementService? _achievements;
 
   void attachChallenges(ChallengeService challenges) {
     _challenges = challenges;
+  }
+
+  void attachAchievements(AchievementService achievements) {
+    _achievements = achievements;
   }
 
   static Future<void> init() async {
@@ -62,6 +68,26 @@ class GameStateService extends ChangeNotifier {
   double genreHeatFor(String genre) => genreHeat[genre] ?? 40.0;
 
   String chartViewMode = 'songs'; // 'songs' or 'artists'
+
+  List<Album> playerAlbums = [];
+  List<String> weeklyHeadlines = [];
+  String lastWeekRecap = '';
+  double lastWeekRoyalties = 0;
+  int hustlesThisWeek = 0;
+  String playerHomeGenre = 'Pop';
+  /// 0.85 easy · 1.0 normal · 1.18 hard — scales NPC/rival pressure.
+  double worldHeat = 1.0;
+  /// Stamina was already low when this week started — streams dip even after rest.
+  bool weekStartedBurnedOut = false;
+
+  String get weeklyGoalHint {
+    final active = _challenges?.activeChallenges ?? const [];
+    if (active.isEmpty) {
+      return 'Release a single or hustle the scene this week.';
+    }
+    final first = active.first;
+    return '${first.title} · ${first.currentProgress}/${first.targetValue}';
+  }
 
   /// Scripted career storyline progress.
   final Set<String> completedStoryBeats = {};
@@ -299,33 +325,423 @@ class GameStateService extends ChangeNotifier {
   // ---------------------------
   void proceedWeek() {
     weekOfMonth++;
+    var yearRolled = false;
     if (weekOfMonth > 4) {
       weekOfMonth = 1;
       month++;
       if (month > 12) {
         month = 1;
         year++;
+        yearRolled = true;
       }
     }
 
-    // Weekly player recovery / label stipend
+    hustlesThisWeek = 0;
+
+    // New week: drop last week's cards, then build this week's.
+    lastWeekEvents.clear();
+    weeklyHeadlines.clear();
+    weekStartedBurnedOut = false;
+
+    // Weekly player recovery / label stipend (discipline slightly boosts stamina)
     if (_player != null) {
-      updatePlayerAttribute('stamina', 20.0);
+      final incomingStamina = _player!.attributes['stamina'] ?? 80;
+      weekStartedBurnedOut = incomingStamina < 22;
+
+      final discipline = _player!.attributes['discipline'] ?? 50;
+      final staminaGain = 18 + (discipline / 25);
+      updatePlayerAttribute('stamina', staminaGain.clamp(18.0, 28.0));
       final weeksInIndustry =
           ((_player!.attributes['weeksSinceDebut'] ?? 0) + 1).clamp(0.0, 9999.0);
       _player!.attributes['weeksSinceDebut'] = weeksInIndustry;
       updatePlayerMoney(_player!.labelTier.weeklyIncome);
+      // Merch / street sales scale with fans + wealth
+      final wealth = _player!.attributes['wealth'] ?? 10;
+      final merch = (playerFanCount * 0.04) + (wealth * 8);
+      updatePlayerMoney(merch);
+      _player!.attributes['wealth'] =
+          (wealth + (playerFanCount / 50000)).clamp(0.0, 100.0);
+
+      if (weekStartedBurnedOut) {
+        lastWeekEvents.add(GameEvent(
+          id: 'fatigue_${DateTime.now().millisecondsSinceEpoch}',
+          title: 'Burned Out',
+          description:
+              'Last week drained you. Streams already feel the dip. Sleep it off or grind through?',
+          type: EventType.scandal,
+          severity: EventSeverity.medium,
+          choices: const ['Sleep it off', 'Grind anyway'],
+          choiceOutcomes: const {
+            'Sleep it off': {'stamina': 15, 'happiness': 5},
+            'Grind anyway': {
+              'stamina': -8,
+              'discipline': 4,
+              'happiness': -6,
+              '_money': 180,
+            },
+          },
+        ));
+        weeklyHeadlines.add(
+          '${_player!.name} looks exhausted on the timeline. Streams dip.',
+        );
+      }
     }
 
-    lastWeekEvents.clear(); // Clear events from the previous week
     _updateGenreTrends();
     _generateWeeklyEvents(); // Generate events for the current week
     _checkStoryBeats();
     _generateNPCSongs(); // Generate new songs from NPCs
+    if (yearRolled) {
+      _runYearEndAwards();
+    }
 
     // Recalculate charts after events
     recalculateCharts();
+    _payStreamRoyalties();
+    _buildWeeklyRecap();
     saveGame();
+  }
+
+  /// Streaming payouts: weekly listeners convert to money; label takes a cut.
+  void _payStreamRoyalties() {
+    lastWeekRoyalties = 0;
+    if (_player == null) return;
+    final streams = playerSongs.fold<double>(
+      0,
+      (sum, song) => sum + song.weeklyListeners,
+    );
+    if (streams <= 0) return;
+
+    const perStream = 0.0038;
+    lastWeekRoyalties = streams * perStream * _player!.labelTier.royaltyKeep;
+    if (lastWeekRoyalties > 0) {
+      updatePlayerMoney(lastWeekRoyalties);
+      weeklyHeadlines.add(
+        'Streaming paid \$${lastWeekRoyalties.toStringAsFixed(0)} this week.',
+      );
+    }
+  }
+
+  void _buildWeeklyRecap() {
+    if (_player == null) {
+      lastWeekRecap = '';
+      return;
+    }
+    final best = playerSongs.isEmpty
+        ? null
+        : playerSongs.reduce(
+            (a, b) => a.weeklyListeners >= b.weeklyListeners ? a : b,
+          );
+    final rank = best == null ? null : worldSongs.indexOf(best) + 1;
+    final parts = <String>[
+      'Week $weekOfMonth · ${player!.name}',
+      if (best != null && rank != null && rank > 0)
+        '"${best.title}" sits at #$rank (${best.weeklyListeners.toStringAsFixed(0)} weekly)'
+      else
+        'No singles charting — drop something.',
+      'Trend: $trendingGenre · Chapter: $currentChapter',
+    ];
+    if (lastWeekRoyalties > 0) {
+      parts.add('Royalties \$${lastWeekRoyalties.toStringAsFixed(0)}');
+    }
+    if (weekStartedBurnedOut) {
+      parts.add('Burned out — streams dipped');
+    }
+    final videoHits = playerSongs.where((s) => s.videoWeeksRemaining > 0).length;
+    if (videoHits > 0) {
+      parts.add('$videoHits video${videoHits == 1 ? '' : 's'} boosting');
+    }
+    lastWeekRecap = parts.join(' · ');
+    if (weeklyHeadlines.isEmpty) {
+      weeklyHeadlines.add(
+        '${player!.name} keeps grinding the ${playerDominantGenre} lane.',
+      );
+    }
+  }
+
+  String? hustleNetwork() {
+    if (_player == null) return 'No player';
+    if (hustlesThisWeek >= 2) return 'Already hustled enough this week';
+    final stamina = _player!.attributes['stamina'] ?? 0;
+    if (stamina < 12) return 'Too tired to network';
+    if (playerMoney < 120) return 'Need \$120 for the scene';
+    hustlesThisWeek++;
+    updatePlayerAttribute('stamina', -12);
+    updatePlayerMoney(-120);
+    updatePlayerAttribute('networking', 4);
+    updatePlayerAttribute('charisma', 2);
+    updatePlayerAttribute('marketing', 1);
+    updatePlayerFanCount(40 + Random().nextInt(80));
+    weeklyHeadlines.add('${_player!.name} was spotted at a writers room hang.');
+    addPlayerXp(15);
+    notifyListeners();
+    saveGame();
+    return null;
+  }
+
+  String? trainSkill(String skill) {
+    if (_player == null) return 'No player';
+    const trainable = {
+      'songwriting',
+      'production',
+      'performance',
+      'discipline',
+      'creativity',
+    };
+    if (!trainable.contains(skill)) return 'Unknown skill';
+    if (hustlesThisWeek >= 2) return 'Already trained enough this week';
+    final stamina = _player!.attributes['stamina'] ?? 0;
+    if (stamina < 14) return 'Too tired to train';
+    if (playerMoney < 80) return 'Need \$80 for session time';
+    hustlesThisWeek++;
+    updatePlayerAttribute('stamina', -14);
+    updatePlayerMoney(-80);
+    updatePlayerAttribute(skill, 5);
+    updatePlayerAttribute('discipline', 1);
+    weeklyHeadlines.add('${_player!.name} locked in a $skill session.');
+    addPlayerXp(12);
+    notifyListeners();
+    saveGame();
+    return null;
+  }
+
+  String? pitchSongToRadio(String songId) {
+    if (_player == null) return 'No player';
+    Song? song;
+    for (final s in worldSongs) {
+      if (s.id == songId) {
+        song = s;
+        break;
+      }
+    }
+    if (song == null || song.artistId != _player!.id) {
+      return 'Pick one of your songs';
+    }
+    final cost = 350.0 + (_player!.labelTier.index * 150);
+    if (playerMoney < cost) {
+      return 'Need \$${cost.toStringAsFixed(0)} to pitch radio';
+    }
+    updatePlayerMoney(-cost);
+    song.viralFactor = (song.viralFactor + 12 + Random().nextDouble() * 10)
+        .clamp(0.0, 100.0);
+    song.salesPotential =
+        (song.salesPotential + 8).clamp(0.0, 100.0);
+    updatePlayerAttribute('marketing', 2);
+    weeklyHeadlines.add('Radio added "${song.title}" to mid-day rotation.');
+    lastWeekEvents.add(GameEvent(
+      id: 'radio_pitch_${song.id}_${DateTime.now().millisecondsSinceEpoch}',
+      title: 'Radio Pitch Landed',
+      description:
+          '"${song.title}" is spinning on regional radio. Expect a listener bump.',
+      type: EventType.opportunity,
+      severity: EventSeverity.medium,
+    ));
+    addPlayerXp(20);
+    notifyListeners();
+    saveGame();
+    return null;
+  }
+
+  double musicVideoCost() {
+    final tier = _player?.labelTier.index ?? 0;
+    return 650.0 + (tier * 400);
+  }
+
+  int musicVideoWeeks() {
+    final tier = _player?.labelTier.index ?? 0;
+    return (2 + tier).clamp(2, 4);
+  }
+
+  String? shootMusicVideo(String songId) {
+    if (_player == null) return 'No player';
+    Song? song;
+    for (final s in worldSongs) {
+      if (s.id == songId) {
+        song = s;
+        break;
+      }
+    }
+    if (song == null || song.artistId != _player!.id) {
+      return 'Pick one of your songs';
+    }
+    if (song.videoWeeksRemaining > 0) {
+      return 'That video is still circulating (${song.videoWeeksRemaining}w left)';
+    }
+    final cost = musicVideoCost();
+    if (playerMoney < cost) {
+      return 'Need \$${cost.toStringAsFixed(0)} to shoot a video';
+    }
+    final stamina = _player!.attributes['stamina'] ?? 0;
+    if (stamina < 12) return 'Too tired to shoot a video';
+
+    updatePlayerMoney(-cost);
+    updatePlayerAttribute('stamina', -12);
+    updatePlayerAttribute('marketing', 3);
+    song.videoWeeksRemaining = musicVideoWeeks();
+    song.viralFactor =
+        (song.viralFactor + 8 + Random().nextDouble() * 8).clamp(0.0, 100.0);
+    weeklyHeadlines.add(
+      'Music video for "${song.title}" is out — ${song.videoWeeksRemaining} weeks of extra streams.',
+    );
+    lastWeekEvents.add(GameEvent(
+      id: 'mv_${song.id}_${DateTime.now().millisecondsSinceEpoch}',
+      title: 'Music Video Drop',
+      description:
+          '"${song.title}" has a video in rotation. Weekly listeners jump for ${song.videoWeeksRemaining} weeks.',
+      type: EventType.opportunity,
+      severity: EventSeverity.medium,
+    ));
+    addPlayerXp(25);
+    notifyListeners();
+    saveGame();
+    return null;
+  }
+
+  String? compileAlbum(String title, List<String> songIds) {
+    if (_player == null) return 'No player';
+    final cleanTitle = title.trim();
+    if (cleanTitle.isEmpty) return 'Name the album';
+    if (songIds.length < 3) return 'Need at least 3 of your songs';
+    if (songIds.length > 8) return 'Max 8 tracks';
+    final owned = songIds.every(
+      (id) => worldSongs.any((s) => s.id == id && s.artistId == _player!.id),
+    );
+    if (!owned) return 'All tracks must be yours';
+    final alreadyUsed = playerAlbums.any(
+      (a) => a.songIds.any(songIds.contains),
+    );
+    if (alreadyUsed) return 'A selected track is already on an album';
+    final cost = 1500.0;
+    if (playerMoney < cost) return 'Need \$1500 to press the album';
+    updatePlayerMoney(-cost);
+    updatePlayerAttribute('stamina', -10);
+    playerAlbums.add(Album(
+      id: 'album_${DateTime.now().millisecondsSinceEpoch}',
+      title: cleanTitle,
+      artistId: _player!.id,
+      songIds: List<String>.from(songIds),
+      releasedWeek: weekOfMonth,
+      releasedMonth: month,
+      releasedYear: year,
+    ));
+    for (final id in songIds) {
+      final song = worldSongs.firstWhere((s) => s.id == id);
+      song.salesPotential = (song.salesPotential + 10).clamp(0.0, 100.0);
+      song.viralFactor = (song.viralFactor + 6).clamp(0.0, 100.0);
+    }
+    updatePlayerFanCount(250);
+    addPlayerXp(80);
+    weeklyHeadlines.add('${_player!.name} dropped the album "$cleanTitle".');
+    lastWeekEvents.add(GameEvent(
+      id: 'album_${DateTime.now().millisecondsSinceEpoch}',
+      title: 'Album Out: $cleanTitle',
+      description:
+          'A full project hits the stores. Catalog tracks get a sales bump.',
+      type: EventType.opportunity,
+      severity: EventSeverity.high,
+    ));
+    notifyListeners();
+    saveGame();
+    return null;
+  }
+
+  String? requestCollab(String artistId) {
+    if (_player == null) return 'No player';
+    if (artistId == _player!.id) return 'Cannot collab with yourself';
+    final partner = getArtistById(artistId);
+    if (partner == null) return 'Artist not found';
+    final stamina = _player!.attributes['stamina'] ?? 0;
+    if (stamina < 18) return 'Too tired to record a feature';
+    if (playerMoney < 400) return 'Need \$400 studio + split';
+    if (hustlesThisWeek >= 2) return 'Already hustled enough this week';
+    hustlesThisWeek++;
+    updatePlayerAttribute('stamina', -18);
+    updatePlayerMoney(-400);
+    final quality = (((_player!.attributes['songwriting'] ?? 40) +
+                (partner.attributes['popularity'] ?? 40)) /
+            2)
+        .clamp(25.0, 95.0);
+    worldSongs.add(Song(
+      id: 'song_${DateTime.now().millisecondsSinceEpoch}_ask_collab',
+      title: '${_player!.name} & ${partner.name} - Link Up',
+      artistId: _player!.id,
+      popularityFactor: quality,
+      viralFactor: (38 + Random().nextDouble() * 28).clamp(10.0, 90.0),
+      salesPotential: (32 + Random().nextDouble() * 28).clamp(10.0, 90.0),
+      genre: playerHomeGenre,
+      isNewEntry: true,
+    ));
+    updateArtistAttribute(partner.id, 'networking', 3);
+    updatePlayerAttribute('networking', 4);
+    updatePlayerFanCount(180);
+    addPlayerXp(35);
+    _challenges?.updateProgress(ChallengeType.releaseSongs, 1);
+    weeklyHeadlines.add('New collab: ${_player!.name} x ${partner.name}.');
+    notifyListeners();
+    saveGame();
+    return null;
+  }
+
+  String? retirePlayerSong(String songId) {
+    final idx = worldSongs.indexWhere(
+      (s) => s.id == songId && s.artistId == _player?.id,
+    );
+    if (idx < 0) return 'Song not found';
+    final song = worldSongs.removeAt(idx);
+    weeklyHeadlines.add('"${song.title}" was pulled from active rotation.');
+    notifyListeners();
+    saveGame();
+    return null;
+  }
+
+  bool isSongOnAlbum(String songId) =>
+      playerAlbums.any((a) => a.songIds.contains(songId));
+
+  void _runYearEndAwards() {
+    if (worldSongs.isEmpty) return;
+    final ranked = List<Song>.from(worldSongs)..sort(_compareByChartScore);
+    final songOfYear = ranked.first;
+    final artistOfYearId = ranked.take(10).fold<Map<String, double>>({}, (m, s) {
+      m[s.artistId] = (m[s.artistId] ?? 0) + chartScore(s);
+      return m;
+    });
+    final aotyId = artistOfYearId.entries
+        .reduce((a, b) => a.value >= b.value ? a : b)
+        .key;
+    final aoty = getArtistById(aotyId);
+    final soyArtist = getArtistById(songOfYear.artistId);
+
+    void grant(Artist? artist, String award) {
+      if (artist == null) return;
+      artist.awardsWon.add(award);
+      if (artist.id == _player?.id) {
+        playerMoney += 7500;
+        _checkAwardAchievements();
+      }
+      updateArtistAttribute(artist.id, 'popularity', 8);
+      lastWeekEvents.add(GameEvent(
+        id: 'year_award_${award}_${artist.id}_$year',
+        title: '$award — ${year - 1}',
+        description: '${artist.name} takes home $award.',
+        type: EventType.award,
+        severity: EventSeverity.high,
+      ));
+    }
+
+    grant(soyArtist, 'Song of the Year (${songOfYear.title})');
+    if (aoty != null && aoty.id != soyArtist?.id) {
+      grant(aoty, 'Artist of the Year');
+    } else if (aoty != null) {
+      grant(aoty, 'Artist of the Year');
+    }
+
+    if (_player != null && playerSongs.isNotEmpty) {
+      final debuts = playerSongs.where((s) => s.weeksSinceRelease <= 20);
+      if (debuts.isNotEmpty && (_player!.attributes['popularity'] ?? 0) < 55) {
+        grant(_player, 'Breakthrough Artist');
+      }
+    }
+    weeklyHeadlines.add('Awards night closed the books on ${year - 1}.');
   }
 
   void _refreshChapterTitle() {
@@ -1123,9 +1539,12 @@ class GameStateService extends ChangeNotifier {
       if (song.listenerHistory.length > 4) {
         song.listenerHistory.removeAt(0); // Keep only the last 4 weeks
       }
+      if (song.videoWeeksRemaining > 0) {
+        song.videoWeeksRemaining--;
+      }
     }
 
-    worldSongs.sort((a, b) => b.totalStreams.compareTo(a.totalStreams));
+    worldSongs.sort(_compareByChartScore);
 
     // After sorting, update the isNewEntry for existing songs.
     // If a song wasn't new this week (weeksSinceRelease > 0), then it's no longer a new entry.
@@ -1144,6 +1563,7 @@ class GameStateService extends ChangeNotifier {
           playerChartPeak = currentRank;
         }
         _challenges?.updateChartRankProgress(currentRank);
+        _checkChartAchievements(currentRank);
 
         // Check for chart milestones
         if (playerSong.lastWeekRank == null) { // New entry to charts
@@ -1244,39 +1664,47 @@ class GameStateService extends ChangeNotifier {
     }
 
     // "Best Viral Song" Nomination and Award
-    final viralSongsCandidates = worldSongs.where((song) => song.totalStreams >= 1000000 && song.weeksSinceRelease < 8).toList();
-    if (viralSongsCandidates.isNotEmpty && rng.nextDouble() < 0.1) { // 10% chance for a viral award event
-      // Sort by viral factor to pick the 'best' viral song
+    final viralSongsCandidates = worldSongs
+        .where((song) =>
+            song.totalStreams >= 100000 && song.weeksSinceRelease < 10)
+        .toList();
+    if (viralSongsCandidates.isNotEmpty && rng.nextDouble() < 0.12) {
       viralSongsCandidates.sort((a, b) => b.viralFactor.compareTo(a.viralFactor));
       final winningSong = viralSongsCandidates.first;
       final winningArtist = getArtistById(winningSong.artistId);
 
       if (winningArtist != null) {
-        // Prize money only if the player won (NPC wins must not fund the player)
         if (winningArtist.id == _player?.id) {
           playerMoney += 10000;
         }
         updateArtistAttribute(winningArtist.id, 'popularity', 10.0);
         winningArtist.awardsWon.add('Best Viral Song - $year');
+        if (winningArtist.id == _player?.id) {
+          _checkAwardAchievements();
+        }
 
         lastWeekEvents.add(GameEvent(
           id: 'viral_award_${year}_${winningArtist.id}',
           title: '${winningArtist.name} Wins Best Viral Song!',
-          description: '${winningArtist.name}\'s song "${winningSong.title}" has been awarded Best Viral Song of the year, earning them \$10,000 and a popularity boost!',
-          type: EventType.opportunity,
+          description:
+              '${winningArtist.name}\'s song "${winningSong.title}" has been awarded Best Viral Song of the year, earning them \$10,000 and a popularity boost!',
+          type: EventType.award,
           severity: EventSeverity.high,
         ));
 
-        // Nominate 3 other artists
-        final otherNominees = viralSongsCandidates.where((song) => song.artistId != winningArtist.id).take(3).toList();
+        final otherNominees = viralSongsCandidates
+            .where((song) => song.artistId != winningArtist.id)
+            .take(3)
+            .toList();
         for (var nominatedSong in otherNominees) {
           final nominatedArtist = getArtistById(nominatedSong.artistId);
           if (nominatedArtist != null) {
             lastWeekEvents.add(GameEvent(
               id: 'viral_nominee_${year}_${nominatedArtist.id}',
               title: '${nominatedArtist.name} Nominated for Best Viral Song!',
-              description: '${nominatedArtist.name}\'s song "${nominatedSong.title}" has been nominated for Best Viral Song of the year!',
-              type: EventType.opportunity,
+              description:
+                  '${nominatedArtist.name}\'s song "${nominatedSong.title}" has been nominated for Best Viral Song of the year!',
+              type: EventType.award,
               severity: EventSeverity.low,
             ));
           }
@@ -1285,6 +1713,30 @@ class GameStateService extends ChangeNotifier {
     }
 
     notifyListeners();
+  }
+
+  void _checkChartAchievements(int currentRank) {
+    if (_achievements == null || currentRank <= 0) return;
+    // Progress APIs unlock when progress >= target (target is 10 / 1).
+    if (currentRank <= 10) {
+      _achievements!.updateProgress('top_ten', 10);
+    }
+    if (currentRank == 1) {
+      _achievements!.updateProgress('number_one', 1);
+    }
+  }
+
+  void _checkAwardAchievements() {
+    if (_achievements == null || _player == null) return;
+    final count = _player!.awardsWon.length;
+    if (count >= 1) {
+      _achievements!.updateProgress('first_award', 1);
+    }
+    if (count >= 5) {
+      _achievements!.updateProgress('five_awards', count);
+    } else if (count > 0) {
+      _achievements!.updateProgress('five_awards', count);
+    }
   }
 
   void _generateNPCSongs() {
@@ -1296,9 +1748,10 @@ class GameStateService extends ChangeNotifier {
 
       final rival = isRival(artist.id);
       // Rivals drop much more often, especially when you're charting
-      final releaseChance = rival
-          ? (playerHasHotSong ? 0.55 : 0.40)
-          : 0.10;
+      final releaseChance = (rival
+              ? (playerHasHotSong ? 0.55 : 0.40)
+              : 0.10) *
+          worldHeat.clamp(0.8, 1.25);
 
       if (rng.nextDouble() < releaseChance) {
         final newSongTitle = _npcSongTitles[rng.nextInt(_npcSongTitles.length)];
@@ -1366,17 +1819,42 @@ class GameStateService extends ChangeNotifier {
     }
   }
 
+  /// Hot-chart blend: weekly listeners lead, lifetime streams still matter, age soft-caps old hits.
+  double chartScore(Song song) {
+    final weekly = song.weeklyListeners;
+    final lifetime = song.totalStreams;
+    final age = song.weeksSinceRelease;
+    final agePenalty = age <= 2
+        ? 1.18
+        : age <= 6
+            ? 1.0
+            : age <= 12
+                ? 0.78
+                : age <= 20
+                    ? 0.55
+                    : 0.35;
+    return (weekly * 3.2 + lifetime * 0.12) * agePenalty;
+  }
+
+  int _compareByChartScore(Song a, Song b) {
+    final byScore = chartScore(b).compareTo(chartScore(a));
+    if (byScore != 0) return byScore;
+    final byWeekly = b.weeklyListeners.compareTo(a.weeklyListeners);
+    if (byWeekly != 0) return byWeekly;
+    return b.totalStreams.compareTo(a.totalStreams);
+  }
+
   List<Song> getTopSongs(int limit) {
     List<Song> songsToConsider = worldSongs;
     if (currentGenreFilter != null) {
       if (currentGenreFilter == 'New Releases') {
-        songsToConsider = worldSongs.where((song) => song.weeksSinceRelease <= 4).toList(); // Changed to filter by weeksSinceRelease
+        songsToConsider = worldSongs.where((song) => song.weeksSinceRelease <= 4).toList();
       } else {
         songsToConsider = worldSongs.where((song) => song.genre == currentGenreFilter).toList();
       }
     }
 
-    songsToConsider.sort((a, b) => b.totalStreams.compareTo(a.totalStreams));
+    songsToConsider = List<Song>.from(songsToConsider)..sort(_compareByChartScore);
     return songsToConsider.take(limit).toList();
   }
 
@@ -1496,6 +1974,29 @@ class GameStateService extends ChangeNotifier {
     final heat = genreHeatFor(song.genre);
     final genreMultiplier = 0.82 + (heat / 100.0) * 0.45; // ~0.82–1.27
     final onTrendBonus = song.genre == trendingGenre ? 1.08 : 1.0;
+    final albumBoost = isSongOnAlbum(song.id) ? 1.14 : 1.0;
+    final videoBoost = song.videoWeeksRemaining > 0 ? 1.32 : 1.0;
+    final homeLaneBoost =
+        song.artistId == _player?.id && song.genre == playerHomeGenre
+            ? 1.06
+            : 1.0;
+    double fatigue = 1.0;
+    if (song.artistId == _player?.id) {
+      if (weekStartedBurnedOut) {
+        fatigue = 0.78;
+      } else {
+        final stam = _player!.attributes['stamina'] ?? 80;
+        if (stam < 20) {
+          fatigue = 0.78;
+        } else if (stam < 35) {
+          fatigue = 0.90;
+        }
+      }
+    }
+    // Harder worlds: NPC/rival songs punch up; player unchanged
+    final heatScale = song.artistId == _player?.id
+        ? 1.0
+        : worldHeat;
 
     double listeners = base *
         recencyBoost *
@@ -1506,7 +2007,12 @@ class GameStateService extends ChangeNotifier {
         lengthMultiplier *
         rivalryMultiplier *
         genreMultiplier *
-        onTrendBonus;
+        onTrendBonus *
+        albumBoost *
+        videoBoost *
+        homeLaneBoost *
+        fatigue *
+        heatScale;
 
     final jitter = (rng.nextDouble() - 0.5) * 0.15;
     listeners *= (1 + jitter);
@@ -1566,7 +2072,17 @@ class GameStateService extends ChangeNotifier {
   int? playerChartPeak; // Stores the highest (lowest number) rank a player's song has achieved
   int playerXp = 0; // Player experience points
 
-  void startNewGame(String playerName, {ArtistAppearance? appearance}) {
+  void startNewGame(
+    String playerName, {
+    ArtistAppearance? appearance,
+    String homeGenre = 'Pop',
+    double difficulty = 1.0,
+  }) {
+    playerHomeGenre = availableGenres.contains(homeGenre) ? homeGenre : 'Pop';
+    worldHeat = difficulty.clamp(0.8, 1.25);
+    lastWeekRoyalties = 0;
+    lastWeekRecap = '';
+    weekStartedBurnedOut = false;
     _player = Artist(
       id: 'player',
       name: playerName,
@@ -1579,14 +2095,14 @@ class GameStateService extends ChangeNotifier {
         'talent': 10,
         'controversy': 0,
         'fan_connection': 10,
-        'performance': 50,
-        'production': 40,
-        'songwriting': 55,
-        'charisma': 50,
+        'performance': playerHomeGenre == 'Rock' ? 58 : 50,
+        'production': playerHomeGenre == 'Electronic' ? 52 : 40,
+        'songwriting': playerHomeGenre == 'Indie' ? 62 : 55,
+        'charisma': playerHomeGenre == 'Pop' ? 58 : 50,
         'marketing': 30,
-        'networking': 40,
+        'networking': playerHomeGenre == 'Hip-Hop' ? 50 : 40,
         'creativity': 60,
-        'discipline': 50,
+        'discipline': playerHomeGenre == 'R&B' ? 58 : 50,
         'stamina': 80,
         'wealth': 10,
         'influence': 5,
@@ -1751,6 +2267,14 @@ class GameStateService extends ChangeNotifier {
       'weeklyChartHistory': weeklyChartHistory,
       'completedStoryBeats': completedStoryBeats.toList(),
       'currentChapter': currentChapter,
+      'playerAlbums': playerAlbums.map((a) => a.toMap()).toList(),
+      'weeklyHeadlines': weeklyHeadlines,
+      'lastWeekRecap': lastWeekRecap,
+      'lastWeekRoyalties': lastWeekRoyalties,
+      'hustlesThisWeek': hustlesThisWeek,
+      'playerHomeGenre': playerHomeGenre,
+      'worldHeat': worldHeat,
+      'weekStartedBurnedOut': weekStartedBurnedOut,
       'worldArtists': worldArtists.map((a) => a.toMap()).toList(),
       'worldSongs': worldSongs.map((s) => s.toMap()).toList(),
       'playerId': _player!.id,
@@ -1781,6 +2305,18 @@ class GameStateService extends ChangeNotifier {
         ..clear()
         ..addAll(List<String>.from(data['completedStoryBeats'] as List? ?? const []));
       currentChapter = data['currentChapter'] as String? ?? 'Unsigned Hustle';
+      lastWeekRecap = data['lastWeekRecap'] as String? ?? '';
+      lastWeekRoyalties =
+          (data['lastWeekRoyalties'] as num?)?.toDouble() ?? 0;
+      hustlesThisWeek = data['hustlesThisWeek'] as int? ?? 0;
+      playerHomeGenre = data['playerHomeGenre'] as String? ?? 'Pop';
+      worldHeat = (data['worldHeat'] as num?)?.toDouble() ?? 1.0;
+      weekStartedBurnedOut = data['weekStartedBurnedOut'] as bool? ?? false;
+      weeklyHeadlines =
+          List<String>.from(data['weeklyHeadlines'] as List? ?? const []);
+      playerAlbums = (data['playerAlbums'] as List? ?? const [])
+          .map((e) => Album.fromMap(Map<String, dynamic>.from(e as Map)))
+          .toList();
 
       genreHeat
         ..clear()
@@ -1859,6 +2395,14 @@ class GameStateService extends ChangeNotifier {
     weekOfMonth = 1;
     lastWeekEvents.clear();
     weeklyChartHistory.clear();
+    playerAlbums.clear();
+    weeklyHeadlines.clear();
+    lastWeekRecap = '';
+    lastWeekRoyalties = 0;
+    hustlesThisWeek = 0;
+    playerHomeGenre = 'Pop';
+    worldHeat = 1.0;
+    weekStartedBurnedOut = false;
     deleteSave();
     notifyListeners();
   }

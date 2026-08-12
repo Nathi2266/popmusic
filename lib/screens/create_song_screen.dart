@@ -40,7 +40,14 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
   @override
   void initState() {
     super.initState();
-    _calculateEstimatedRank();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final game = Provider.of<GameStateService>(context, listen: false);
+      setState(() {
+        _selectedGenre = game.playerHomeGenre;
+      });
+      _calculateEstimatedRank();
+    });
   }
 
   void _calculateEstimatedRank() {

@@ -18,6 +18,8 @@ class NewGameScreen extends StatefulWidget {
 class _NewGameScreenState extends State<NewGameScreen> {
   final _nameController = TextEditingController();
   ArtistAppearance _appearance = ArtistAppearance.defaults;
+  String _homeGenre = 'Pop';
+  double _difficulty = 1.0;
 
   @override
   void dispose() {
@@ -39,6 +41,8 @@ class _NewGameScreenState extends State<NewGameScreen> {
     gameState.startNewGame(
       _nameController.text.trim(),
       appearance: _appearance,
+      homeGenre: _homeGenre,
+      difficulty: _difficulty,
     );
 
     Navigator.pushReplacement(
@@ -106,6 +110,72 @@ class _NewGameScreenState extends State<NewGameScreen> {
                             vertical: 16,
                           ),
                         ),
+                      ),
+                      const SizedBox(height: 28),
+                      const Text(
+                        'Home Genre',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: const [
+                          'Pop',
+                          'Rock',
+                          'Hip-Hop',
+                          'R&B',
+                          'Electronic',
+                          'Indie',
+                        ].map((g) {
+                          final selected = _homeGenre == g;
+                          return ChoiceChip(
+                            label: Text(g),
+                            selected: selected,
+                            onSelected: (_) => setState(() => _homeGenre = g),
+                            selectedColor: const Color(0xFFe94560),
+                            labelStyle: TextStyle(
+                              color: selected ? Colors.white : Colors.white70,
+                            ),
+                            backgroundColor: const Color(0xFF2a2a3e),
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 18),
+                      const Text(
+                        'World Heat',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        children: [
+                          _DiffChip(
+                            label: 'Easy',
+                            selected: _difficulty < 0.95,
+                            onTap: () => setState(() => _difficulty = 0.85),
+                          ),
+                          _DiffChip(
+                            label: 'Normal',
+                            selected: _difficulty >= 0.95 && _difficulty < 1.1,
+                            onTap: () => setState(() => _difficulty = 1.0),
+                          ),
+                          _DiffChip(
+                            label: 'Hard',
+                            selected: _difficulty >= 1.1,
+                            onTap: () => setState(() => _difficulty = 1.18),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 28),
                       _CustomizationPanel(
@@ -362,6 +432,30 @@ class _CustomizationPanel extends StatelessWidget {
           ...children,
         ],
       ),
+    );
+  }
+}
+
+class _DiffChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _DiffChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ChoiceChip(
+      label: Text(label),
+      selected: selected,
+      onSelected: (_) => onTap(),
+      selectedColor: const Color(0xFFFFB347),
+      labelStyle: TextStyle(color: selected ? Colors.black : Colors.white70),
+      backgroundColor: const Color(0xFF2a2a3e),
     );
   }
 }

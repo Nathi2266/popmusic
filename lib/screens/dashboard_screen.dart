@@ -4,12 +4,14 @@ import '../services/game_state_service.dart';
 import '../widgets/attribute_bar.dart';
 import '../widgets/stat_card.dart';
 import 'performance_screen.dart';
-import '../models/song.dart'; // Added import for Song model
+import 'create_song_screen.dart';
+import '../models/song.dart';
 import '../models/label_tier.dart';
 import 'weekly_events_and_proceed_button.dart';
-import 'charts_screen.dart'; // Import the new ChartsScreen
+import 'charts_screen.dart';
 import '../widgets/error_widget.dart';
 import '../widgets/xp_bar.dart';
+import '../utils/toast_service.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -46,16 +48,14 @@ class DashboardScreen extends StatelessWidget {
               },
             ),
             actions: [
-              Expanded( // Wrap Padding in Expanded
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Center(
-                    child: Text(
-                      'Week ${gameState.weekOfMonth}, Month ${gameState.month}, ${gameState.year}',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
+              Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: Center(
+                  child: Text(
+                    'W${gameState.weekOfMonth} M${gameState.month} ${gameState.year}',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
@@ -128,6 +128,86 @@ class DashboardScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF2a2a3e),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: const Color(0xFF2196F3).withAlpha(80),
+                      ),
+                    ),
+                    child: Text(
+                      'This week: ${gameState.weeklyGoalHint}',
+                      style: const TextStyle(color: Colors.white, fontSize: 14),
+                    ),
+                  ),
+                  if (gameState.weekStartedBurnedOut) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE94560).withAlpha(40),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFFE94560).withAlpha(140),
+                        ),
+                      ),
+                      child: const Text(
+                        'Burned out — this week\'s streams are dipping. Sleep it off in Events.',
+                        style: TextStyle(color: Colors.white, fontSize: 13),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 16),
+                  if (gameState.lastWeekRecap.isNotEmpty)
+                    Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.only(bottom: 16),
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF2a2a3e),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        gameState.lastWeekRecap,
+                        style: const TextStyle(color: Colors.white70, fontSize: 13),
+                      ),
+                    ),
+                  if (gameState.weeklyHeadlines.isNotEmpty) ...[
+                    const Text(
+                      'THE FEED',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        letterSpacing: 2,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    ...gameState.weeklyHeadlines.take(5).map(
+                          (h) => Padding(
+                            padding: const EdgeInsets.only(bottom: 6),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('• ',
+                                    style: TextStyle(color: Color(0xFFe94560))),
+                                Expanded(
+                                  child: Text(
+                                    h,
+                                    style: const TextStyle(
+                                        color: Colors.white70, fontSize: 13),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                    const SizedBox(height: 16),
+                  ],
                   Row(
                     children: [
                       Expanded(
@@ -167,6 +247,30 @@ class DashboardScreen extends StatelessWidget {
                           value: '${gameState.worldSongs.where((s) => s.artistId == player.id).length}',
                           icon: Icons.music_note,
                           color: const Color(0xFFFF9800),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: StatCard(
+                          title: 'Royalties',
+                          value:
+                              '\$${gameState.lastWeekRoyalties.toStringAsFixed(0)}',
+                          icon: Icons.graphic_eq,
+                          color: const Color(0xFF26C6DA),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: StatCard(
+                          title: 'Stream cut',
+                          value:
+                              '${(player.labelTier.royaltyKeep * 100).toStringAsFixed(0)}%',
+                          icon: Icons.percent,
+                          color: Color(player.labelTier.colorValue),
                         ),
                       ),
                     ],
@@ -452,7 +556,12 @@ class DashboardScreen extends StatelessWidget {
                         label: 'Create Music',
                         icon: Icons.music_note,
                         onPressed: () {
-                          // Navigate to music creation
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const CreateSongScreen(),
+                            ),
+                          );
                         },
                       ),
                       _ActionButton(
@@ -471,15 +580,28 @@ class DashboardScreen extends StatelessWidget {
                         label: 'Network',
                         icon: Icons.people,
                         onPressed: () {
-                          // Navigate to networking
+                          final err = gameState.hustleNetwork();
+                          if (err != null) {
+                            ToastService().showError(err);
+                          } else {
+                            ToastService().showSuccess('You worked the room.');
+                          }
                         },
                       ),
                       _ActionButton(
                         label: 'Train',
                         icon: Icons.fitness_center,
-                        onPressed: () {
-                          // Navigate to training
-                        },
+                        onPressed: () => _showTrainSheet(context, gameState),
+                      ),
+                      _ActionButton(
+                        label: 'Pitch Radio',
+                        icon: Icons.radio,
+                        onPressed: () => _showPitchSheet(context, gameState),
+                      ),
+                      _ActionButton(
+                        label: 'Shoot Video',
+                        icon: Icons.videocam,
+                        onPressed: () => _showVideoSheet(context, gameState),
                       ),
                     ],
                   ),
@@ -532,6 +654,157 @@ class DashboardScreen extends StatelessWidget {
 //       return 'Superstar';
 //   }
 // }
+
+void _showTrainSheet(BuildContext context, GameStateService game) {
+  const skills = {
+    'songwriting': 'Songwriting',
+    'production': 'Production',
+    'performance': 'Performance',
+    'discipline': 'Discipline',
+    'creativity': 'Creativity',
+  };
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: const Color(0xFF16213e),
+    builder: (_) => SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Padding(
+            padding: EdgeInsets.all(16),
+            child: Text(
+              'Train a skill (\$80, -14 stamina)',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+          ...skills.entries.map(
+            (e) => ListTile(
+              title: Text(e.value, style: const TextStyle(color: Colors.white)),
+              onTap: () {
+                Navigator.pop(context);
+                final err = game.trainSkill(e.key);
+                if (err != null) {
+                  ToastService().showError(err);
+                } else {
+                  ToastService().showSuccess('Trained ${e.value}.');
+                }
+              },
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+void _showPitchSheet(BuildContext context, GameStateService game) {
+  final songs = game.playerSongs;
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: const Color(0xFF16213e),
+    builder: (_) => SafeArea(
+      child: songs.isEmpty
+          ? const Padding(
+              padding: EdgeInsets.all(24),
+              child: Text(
+                'Release a song first.',
+                style: TextStyle(color: Colors.white70),
+              ),
+            )
+          : ListView(
+              shrinkWrap: true,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Text(
+                    'Pitch a song to radio',
+                    style: TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                ...songs.map(
+                  (s) => ListTile(
+                    title: Text(s.title,
+                        style: const TextStyle(color: Colors.white)),
+                    subtitle: Text(
+                      '${s.genre} · viral ${s.viralFactor.toStringAsFixed(0)}',
+                      style: const TextStyle(color: Colors.white54),
+                    ),
+                    onTap: () {
+                      Navigator.pop(context);
+                      final err = game.pitchSongToRadio(s.id);
+                      if (err != null) {
+                        ToastService().showError(err);
+                      } else {
+                        ToastService().showSuccess('Pitched "${s.title}".');
+                      }
+                    },
+                  ),
+                ),
+              ],
+            ),
+    ),
+  );
+}
+
+void _showVideoSheet(BuildContext context, GameStateService game) {
+  final songs = game.playerSongs;
+  final cost = game.musicVideoCost();
+  final weeks = game.musicVideoWeeks();
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: const Color(0xFF16213e),
+    builder: (_) => SafeArea(
+      child: songs.isEmpty
+          ? const Padding(
+              padding: EdgeInsets.all(24),
+              child: Text(
+                'Release a song first.',
+                style: TextStyle(color: Colors.white70),
+              ),
+            )
+          : ListView(
+              shrinkWrap: true,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    'Shoot a video (\$${cost.toStringAsFixed(0)}, ${weeks}w boost)',
+                    style: const TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                ...songs.map(
+                  (s) => ListTile(
+                    title: Text(s.title,
+                        style: const TextStyle(color: Colors.white)),
+                    subtitle: Text(
+                      s.videoWeeksRemaining > 0
+                          ? 'Already boosting · ${s.videoWeeksRemaining}w left'
+                          : '${s.genre} · weekly ${s.weeklyListeners.toStringAsFixed(0)}',
+                      style: const TextStyle(color: Colors.white54),
+                    ),
+                    enabled: s.videoWeeksRemaining == 0,
+                    onTap: s.videoWeeksRemaining > 0
+                        ? null
+                        : () {
+                            Navigator.pop(context);
+                            final err = game.shootMusicVideo(s.id);
+                            if (err != null) {
+                              ToastService().showError(err);
+                            } else {
+                              ToastService().showSuccess(
+                                'Video out for "${s.title}".',
+                              );
+                            }
+                          },
+                  ),
+                ),
+              ],
+            ),
+    ),
+  );
+}
 
 class _ActionButton extends StatelessWidget {
   final String label;

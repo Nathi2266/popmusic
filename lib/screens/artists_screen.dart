@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/game_state_service.dart';
 import '../models/artist.dart';
+import '../models/label_tier.dart';
 import 'artist_detail_screen.dart';
 import '../widgets/shimmer_loader.dart';
 import '../widgets/empty_state.dart';
@@ -138,6 +139,8 @@ class _ArtistsScreenState extends State<ArtistsScreen> {
                         final artist = filteredArtists[index];
                         return _ArtistCard(
                           artist: artist,
+                          isRival: gameState.isRival(artist.id),
+                          isPlayer: artist.id == gameState.player?.id,
                           onTap: () {
                             Navigator.push(
                               context,
@@ -165,11 +168,15 @@ class _ArtistsScreenState extends State<ArtistsScreen> {
 
 class _ArtistCard extends StatelessWidget {
   final Artist artist;
+  final bool isRival;
+  final bool isPlayer;
   final VoidCallback onTap;
 
   const _ArtistCard({
     required this.artist,
     required this.onTap,
+    this.isRival = false,
+    this.isPlayer = false,
   });
 
   @override
@@ -206,23 +213,51 @@ class _ArtistCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      artist.name,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            artist.name,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        if (isRival)
+                          const Padding(
+                            padding: EdgeInsets.only(left: 6),
+                            child: Chip(
+                              label: Text('RIVAL'),
+                              backgroundColor: Color(0xFFe94560),
+                              labelStyle: TextStyle(
+                                  color: Colors.white, fontSize: 10),
+                              visualDensity: VisualDensity.compact,
+                            ),
+                          ),
+                        if (isPlayer)
+                          const Padding(
+                            padding: EdgeInsets.only(left: 6),
+                            child: Chip(
+                              label: Text('YOU'),
+                              backgroundColor: Color(0xFF4CAF50),
+                              labelStyle: TextStyle(
+                                  color: Colors.white, fontSize: 10),
+                              visualDensity: VisualDensity.compact,
+                            ),
+                          ),
+                      ],
                     ),
                     const SizedBox(height: 4),
-                    // Removed genre display
-                    // Text(
-                    //   _getGenreName(artist.primaryGenre),
-                    //   style: const TextStyle(
-                    //     color: Colors.white70,
-                    //     fontSize: 14,
-                    //   ),
-                    // ),
+                    Text(
+                      artist.labelTier.displayName,
+                      style: TextStyle(
+                        color: Color(artist.labelTier.colorValue),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                     const SizedBox(height: 8),
                     Row(
                       children: [

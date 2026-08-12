@@ -4,6 +4,7 @@ import '../services/game_state_service.dart';
 import '../services/achievement_service.dart';
 import '../services/challenge_service.dart';
 import '../models/venue.dart';
+import '../models/label_tier.dart';
 import '../models/artist.dart';
 import '../models/challenge.dart';
 import 'performance_minigame_screen.dart';
@@ -27,7 +28,9 @@ class PerformanceScreen extends StatelessWidget {
         }
 
         final availableVenues = VenueData.venues
-            .where((v) => v.popularityRequired <= (player.attributes['popularity'] ?? 0))
+            .where((v) =>
+                v.popularityRequired <= (player.attributes['popularity'] ?? 0) &&
+                v.minLabel.index <= player.labelTier.index)
             .toList();
 
         return Scaffold(
@@ -133,7 +136,10 @@ class PerformanceScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 ...VenueData.venues
-                    .where((v) => v.popularityRequired > (player.attributes['popularity'] ?? 0))
+                    .where((v) =>
+                        v.popularityRequired >
+                            (player.attributes['popularity'] ?? 0) ||
+                        v.minLabel.index > player.labelTier.index)
                     .map((venue) => _LockedVenueCard(venue: venue)),
               ],
             ],
@@ -421,7 +427,7 @@ class _LockedVenueCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Requires ${venue.popularityRequired} popularity',
+                    'Needs ${venue.popularityRequired} pop · ${venue.minLabel.displayName}+',
                     style: const TextStyle(
                       color: Colors.white24,
                       fontSize: 14,

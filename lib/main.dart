@@ -79,7 +79,14 @@ class PopMusicGame extends StatelessWidget {
           create: (_) => GameStateService(),
         ),
         ChangeNotifierProvider(create: (_) => SettingsService()),
-        ChangeNotifierProvider(create: (_) => AchievementService()),
+        ChangeNotifierProxyProvider<GameStateService, AchievementService>(
+          create: (_) => AchievementService(),
+          update: (_, game, achievements) {
+            final service = achievements ?? AchievementService();
+            game.attachAchievements(service);
+            return service;
+          },
+        ),
         ChangeNotifierProxyProvider<GameStateService, ChallengeService>(
           create: (_) => ChallengeService(),
           update: (_, game, challenges) {

@@ -17,6 +17,8 @@ class Song {
   double salesPotential; // 0..100
   String genre; // Added to specify the song's genre
   List<double> listenerHistory; // Stores weekly listener counts for trend graphs
+  /// Remaining weeks a music video is boosting this song's listeners.
+  int videoWeeksRemaining;
 
   Song({
     required this.id,
@@ -35,6 +37,7 @@ class Song {
     this.salesPotential = 10,
     this.genre = 'Pop',
     List<double>? listenerHistory,
+    this.videoWeeksRemaining = 0,
   }) : listenerHistory = listenerHistory ?? [];
 
   Map<String, dynamic> toMap() {
@@ -55,6 +58,7 @@ class Song {
       'listenerHistory': listenerHistory, // Add to map
       'coverArt': coverArt, // Add to map
       'lengthMinutes': lengthMinutes, // Add to map
+      'videoWeeksRemaining': videoWeeksRemaining,
     };
   }
 
@@ -79,6 +83,7 @@ class Song {
         (map['listenerHistory'] as List? ?? const [])
             .map((e) => (e as num).toDouble()),
       ),
+      videoWeeksRemaining: map['videoWeeksRemaining'] as int? ?? 0,
     );
   }
 }

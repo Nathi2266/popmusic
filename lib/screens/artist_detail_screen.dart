@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../services/game_state_service.dart';
+import '../models/label_tier.dart';
+import '../utils/toast_service.dart';
 
 class ArtistDetailScreen extends StatelessWidget {
   final String artistId;
@@ -32,7 +34,28 @@ class ArtistDetailScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Popularity: ${artist.attributes['popularity']?.toStringAsFixed(0)}%', style: const TextStyle(fontSize: 18)),
+                Text('Label: ${artist.labelTier.displayName}', style: const TextStyle(fontSize: 18)),
                 Text('Total Streams: ${cumulativeStreams.toStringAsFixed(0)}', style: const TextStyle(fontSize: 18)),
+                if (game.isRival(artistId))
+                  const Padding(
+                    padding: EdgeInsets.only(top: 8),
+                    child: Text('This artist is your chart rival.',
+                        style: TextStyle(color: Color(0xFFe94560))),
+                  ),
+                const SizedBox(height: 16),
+                if (artistId != game.player?.id)
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      final err = game.requestCollab(artistId);
+                      if (err != null) {
+                        ToastService().showError(err);
+                      } else {
+                        ToastService().showSuccess('Collab recorded!');
+                      }
+                    },
+                    icon: const Icon(Icons.handshake),
+                    label: const Text('Request Collab (\$400)'),
+                  ),
                 const SizedBox(height: 16),
                 const Text('Attributes:', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),

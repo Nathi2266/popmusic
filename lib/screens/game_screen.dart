@@ -4,6 +4,7 @@ import 'artists_screen.dart';
 import 'music_screen.dart';
 import 'career_screen.dart';
 import 'challenges_screen.dart';
+import 'performance_screen.dart';
 
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key});
@@ -18,6 +19,7 @@ class _GameScreenState extends State<GameScreen> {
   final List<Widget> _screens = [
     const DashboardScreen(),
     const MusicScreen(),
+    const PerformanceScreen(),
     const ArtistsScreen(),
     const CareerScreen(),
     const ChallengesScreen(),
@@ -46,6 +48,10 @@ class _GameScreenState extends State<GameScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.music_note),
             label: 'Music',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.mic),
+            label: 'Perform',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.people),

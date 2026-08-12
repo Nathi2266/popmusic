@@ -7,6 +7,7 @@ import '../widgets/shimmer_loader.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/glass_card.dart';
 import '../utils/animations.dart';
+import '../utils/toast_service.dart';
 
 class MusicScreen extends StatelessWidget {
   const MusicScreen({super.key});
@@ -62,6 +63,25 @@ class MusicScreen extends StatelessWidget {
                   ),
                 ),
               ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: OutlinedButton.icon(
+                    onPressed: () => _showAlbumDialog(context, gameState),
+                    icon: const Icon(Icons.album),
+                    label: Text(
+                      'COMPILE ALBUM (${gameState.playerAlbums.length})',
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      side: const BorderSide(color: Color(0xFFFFD700)),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
 
               // Songs List
               Expanded(
@@ -108,6 +128,94 @@ class MusicScreen extends StatelessWidget {
   }
 }
 
+void _showAlbumDialog(BuildContext context, GameStateService game) {
+  final songs = game.playerSongs;
+  final selected = <String>{};
+  final titleController = TextEditingController();
+  showDialog(
+    context: context,
+    builder: (ctx) {
+      return StatefulBuilder(
+        builder: (ctx, setLocal) {
+          return AlertDialog(
+            backgroundColor: const Color(0xFF16213e),
+            title: const Text('Compile Album',
+                style: TextStyle(color: Colors.white)),
+            content: SizedBox(
+              width: 360,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: titleController,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: const InputDecoration(
+                      hintText: 'Album title',
+                      hintStyle: TextStyle(color: Colors.white38),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Pick 3–8 tracks (\$1500)',
+                    style: TextStyle(color: Colors.white70, fontSize: 12),
+                  ),
+                  Flexible(
+                    child: ListView(
+                      shrinkWrap: true,
+                      children: songs.map((s) {
+                        final onAlbum = game.isSongOnAlbum(s.id);
+                        return CheckboxListTile(
+                          value: selected.contains(s.id),
+                          onChanged: onAlbum
+                              ? null
+                              : (v) {
+                                  setLocal(() {
+                                    if (v == true) {
+                                      selected.add(s.id);
+                                    } else {
+                                      selected.remove(s.id);
+                                    }
+                                  });
+                                },
+                          title: Text(
+                            onAlbum ? '${s.title} (on album)' : s.title,
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  final err = game.compileAlbum(
+                    titleController.text,
+                    selected.toList(),
+                  );
+                  Navigator.pop(ctx);
+                  if (err != null) {
+                    ToastService().showError(err);
+                  } else {
+                    ToastService().showSuccess('Album released!');
+                  }
+                },
+                child: const Text('Release'),
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
+}
+
 class _SongCard extends StatelessWidget {
   final Song song;
 
@@ -115,7 +223,9 @@ class _SongCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GlassCard(
+    return InkWell(
+      onTap: () => _showSongSheet(context, song),
+      child: GlassCard(
       margin: const EdgeInsets.only(bottom: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -150,7 +260,7 @@ class _SongCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Weeks: ${song.weeksSinceRelease} • Weekly: ${song.weeklyListeners.toStringAsFixed(0)} listeners',
+                        '${song.genre} · Weeks: ${song.weeksSinceRelease} • Weekly: ${song.weeklyListeners.toStringAsFixed(0)}${song.videoWeeksRemaining > 0 ? ' · MV ${song.videoWeeksRemaining}w' : ''}',
                         style: const TextStyle(
                           color: Colors.white70,
                           fontSize: 14,
@@ -210,6 +320,99 @@ class _SongCard extends StatelessWidget {
             ),
           ],
         ),
+    ),
     );
   }
+}
+
+void _showSongSheet(BuildContext context, Song song) {
+  final game = Provider.of<GameStateService>(context, listen: false);
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: const Color(0xFF16213e),
+    builder: (_) => SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(song.title,
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Text(
+              '${song.genre} · ${song.lengthMinutes.toStringAsFixed(1)} min',
+              style: const TextStyle(color: Colors.white70),
+            ),
+            Text(
+              'Weekly ${song.weeklyListeners.toStringAsFixed(0)} · Total ${song.totalStreams.toStringAsFixed(0)}',
+              style: const TextStyle(color: Colors.white70),
+            ),
+            Text(
+              'Quality ${song.popularityFactor.toStringAsFixed(0)} · Viral ${song.viralFactor.toStringAsFixed(0)}',
+              style: const TextStyle(color: Colors.white70),
+            ),
+            if (game.isSongOnAlbum(song.id))
+              const Padding(
+                padding: EdgeInsets.only(top: 8),
+                child: Text('On an album',
+                    style: TextStyle(color: Color(0xFFFFD700))),
+              ),
+            if (song.videoWeeksRemaining > 0)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  'Video boosting · ${song.videoWeeksRemaining}w left',
+                  style: const TextStyle(color: Color(0xFF26C6DA)),
+                ),
+              ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: song.videoWeeksRemaining > 0
+                    ? null
+                    : () {
+                        Navigator.pop(context);
+                        final err = game.shootMusicVideo(song.id);
+                        if (err != null) {
+                          ToastService().showError(err);
+                        } else {
+                          ToastService().showSuccess(
+                            'Video out — +32% streams for ${game.musicVideoWeeks()} weeks',
+                          );
+                        }
+                      },
+                icon: const Icon(Icons.videocam),
+                label: Text(
+                  song.videoWeeksRemaining > 0
+                      ? 'Video already circulating'
+                      : 'Shoot video (\$${game.musicVideoCost().toStringAsFixed(0)})',
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  final err = game.retirePlayerSong(song.id);
+                  if (err != null) {
+                    ToastService().showError(err);
+                  } else {
+                    ToastService().showSuccess('Retired "${song.title}"');
+                  }
+                },
+                child: const Text('Retire from rotation'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
 }

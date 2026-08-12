@@ -17,7 +17,7 @@ class ChartsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<GameStateService>(
       builder: (context, game, child) {
-    // Ensure songs are already sorted by totalStreams descending
+    // Charts ranked by weekly/lifetime blend (see GameStateService.chartScore)
     final topSongs = game.getTopSongs(30);
 
         // Calculate biggest gainer and dropper
