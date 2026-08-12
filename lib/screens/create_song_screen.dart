@@ -12,6 +12,7 @@ import 'production_minigame_screen.dart';
 import '../data/titles.dart';
 import '../utils/toast_service.dart';
 import '../services/achievement_service.dart';
+import '../models/studio_finish.dart';
 
 class CreateSongScreen extends StatefulWidget {
   const CreateSongScreen({super.key});
@@ -30,6 +31,10 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
   String _estimatedRank = 'Calculating...';
   bool _marketingBoostEnabled = false;
   double _songLengthMinutes = 3.5; // Default song length
+  StudioFinish _studioFinish = StudioFinish.standard;
+  bool _hireGhostwriter = false;
+  bool _useSample = false;
+  bool _clearSampleNow = false;
 
   @override
   void dispose() {
@@ -80,6 +85,10 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
 
     if (_marketingBoostEnabled) {
       totalScore = totalScore * 1.1; // 10% boost for marketing
+    }
+    totalScore *= _studioFinish.qualityMult;
+    if (_hireGhostwriter) {
+      totalScore = (totalScore + 12).clamp(0, 100);
     }
 
     // Map total score to an estimated rank
@@ -158,13 +167,19 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
         ? _productionScore
         : (player.attributes['production'] ?? 0).toInt();
 
+    var writing = songwritingComponent.toDouble();
+    if (_hireGhostwriter) {
+      writing = writing < 78 ? 78 : (writing + 8).clamp(0, 100);
+    }
     var popularityFactor =
-        ((songwritingComponent + productionComponent) / 2).clamp(0, 100).toDouble();
+        ((writing + productionComponent) / 2).clamp(0, 100).toDouble();
     // Low stamina hurts craft quality (matches release warning copy)
     final stamina = (player.attributes['stamina'] ?? 0).toDouble();
     if (stamina < 30) {
       popularityFactor = (popularityFactor * 0.75).clamp(0, 100).toDouble();
     }
+    popularityFactor =
+        (popularityFactor * _studioFinish.qualityMult).clamp(0, 100).toDouble();
     double currentViralFactor = ((player.attributes['marketing'] ?? 0) * 0.5 +
             (player.attributes['charisma'] ?? 0) * 0.3 +
             Random().nextInt(20))
@@ -173,12 +188,22 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
     if (_marketingBoostEnabled) {
       currentViralFactor = (currentViralFactor * 1.2).clamp(0, 100);
     }
+    currentViralFactor =
+        (currentViralFactor * _studioFinish.viralMult).clamp(0, 100);
+    if (_useSample) {
+      currentViralFactor = (currentViralFactor + 14).clamp(0, 100);
+    }
     final salesPotential = ((player.attributes['networking'] ?? 0) * 0.4 +
             (player.attributes['wealth'] ?? 0) * 0.3 +
             Random().nextInt(30))
         .clamp(0, 100)
         .toDouble();
-    final releaseCost = _marketingBoostEnabled ? 1000.0 : 500.0;
+    final releaseCost = gameState.songReleaseCost(
+      marketingBoost: _marketingBoostEnabled,
+      finish: _studioFinish,
+      ghostwriter: _hireGhostwriter,
+      sampleClearance: _useSample && _clearSampleNow,
+    );
 
     showDialog(context: context, builder: (BuildContext context) {
       return AlertDialog(
@@ -208,6 +233,28 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
               Text('Song Length: ${_songLengthMinutes.toStringAsFixed(1)} minutes', style: const TextStyle(color: Colors.white70)),
               const SizedBox(height: 8),
               Text('Genre: $_selectedGenre', style: const TextStyle(color: Colors.white70)),
+              const SizedBox(height: 8),
+              Text('Studio: ${_studioFinish.displayName}', style: const TextStyle(color: Colors.white70)),
+              if (_hireGhostwriter) ...[
+                const SizedBox(height: 8),
+                Text(
+                  'Ghostwriter \$${gameState.ghostwriterFee().toStringAsFixed(0)} · leak risk',
+                  style: const TextStyle(color: Color(0xFFFFB74D)),
+                ),
+              ],
+              if (_useSample) ...[
+                const SizedBox(height: 8),
+                Text(
+                  _clearSampleNow
+                      ? 'Sample cleared \$${gameState.sampleClearanceFee().toStringAsFixed(0)}'
+                      : 'Uncleared sample — takedown risk',
+                  style: TextStyle(
+                    color: _clearSampleNow
+                        ? const Color(0xFF81D4FA)
+                        : const Color(0xFFFFB74D),
+                  ),
+                ),
+              ],
               const SizedBox(height: 8),
               Text('Release Cost: \$${releaseCost.toStringAsFixed(0)}', style: const TextStyle(color: Colors.white70)),
             ],
@@ -239,18 +286,96 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
                 salesPotential: salesPotential,
                 lengthMinutes: _songLengthMinutes,
                 genre: _selectedGenre,
+                studioFinish: _studioFinish.name,
+                ghostwritten: _hireGhostwriter,
+                usesSample: _useSample,
+                sampleCleared: _useSample && _clearSampleNow,
               );
 
               gameState.addSong(song);
+              final leaked = _hireGhostwriter &&
+                  gameState.resolveGhostwriterLeak(song);
               final achievementService = Provider.of<AchievementService>(context, listen: false);
               gameState.checkSongAchievements(achievementService);
-              gameState.recalculateCharts();
               gameState.updatePlayerMoney(-releaseCost);
-              gameState.updatePlayerAttribute('stamina', -10.0);
+              gameState.updatePlayerAttribute('stamina', -_studioFinish.staminaHit);
 
               Navigator.pop(context);
 
               ToastService().showSuccess('Released "${song.title}"!');
+              if (context.mounted) {
+                showDialog<void>(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (partyCtx) => AlertDialog(
+                    backgroundColor: const Color(0xFF16213e),
+                    title: const Text('Listening Party',
+                        style: TextStyle(color: Colors.white)),
+                    content: Text(
+                      'Host a room for "${song.title}" this week?',
+                      style: const TextStyle(color: Colors.white70),
+                    ),
+                    actions: [
+                      for (final pick in [
+                        'Invite Press',
+                        'Invite Fans',
+                        'Quiet Drop',
+                      ])
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(partyCtx);
+                            final err = gameState.runListeningParty(
+                              song.id,
+                              pick,
+                            );
+                            if (err != null) {
+                              ToastService().showError(err);
+                              gameState.runListeningParty(
+                                song.id,
+                                'Quiet Drop',
+                              );
+                            } else {
+                              ToastService().showSuccess(pick);
+                            }
+                            gameState.recalculateCharts();
+                            if (leaked && context.mounted) {
+                              showDialog<void>(
+                                context: context,
+                                builder: (ctx) => AlertDialog(
+                                  backgroundColor: const Color(0xFF16213e),
+                                  title: const Text('Ghostwriter Leak',
+                                      style: TextStyle(color: Colors.white)),
+                                  content: Text(
+                                    'A writer for "${song.title}" talked. How do you spin it?',
+                                    style: const TextStyle(
+                                        color: Colors.white70),
+                                  ),
+                                  actions: [
+                                    for (final spin in [
+                                      'Own It',
+                                      'Deny Everything',
+                                      'Pay for Silence',
+                                    ])
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.pop(ctx);
+                                          gameState.resolveGhostwriterSpin(
+                                              spin);
+                                          ToastService().showSuccess(spin);
+                                        },
+                                        child: Text(spin),
+                                      ),
+                                  ],
+                                ),
+                              );
+                            }
+                          },
+                          child: Text(pick),
+                        ),
+                    ],
+                  ),
+                );
+              }
             },
             child: const Text('Confirm Release'),
           ),
@@ -440,7 +565,170 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // Marketing Boost Option
+                const Text(
+                  'STUDIO FINISH',
+                  style: TextStyle(
+                    color: Colors.white54,
+                    fontSize: 12,
+                    letterSpacing: 2,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ...StudioFinish.values.map((finish) {
+                  final selected = _studioFinish == finish;
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: InkWell(
+                      onTap: () {
+                        setState(() {
+                          _studioFinish = finish;
+                          _calculateEstimatedRank();
+                        });
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF2a2a3e),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: selected
+                                ? const Color(0xFFe94560)
+                                : Colors.white24,
+                            width: selected ? 2 : 1,
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              finish.displayName,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              finish.pitch,
+                              style: const TextStyle(
+                                color: Colors.white54,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                }),
+                const SizedBox(height: 24),
+
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2a2a3e),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Hire ghostwriter (\$${gameState.ghostwriterFee().toStringAsFixed(0)}) — better writing, leak risk',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ),
+                      Switch(
+                        value: _hireGhostwriter,
+                        onChanged: (value) {
+                          setState(() {
+                            _hireGhostwriter = value;
+                            _calculateEstimatedRank();
+                          });
+                        },
+                        // ignore: deprecated_member_use
+                        activeColor: const Color(0xFFFFB74D),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2a2a3e),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      const Expanded(
+                        child: Text(
+                          'Use a sample hook — extra viral, clearance optional',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ),
+                      Switch(
+                        value: _useSample,
+                        onChanged: (value) {
+                          setState(() {
+                            _useSample = value;
+                            if (!value) _clearSampleNow = false;
+                            _calculateEstimatedRank();
+                          });
+                        },
+                        // ignore: deprecated_member_use
+                        activeColor: const Color(0xFF81D4FA),
+                      ),
+                    ],
+                  ),
+                ),
+                if (_useSample) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF2a2a3e),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: _clearSampleNow
+                            ? const Color(0xFF81D4FA)
+                            : const Color(0xFFFFB74D),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            _clearSampleNow
+                                ? 'Clear sample now (\$${gameState.sampleClearanceFee().toStringAsFixed(0)})'
+                                : 'Uncleared — hotter hook, takedown risk',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ),
+                        Switch(
+                          value: _clearSampleNow,
+                          onChanged: (value) {
+                            setState(() {
+                              _clearSampleNow = value;
+                            });
+                          },
+                          // ignore: deprecated_member_use
+                          activeColor: const Color(0xFF81D4FA),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 12),
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -462,7 +750,7 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
                         onChanged: (value) {
                           setState(() {
                             _marketingBoostEnabled = value;
-                            _calculateEstimatedRank(); // Recalculate rank with boost
+                            _calculateEstimatedRank();
                           });
                         },
                         // ignore: deprecated_member_use
@@ -517,10 +805,15 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
                         ),
                       ),
                       Text(
-                        '\$${(_marketingBoostEnabled ? 1000 : 500).toStringAsFixed(0)}',
+                        '\$${gameState.songReleaseCost(marketingBoost: _marketingBoostEnabled, finish: _studioFinish, ghostwriter: _hireGhostwriter, sampleClearance: _useSample && _clearSampleNow).toStringAsFixed(0)}',
                         style: TextStyle(
                           color: gameState.playerMoney >=
-                                  (_marketingBoostEnabled ? 1000 : 500)
+                                  gameState.songReleaseCost(
+                                    marketingBoost: _marketingBoostEnabled,
+                                    finish: _studioFinish,
+                                    ghostwriter: _hireGhostwriter,
+                                    sampleClearance: _useSample && _clearSampleNow,
+                                  )
                               ? const Color(0xFF4CAF50)
                               : const Color(0xFFF44336),
                           fontSize: 18,
@@ -551,7 +844,12 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
                   height: 60,
                   child: ElevatedButton(
                     onPressed: gameState.playerMoney >=
-                            (_marketingBoostEnabled ? 1000 : 500)
+                            gameState.songReleaseCost(
+                              marketingBoost: _marketingBoostEnabled,
+                              finish: _studioFinish,
+                              ghostwriter: _hireGhostwriter,
+                              sampleClearance: _useSample && _clearSampleNow,
+                            )
                         ? _releaseSong
                         : null,
                     style: ElevatedButton.styleFrom(

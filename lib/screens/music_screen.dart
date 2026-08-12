@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../services/game_state_service.dart';
 import 'create_song_screen.dart';
 import '../models/song.dart';
+import '../models/studio_finish.dart';
 import '../widgets/shimmer_loader.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/glass_card.dart';
@@ -260,7 +261,7 @@ class _SongCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '${song.genre} · Weeks: ${song.weeksSinceRelease} • Weekly: ${song.weeklyListeners.toStringAsFixed(0)}${song.videoWeeksRemaining > 0 ? ' · MV ${song.videoWeeksRemaining}w' : ''}',
+                        '${song.genre} · Weeks: ${song.weeksSinceRelease} • Weekly: ${song.weeklyListeners.toStringAsFixed(0)}${song.videoWeeksRemaining > 0 ? ' · MV ${song.videoWeeksRemaining}w' : ''}${song.playlistWeeksRemaining > 0 ? ' · PL ${song.playlistWeeksRemaining}w' : ''}${song.weeksSinceRelease <= 1 ? ' · DEBUT' : ''}${song.deluxeIssued ? ' · DELUXE' : ''}${song.sourceSongId.isNotEmpty ? ' · REMIX' : ''}${song.listeningPartyWeeks > 0 ? ' · PARTY' : ''}',
                         style: const TextStyle(
                           color: Colors.white70,
                           fontSize: 14,
@@ -352,9 +353,17 @@ void _showSongSheet(BuildContext context, Song song) {
               style: const TextStyle(color: Colors.white70),
             ),
             Text(
-              'Quality ${song.popularityFactor.toStringAsFixed(0)} · Viral ${song.viralFactor.toStringAsFixed(0)}',
+              'Quality ${song.popularityFactor.toStringAsFixed(0)} · Viral ${song.viralFactor.toStringAsFixed(0)} · ${StudioFinishX.fromName(song.studioFinish).displayName}${song.ghostwritten ? ' · Ghostwritten' : ''}',
               style: const TextStyle(color: Colors.white70),
             ),
+            if (game.inDebutWindow(song))
+              const Padding(
+                padding: EdgeInsets.only(top: 8),
+                child: Text(
+                  'Debut window — pitch radio this week to stack the add',
+                  style: TextStyle(color: Color(0xFFFFD54F)),
+                ),
+              ),
             if (game.isSongOnAlbum(song.id))
               const Padding(
                 padding: EdgeInsets.only(top: 8),
@@ -369,7 +378,99 @@ void _showSongSheet(BuildContext context, Song song) {
                   style: const TextStyle(color: Color(0xFF26C6DA)),
                 ),
               ),
+            if (song.playlistWeeksRemaining > 0)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  'On playlist · ${song.playlistWeeksRemaining}w left',
+                  style: const TextStyle(color: Color(0xFFFFD54F)),
+                ),
+              ),
+            if (song.listeningPartyWeeks > 0)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  song.listeningParty == 'fans'
+                      ? 'Fan party heat · ${song.listeningPartyWeeks}w'
+                      : 'Press party heat · ${song.listeningPartyWeeks}w',
+                  style: const TextStyle(color: Color(0xFFFF8A65)),
+                ),
+              )
+            else if (song.listeningParty == 'pending')
+              const Padding(
+                padding: EdgeInsets.only(top: 8),
+                child: Text(
+                  'Listening party still open this debut window',
+                  style: TextStyle(color: Color(0xFFFF8A65)),
+                ),
+              ),
+            if (song.sampleTakedown)
+              const Padding(
+                padding: EdgeInsets.only(top: 8),
+                child: Text('Taken down — uncleared sample',
+                    style: TextStyle(color: Color(0xFFE94560))),
+              )
+            else if (song.usesSample)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  song.sampleCleared
+                      ? 'Sample cleared'
+                      : 'Uncleared sample — takedown risk',
+                  style: TextStyle(
+                    color: song.sampleCleared
+                        ? const Color(0xFF81D4FA)
+                        : const Color(0xFFFFB74D),
+                  ),
+                ),
+              ),
             const SizedBox(height: 16),
+            if (song.listeningParty == 'pending') ...[
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    showDialog<void>(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (ctx) => AlertDialog(
+                        backgroundColor: const Color(0xFF16213e),
+                        title: const Text('Listening Party',
+                            style: TextStyle(color: Colors.white)),
+                        content: Text(
+                          'Host a room for "${song.title}"?',
+                          style: const TextStyle(color: Colors.white70),
+                        ),
+                        actions: [
+                          for (final pick in [
+                            'Invite Press',
+                            'Invite Fans',
+                            'Quiet Drop',
+                          ])
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(ctx);
+                                Navigator.pop(context);
+                                final err =
+                                    game.runListeningParty(song.id, pick);
+                                if (err != null) {
+                                  ToastService().showError(err);
+                                } else {
+                                  ToastService().showSuccess(pick);
+                                }
+                              },
+                              child: Text(pick),
+                            ),
+                        ],
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.celebration),
+                  label: const Text('Throw listening party'),
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
@@ -394,6 +495,92 @@ void _showSongSheet(BuildContext context, Song song) {
                 ),
               ),
             ),
+            if (song.deluxeIssued)
+              const Padding(
+                padding: EdgeInsets.only(top: 8),
+                child: Text(
+                  'Deluxe edition already out',
+                  style: TextStyle(color: Color(0xFFCE93D8)),
+                ),
+              ),
+            if (song.sourceSongId.isNotEmpty)
+              const Padding(
+                padding: EdgeInsets.only(top: 8),
+                child: Text(
+                  'Remix — new chart entry from a catalog track',
+                  style: TextStyle(color: Color(0xFF81D4FA)),
+                ),
+              ),
+            if (game.canDeluxeReissue(song) || game.canDropRemix(song)) ...[
+              const SizedBox(height: 8),
+              if (game.canDeluxeReissue(song))
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      final err = game.reissueDeluxe(song.id);
+                      if (err != null) {
+                        ToastService().showError(err);
+                      } else {
+                        ToastService().showSuccess(
+                          'Deluxe is out — "${song.title}" is back in the debut window.',
+                        );
+                      }
+                    },
+                    icon: const Icon(Icons.album),
+                    label: Text(
+                      'Deluxe reissue (\$${game.deluxeReissueCost().toStringAsFixed(0)})',
+                    ),
+                  ),
+                ),
+              if (game.canDropRemix(song)) ...[
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      final err = game.dropRemix(song.id);
+                      if (err != null) {
+                        ToastService().showError(err);
+                      } else {
+                        ToastService().showSuccess(
+                          'Remix dropped — "${song.title} (Remix)" is a new debut.',
+                        );
+                      }
+                    },
+                    icon: const Icon(Icons.replay),
+                    label: Text(
+                      'Drop remix (\$${game.remixDropCost().toStringAsFixed(0)})',
+                    ),
+                  ),
+                ),
+              ],
+            ],
+            if (song.usesSample &&
+                !song.sampleCleared &&
+                !song.sampleTakedown) ...[
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    final err = game.clearSongSample(song.id);
+                    if (err != null) {
+                      ToastService().showError(err);
+                    } else {
+                      ToastService().showSuccess('Sample cleared.');
+                    }
+                  },
+                  icon: const Icon(Icons.gavel),
+                  label: Text(
+                    'Clear sample (\$${game.sampleClearanceFee().toStringAsFixed(0)})',
+                  ),
+                ),
+              ),
+            ],
             const SizedBox(height: 8),
             SizedBox(
               width: double.infinity,

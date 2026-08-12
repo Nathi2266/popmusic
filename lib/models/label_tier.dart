@@ -117,3 +117,83 @@ extension LabelTierX on LabelTier {
     return LabelTier.unsigned;
   }
 }
+
+enum LabelDealStyle {
+  standard,
+  advance,
+  ownership,
+}
+
+extension LabelDealStyleX on LabelDealStyle {
+  String get displayName {
+    switch (this) {
+      case LabelDealStyle.standard:
+        return 'Standard';
+      case LabelDealStyle.advance:
+        return '360 / Advance';
+      case LabelDealStyle.ownership:
+        return 'Artist-owned';
+    }
+  }
+
+  String get pitch {
+    switch (this) {
+      case LabelDealStyle.standard:
+        return 'Normal stipend and stream split.';
+      case LabelDealStyle.advance:
+        return 'Huge signing check + fatter weekly check. Label keeps more streams.';
+      case LabelDealStyle.ownership:
+        return 'Tiny advance, thinner stipend, you keep more of every stream.';
+    }
+  }
+
+  double get keepAdjust {
+    switch (this) {
+      case LabelDealStyle.standard:
+        return 0;
+      case LabelDealStyle.advance:
+        return -0.12;
+      case LabelDealStyle.ownership:
+        return 0.10;
+    }
+  }
+
+  double get stipendMultiplier {
+    switch (this) {
+      case LabelDealStyle.standard:
+        return 1.0;
+      case LabelDealStyle.advance:
+        return 1.40;
+      case LabelDealStyle.ownership:
+        return 0.65;
+    }
+  }
+
+  double signingAdvance(LabelTier tier) {
+    final base = switch (tier) {
+      LabelTier.unsigned => 0.0,
+      LabelTier.indie => 2500.0,
+      LabelTier.major => 18000.0,
+      LabelTier.superstar => 80000.0,
+    };
+    switch (this) {
+      case LabelDealStyle.standard:
+        return base;
+      case LabelDealStyle.advance:
+        return base * 2.2;
+      case LabelDealStyle.ownership:
+        return base * 0.25;
+    }
+  }
+
+  static LabelDealStyle fromName(String? name) {
+    switch (name) {
+      case 'advance':
+        return LabelDealStyle.advance;
+      case 'ownership':
+        return LabelDealStyle.ownership;
+      default:
+        return LabelDealStyle.standard;
+    }
+  }
+}

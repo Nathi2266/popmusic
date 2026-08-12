@@ -4,6 +4,7 @@ import '../services/game_state_service.dart';
 import '../services/achievement_service.dart';
 import '../services/challenge_service.dart';
 import '../models/venue.dart';
+import '../models/tour.dart';
 import '../models/label_tier.dart';
 import '../models/artist.dart';
 import '../models/challenge.dart';
@@ -27,9 +28,10 @@ class PerformanceScreen extends StatelessWidget {
           );
         }
 
+        final pop = player.attributes['popularity'] ?? 0;
         final availableVenues = VenueData.venues
             .where((v) =>
-                v.popularityRequired <= (player.attributes['popularity'] ?? 0) &&
+                v.popularityRequired <= pop &&
                 v.minLabel.index <= player.labelTier.index)
             .toList();
 
@@ -76,6 +78,156 @@ class PerformanceScreen extends StatelessWidget {
                   ],
                 ),
               ),
+              const SizedBox(height: 24),
+
+              if (gameState.isOnTour)
+                Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.only(bottom: 20),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFF9800).withAlpha(40),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFFF9800)),
+                  ),
+                  child: Text(
+                    'On tour: ${gameState.activeTour!.name} · '
+                    '${gameState.activeTour!.currentCity} next · '
+                    '${gameState.activeTour!.weeksRemaining}w left',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+
+              if (gameState.isFestivalSeason) ...[
+                Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.only(bottom: 20),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFEB3B).withAlpha(30),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFFFEB3B)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        gameState.canPlayFestival
+                            ? 'Summer festival slot is open'
+                            : 'Festival slot already played this year',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      const Text(
+                        'One exclusive set, June–August. Heat is up on Pop / Electronic / Hip-Hop.',
+                        style: TextStyle(color: Colors.white70, fontSize: 12),
+                      ),
+                      if (gameState.canPlayFestival) ...[
+                        const SizedBox(height: 10),
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            final err = gameState.playFestivalSlot();
+                            if (err != null) {
+                              ToastService().showError(err);
+                            } else {
+                              ToastService().showSuccess(
+                                'Festival set done. Viral bump on your hottest track.',
+                              );
+                            }
+                          },
+                          icon: const Icon(Icons.festival),
+                          label: const Text('Play festival slot'),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+
+              const Text(
+                'BOOK A TOUR',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  letterSpacing: 2,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Multi-week run: door money + merch each stop, stamina each week.',
+                style: TextStyle(color: Colors.white54, fontSize: 13),
+              ),
+              const SizedBox(height: 12),
+              ...TourPackage.all.map((pack) {
+                final locked = pop < pack.popularityRequired ||
+                    player.labelTier.index < pack.minLabel.index;
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2a2a3e),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: locked ? Colors.white24 : const Color(0xFFFF9800),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              pack.name,
+                              style: TextStyle(
+                                color: locked ? Colors.white38 : Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            Text(
+                              '${pack.weeks}w · \$${pack.weeklyPay.toStringAsFixed(0)}/stop + merch · −${pack.staminaCost.toStringAsFixed(0)} stam',
+                              style: const TextStyle(
+                                  color: Colors.white54, fontSize: 12),
+                            ),
+                            if (locked)
+                              Text(
+                                pack.minLabel.index > 0
+                                    ? '${pack.minLabel.displayName} · ${pack.popularityRequired} pop'
+                                    : '${pack.popularityRequired} popularity',
+                                style: const TextStyle(
+                                    color: Colors.white38, fontSize: 11),
+                              ),
+                          ],
+                        ),
+                      ),
+                      ElevatedButton(
+                        onPressed: locked || gameState.isOnTour
+                            ? null
+                            : () {
+                                final err = gameState.bookTour(pack.id);
+                                if (err != null) {
+                                  ToastService().showError(err);
+                                } else {
+                                  ToastService().showSuccess(
+                                    'Booked ${pack.name}. Stops start next week.',
+                                  );
+                                }
+                              },
+                        child: Text(gameState.isOnTour ? 'On tour' : 'Book'),
+                      ),
+                    ],
+                  ),
+                );
+              }),
               const SizedBox(height: 24),
 
               const Text(

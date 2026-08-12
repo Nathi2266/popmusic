@@ -5,6 +5,7 @@ import '../services/achievement_service.dart';
 import '../models/label_tier.dart';
 import '../screens/award_detail_screen.dart';
 import '../screens/achievements_screen.dart';
+import '../screens/lifestyle_screen.dart';
 import '../widgets/empty_state.dart';
 import '../utils/toast_service.dart';
 
@@ -59,12 +60,23 @@ class CareerScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Weekly income \$${player.labelTier.weeklyIncome.toStringAsFixed(0)} · keep ${(player.labelTier.royaltyKeep * 100).toStringAsFixed(0)}% of streams',
+                        player.labelTier == LabelTier.unsigned
+                            ? 'Weekly income \$${gameState.effectiveWeeklyStipend.toStringAsFixed(0)} · keep ${(gameState.effectiveRoyaltyKeep * 100).toStringAsFixed(0)}% of streams'
+                            : '${gameState.labelDealStyle.displayName} deal · stipend \$${gameState.effectiveWeeklyStipend.toStringAsFixed(0)}/wk · keep ${(gameState.effectiveRoyaltyKeep * 100).toStringAsFixed(0)}%',
                         style: const TextStyle(
                           color: Colors.white70,
                           fontSize: 16,
                         ),
                       ),
+                      const SizedBox(height: 6),
+                      if (gameState.fanClubFounded)
+                        Text(
+                          'Fan club: ${gameState.fanClubMembers} members · \$${gameState.fanClubUpkeep.toStringAsFixed(0)}/wk',
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 14,
+                          ),
+                        ),
                       const SizedBox(height: 6),
                       Text(
                         'Chapter: ${gameState.currentChapter}',
@@ -83,6 +95,32 @@ class CareerScreen extends StatelessWidget {
                         ),
                       ),
                     ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const LifestyleScreen(),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.diamond_outlined),
+                    label: Text(
+                      gameState.ownedAssetIds.isEmpty &&
+                              gameState.investments.isEmpty
+                          ? 'Lifestyle & investments'
+                          : 'Lifestyle · net \$${gameState.lifestyleNetWorth.toStringAsFixed(0)}',
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFFFFD700),
+                      side: const BorderSide(color: Color(0xFFFFD700)),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -401,12 +439,107 @@ class CareerScreen extends StatelessWidget {
     GameStateService gameState,
     LabelTier tier,
   ) {
-    final ok = gameState.upgradeLabelTier(tier);
-    if (ok) {
-      ToastService().showSuccess('Welcome to ${tier.displayName}!');
-    } else {
-      ToastService().showError('Requirements not met for ${tier.displayName}');
-    }
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF2a2a3e),
+        title: Text(
+          'Sign ${tier.displayName}',
+          style: const TextStyle(color: Colors.white),
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Pick the deal. This sets your stipend and stream cut until you sign up again.',
+                style: TextStyle(color: Colors.white70, fontSize: 13),
+              ),
+              const SizedBox(height: 12),
+              ...LabelDealStyle.values.map(
+                (deal) => _DealOption(
+                  tier: tier,
+                  deal: deal,
+                  onPick: () {
+                    Navigator.pop(ctx);
+                    final ok = gameState.upgradeLabelTier(tier, deal: deal);
+                    if (ok) {
+                      ToastService().showSuccess(
+                        '${tier.displayName} · ${deal.displayName}',
+                      );
+                    } else {
+                      ToastService().showError(
+                        'Requirements not met for ${tier.displayName}',
+                      );
+                    }
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DealOption extends StatelessWidget {
+  final LabelTier tier;
+  final LabelDealStyle deal;
+  final VoidCallback onPick;
+
+  const _DealOption({
+    required this.tier,
+    required this.deal,
+    required this.onPick,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final keep =
+        (tier.royaltyKeep + deal.keepAdjust).clamp(0.40, 0.95);
+    final stipend = tier.weeklyIncome * deal.stipendMultiplier;
+    final advance = deal.signingAdvance(tier);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: OutlinedButton(
+        onPressed: onPick,
+        style: OutlinedButton.styleFrom(
+          foregroundColor: Colors.white,
+          side: const BorderSide(color: Colors.white24),
+          padding: const EdgeInsets.all(12),
+          alignment: Alignment.centerLeft,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              deal.displayName,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              deal.pitch,
+              style: const TextStyle(color: Colors.white70, fontSize: 12),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Advance \$${advance.toStringAsFixed(0)} · '
+              '\$${stipend.toStringAsFixed(0)}/wk · '
+              'keep ${(keep * 100).toStringAsFixed(0)}%',
+              style: const TextStyle(color: Color(0xFFFFD700), fontSize: 12),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

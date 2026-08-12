@@ -9,6 +9,7 @@ import '../models/song.dart';
 import '../models/label_tier.dart';
 import 'weekly_events_and_proceed_button.dart';
 import 'charts_screen.dart';
+import 'lifestyle_screen.dart';
 import '../widgets/error_widget.dart';
 import '../widgets/xp_bar.dart';
 import '../utils/toast_service.dart';
@@ -83,6 +84,19 @@ class DashboardScreen extends StatelessWidget {
                     Navigator.push(context, MaterialPageRoute(builder: (context) => const ChartsScreen()));
                   },
                 ),
+                ListTile(
+                  leading: const Icon(Icons.diamond_outlined, color: Colors.white70),
+                  title: const Text('Lifestyle', style: TextStyle(color: Colors.white)),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const LifestyleScreen(),
+                      ),
+                    );
+                  },
+                ),
                 const Spacer(), // Pushes the exit button to the bottom
                 Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -143,6 +157,266 @@ class DashboardScreen extends StatelessWidget {
                       style: const TextStyle(color: Colors.white, fontSize: 14),
                     ),
                   ),
+                  if (gameState.fanClubFounded ||
+                      gameState.streetTeamWeeksRemaining > 0) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF66BB6A).withAlpha(40),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFF66BB6A).withAlpha(160),
+                        ),
+                      ),
+                      child: Text(
+                        [
+                          if (gameState.fanClubFounded)
+                            'Fan club: ${gameState.fanClubMembers} members · \$${gameState.fanClubUpkeep.toStringAsFixed(0)}/wk',
+                          if (gameState.streetTeamWeeksRemaining > 0)
+                            'Street team converting fans → streams (${gameState.streetTeamWeeksRemaining}w)',
+                        ].join(' · '),
+                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                      ),
+                    ),
+                  ],
+                  if (gameState.afterpartyBuzzWeeks > 0) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFB74D).withAlpha(40),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFFFFB74D).withAlpha(160),
+                        ),
+                      ),
+                      child: Text(
+                        gameState.afterpartyBanner,
+                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                      ),
+                    ),
+                  ],
+                  if (gameState.radioLiveWeeksRemaining > 0) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF4FC3F7).withAlpha(40),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFF4FC3F7).withAlpha(160),
+                        ),
+                      ),
+                      child: Text(
+                        gameState.radioLiveBanner,
+                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                      ),
+                    ),
+                  ],
+                  if (gameState.demoLeakHeatWeeks > 0) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEF5350).withAlpha(40),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFFEF5350).withAlpha(160),
+                        ),
+                      ),
+                      child: Text(
+                        gameState.demoLeakBanner,
+                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                      ),
+                    ),
+                  ],
+                  if (gameState.producerCreditWeeks > 0) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFAB47BC).withAlpha(40),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFFAB47BC).withAlpha(160),
+                        ),
+                      ),
+                      child: Text(
+                        gameState.producerBeefBanner,
+                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                      ),
+                    ),
+                  ],
+                  if (gameState.mentorCosignWeeks > 0) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF7E57C2).withAlpha(40),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFF7E57C2).withAlpha(160),
+                        ),
+                      ),
+                      child: Text(
+                        gameState.mentorCosignBanner,
+                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                      ),
+                    ),
+                  ],
+                  if (gameState.meetGreetWeeks > 0) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEC407A).withAlpha(40),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFFEC407A).withAlpha(160),
+                        ),
+                      ),
+                      child: Text(
+                        gameState.meetGreetBanner,
+                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                      ),
+                    ),
+                  ],
+                  if (gameState.danceChallengeWeeks > 0) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF26A69A).withAlpha(40),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFF26A69A).withAlpha(160),
+                        ),
+                      ),
+                      child: Text(
+                        gameState.danceChallengeBanner,
+                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                      ),
+                    ),
+                  ],
+                  if (gameState.brandDealWeeks > 0) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFCA28).withAlpha(40),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFFFFCA28).withAlpha(160),
+                        ),
+                      ),
+                      child: Text(
+                        gameState.brandDealBanner,
+                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                      ),
+                    ),
+                  ],
+                  if (gameState.chartWagerWeeks > 0) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFD54F).withAlpha(40),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFFFFD54F).withAlpha(160),
+                        ),
+                      ),
+                      child: Text(
+                        gameState.chartWagerBanner,
+                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                      ),
+                    ),
+                  ],
+                  if (gameState.rivalTruceWeeks > 0) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF5C6BC0).withAlpha(40),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFF5C6BC0).withAlpha(160),
+                        ),
+                      ),
+                      child: Text(
+                        gameState.rivalTruceBanner,
+                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                      ),
+                    ),
+                  ],
+                  if (gameState.pressCoverWeeksRemaining > 0) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFCE93D8).withAlpha(40),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFFCE93D8).withAlpha(160),
+                        ),
+                      ),
+                      child: Text(
+                        '${gameState.pressMagazine} cover heat — +12% streams (${gameState.pressCoverWeeksRemaining}w left)',
+                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                      ),
+                    ),
+                  ],
+                  if (gameState.isFestivalSeason) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFEB3B).withAlpha(35),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFFFFEB3B).withAlpha(160),
+                        ),
+                      ),
+                      child: Text(
+                        gameState.canPlayFestival
+                            ? 'Summer festival is open (Jun–Aug). One exclusive slot this year.'
+                            : 'You already played this summer\'s festival slot.',
+                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                      ),
+                    ),
+                  ],
+                  if (gameState.isOnTour) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFF9800).withAlpha(40),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFFFF9800).withAlpha(160),
+                        ),
+                      ),
+                      child: Text(
+                        'On tour: ${gameState.activeTour!.name} · next ${gameState.activeTour!.currentCity} · ${gameState.activeTour!.weeksRemaining}w left',
+                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                      ),
+                    ),
+                  ],
                   if (gameState.weekStartedBurnedOut) ...[
                     const SizedBox(height: 12),
                     Container(
@@ -268,9 +542,33 @@ class DashboardScreen extends StatelessWidget {
                         child: StatCard(
                           title: 'Stream cut',
                           value:
-                              '${(player.labelTier.royaltyKeep * 100).toStringAsFixed(0)}%',
+                              '${(gameState.effectiveRoyaltyKeep * 100).toStringAsFixed(0)}%',
                           icon: Icons.percent,
                           color: Color(player.labelTier.colorValue),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: StatCard(
+                          title: 'Passive',
+                          value:
+                              '\$${gameState.lastWeekPassive.toStringAsFixed(0)}',
+                          icon: Icons.trending_up,
+                          color: const Color(0xFF66BB6A),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: StatCard(
+                          title: 'Lifestyle',
+                          value:
+                              '\$${gameState.lastWeekUpkeep.toStringAsFixed(0)}',
+                          icon: Icons.diamond_outlined,
+                          color: const Color(0xFFFFD700),
                         ),
                       ),
                     ],
@@ -423,6 +721,30 @@ class DashboardScreen extends StatelessWidget {
                                     ),
                                   ),
                                 ],
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: gameState.dissCooldownWeeks > 0
+                                  ? null
+                                  : () {
+                                      final err =
+                                          gameState.dropDissTrack(rival.id);
+                                      if (err != null) {
+                                        ToastService().showError(err);
+                                      } else {
+                                        ToastService().showSuccess(
+                                          'Diss dropped on ${rival.name}.',
+                                        );
+                                      }
+                                    },
+                              child: Text(
+                                gameState.dissCooldownWeeks > 0
+                                    ? 'Cooling'
+                                    : 'Diss',
+                                style: const TextStyle(
+                                  color: Color(0xFFe94560),
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ],
@@ -588,6 +910,70 @@ class DashboardScreen extends StatelessWidget {
                           }
                         },
                       ),
+                      if (!gameState.fanClubFounded)
+                        _ActionButton(
+                          label: 'Fan Club',
+                          icon: Icons.favorite,
+                          onPressed: () {
+                            final err = gameState.foundFanClub();
+                            if (err != null) {
+                              ToastService().showError(err);
+                            } else {
+                              ToastService().showSuccess(
+                                'Fan club is live.',
+                              );
+                            }
+                          },
+                        ),
+                      _ActionButton(
+                        label: 'Street Team',
+                        icon: Icons.campaign,
+                        onPressed: () {
+                          final err = gameState.runStreetTeam();
+                          if (err != null) {
+                            ToastService().showError(err);
+                          } else {
+                            ToastService().showSuccess(
+                              'Street team is out for 2 weeks.',
+                            );
+                          }
+                        },
+                      ),
+                      if (gameState.canHostMeetGreet)
+                        _ActionButton(
+                          label: 'Meet Fans',
+                          icon: Icons.groups,
+                          onPressed: () =>
+                              _showMeetGreetSheet(context, gameState),
+                        ),
+                      if (gameState.canJoinDanceTrend)
+                        _ActionButton(
+                          label: 'Dance Trend',
+                          icon: Icons.nightlife,
+                          onPressed: () =>
+                              _showDanceChallengeSheet(context, gameState),
+                        ),
+                      if (gameState.canReviewBrandDeal)
+                        _ActionButton(
+                          label: 'Brand Deal',
+                          icon: Icons.handshake,
+                          onPressed: () =>
+                              _showBrandDealSheet(context, gameState),
+                        ),
+                      if (gameState.canChartWager)
+                        _ActionButton(
+                          label: 'Chart Wager',
+                          icon: Icons.trending_up,
+                          onPressed: () =>
+                              _showChartWagerSheet(context, gameState),
+                        ),
+                      if (gameState.canOfferRivalTruce)
+                        _ActionButton(
+                          label: 'Rival Truce',
+                          icon: Icons.handshake_outlined,
+                          onPressed: () =>
+                              _showRivalTruceSheet(context, gameState),
+                        ),
                       _ActionButton(
                         label: 'Train',
                         icon: Icons.fitness_center,
@@ -602,6 +988,52 @@ class DashboardScreen extends StatelessWidget {
                         label: 'Shoot Video',
                         icon: Icons.videocam,
                         onPressed: () => _showVideoSheet(context, gameState),
+                      ),
+                      _ActionButton(
+                        label: 'Reissue',
+                        icon: Icons.replay,
+                        onPressed: () => _showReissueSheet(context, gameState),
+                      ),
+                      if (gameState.canSitRadio)
+                        _ActionButton(
+                          label: 'Live Radio',
+                          icon: Icons.mic_external_on,
+                          onPressed: () =>
+                              _showRadioLiveSheet(context, gameState),
+                        ),
+                      if (gameState.canSitPress)
+                        _ActionButton(
+                          label: 'Press',
+                          icon: Icons.newspaper,
+                          onPressed: () =>
+                              _showPressSheet(context, gameState),
+                        ),
+                      if (gameState.canPlayFestival)
+                        _ActionButton(
+                          label: 'Festival',
+                          icon: Icons.festival,
+                          onPressed: () {
+                            final err = gameState.playFestivalSlot();
+                            if (err != null) {
+                              ToastService().showError(err);
+                            } else {
+                              ToastService().showSuccess(
+                                'You played the summer festival slot.',
+                              );
+                            }
+                          },
+                        ),
+                      _ActionButton(
+                        label: 'Lifestyle',
+                        icon: Icons.diamond_outlined,
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const LifestyleScreen(),
+                            ),
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -717,7 +1149,7 @@ void _showPitchSheet(BuildContext context, GameStateService game) {
                 const Padding(
                   padding: EdgeInsets.all(16),
                   child: Text(
-                    'Pitch a song to radio',
+                    'Pitch radio / playlist (debut week stacks extra time)',
                     style: TextStyle(
                         color: Colors.white, fontWeight: FontWeight.bold),
                   ),
@@ -727,18 +1159,29 @@ void _showPitchSheet(BuildContext context, GameStateService game) {
                     title: Text(s.title,
                         style: const TextStyle(color: Colors.white)),
                     subtitle: Text(
-                      '${s.genre} · viral ${s.viralFactor.toStringAsFixed(0)}',
+                      s.playlistWeeksRemaining > 0
+                          ? 'On playlist · ${s.playlistWeeksRemaining}w left'
+                          : game.inDebutWindow(s)
+                              ? 'DEBUT WINDOW · pitch now for a stacked add'
+                              : '${s.genre} · viral ${s.viralFactor.toStringAsFixed(0)}',
                       style: const TextStyle(color: Colors.white54),
                     ),
-                    onTap: () {
-                      Navigator.pop(context);
-                      final err = game.pitchSongToRadio(s.id);
-                      if (err != null) {
-                        ToastService().showError(err);
-                      } else {
-                        ToastService().showSuccess('Pitched "${s.title}".');
-                      }
-                    },
+                    enabled: s.playlistWeeksRemaining == 0,
+                    onTap: s.playlistWeeksRemaining > 0
+                        ? null
+                        : () {
+                            Navigator.pop(context);
+                            final err = game.pitchSongToRadio(s.id);
+                            if (err != null) {
+                              ToastService().showError(err);
+                            } else {
+                              ToastService().showSuccess(
+                                game.inDebutWindow(s)
+                                    ? 'Debut stack: extra playlist week on "${s.title}".'
+                                    : 'Playlist add: "${s.title}".',
+                              );
+                            }
+                          },
                   ),
                 ),
               ],
@@ -802,6 +1245,437 @@ void _showVideoSheet(BuildContext context, GameStateService game) {
                 ),
               ],
             ),
+    ),
+  );
+}
+
+void _showReissueSheet(BuildContext context, GameStateService game) {
+  final songs = game.playerSongs
+      .where((s) => game.canDeluxeReissue(s) || game.canDropRemix(s))
+      .toList();
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: const Color(0xFF16213e),
+    builder: (_) => SafeArea(
+      child: songs.isEmpty
+          ? Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text(
+                game.reissueCooldownWeeks > 0
+                    ? 'Studio cooldown: ${game.reissueCooldownWeeks}w left.'
+                    : 'Need a catalog original (5+ weeks) without a deluxe/remix yet.',
+                style: const TextStyle(color: Colors.white70),
+              ),
+            )
+          : ListView(
+              shrinkWrap: true,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Text(
+                    'Reissue catalog — deluxe resets recency, remix is a new debut',
+                    style: TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                ...songs.map(
+                  (s) => ListTile(
+                    title: Text(s.title,
+                        style: const TextStyle(color: Colors.white)),
+                    subtitle: Text(
+                      '${s.genre} · ${s.weeksSinceRelease}w old',
+                      style: const TextStyle(color: Colors.white54),
+                    ),
+                    onTap: () {
+                      Navigator.pop(context);
+                      showDialog(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          backgroundColor: const Color(0xFF16213e),
+                          title: Text(s.title,
+                              style: const TextStyle(color: Colors.white)),
+                          content: const Text(
+                            'Deluxe puts the original back in the debut window. Remix adds a new chart entry.',
+                            style: TextStyle(color: Colors.white70),
+                          ),
+                          actions: [
+                            if (game.canDeluxeReissue(s))
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(ctx);
+                                  final err = game.reissueDeluxe(s.id);
+                                  if (err != null) {
+                                    ToastService().showError(err);
+                                  } else {
+                                    ToastService().showSuccess(
+                                      'Deluxe is out on "${s.title}".',
+                                    );
+                                  }
+                                },
+                                child: Text(
+                                  'Deluxe \$${game.deluxeReissueCost().toStringAsFixed(0)}',
+                                ),
+                              ),
+                            if (game.canDropRemix(s))
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(ctx);
+                                  final err = game.dropRemix(s.id);
+                                  if (err != null) {
+                                    ToastService().showError(err);
+                                  } else {
+                                    ToastService().showSuccess(
+                                      'Remix dropped for "${s.title}".',
+                                    );
+                                  }
+                                },
+                                child: Text(
+                                  'Remix \$${game.remixDropCost().toStringAsFixed(0)}',
+                                ),
+                              ),
+                            TextButton(
+                              onPressed: () => Navigator.pop(ctx),
+                              child: const Text('Cancel'),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+    ),
+  );
+}
+
+void _showRivalTruceSheet(BuildContext context, GameStateService game) {
+  final rival = game.rivals.isNotEmpty ? game.rivals.first : null;
+  final stances = <String, String>{
+    'Form Alliance': 'Peace with ${rival?.name ?? 'rival'} — +6% 3w.',
+    'Spy on Them': '\$650 intel — +9% streams 2w.',
+    'Refuse Truce': 'Stay at war. Rival gains clout.',
+  };
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: const Color(0xFF16213e),
+    builder: (_) => SafeArea(
+      child: ListView(
+        shrinkWrap: true,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              'Truce offer${rival != null ? ': ${rival.name}' : ''}',
+              style: const TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+          ...stances.entries.map(
+            (e) => ListTile(
+              title: Text(e.key, style: const TextStyle(color: Colors.white)),
+              subtitle: Text(e.value,
+                  style: const TextStyle(color: Colors.white54)),
+              onTap: () {
+                Navigator.pop(context);
+                final err = game.resolveRivalTruce(
+                  e.key,
+                  rivalId: rival?.id,
+                );
+                if (err != null) {
+                  ToastService().showError(err);
+                } else {
+                  ToastService().showSuccess(e.key);
+                }
+              },
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+void _showChartWagerSheet(BuildContext context, GameStateService game) {
+  final rank = game.bestPlayerChartRank;
+  final song = game.playerSongs.isEmpty
+      ? null
+      : game.playerSongs.reduce((a, b) {
+          final ra = game.worldSongs.indexOf(a);
+          final rb = game.worldSongs.indexOf(b);
+          return ra <= rb ? a : b;
+        });
+  final stances = <String, String>{
+    'Double Down': '\$900 promo — +12% on "${song?.title ?? 'hit'}" 2w.',
+    'Protect the Streak': '\$350 safe spend — +7% 2w.',
+    'Sit Out': 'Let the chart ride with no bet.',
+  };
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: const Color(0xFF16213e),
+    builder: (_) => SafeArea(
+      child: ListView(
+        shrinkWrap: true,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              'Chart streak wager${rank != null ? ' · #$rank' : ''}',
+              style: const TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+          ...stances.entries.map(
+            (e) => ListTile(
+              title: Text(e.key, style: const TextStyle(color: Colors.white)),
+              subtitle: Text(e.value,
+                  style: const TextStyle(color: Colors.white54)),
+              onTap: () {
+                Navigator.pop(context);
+                final err = game.resolveChartWager(e.key);
+                if (err != null) {
+                  ToastService().showError(err);
+                } else {
+                  ToastService().showSuccess(e.key);
+                }
+              },
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+void _showBrandDealSheet(BuildContext context, GameStateService game) {
+  final brand = game.brandSponsorName.isNotEmpty
+      ? game.brandSponsorName
+      : 'A brand';
+  final est =
+      (3200 + (game.player?.labelTier.index ?? 0) * 900 + game.playerFanCount * 0.04)
+          .clamp(3200.0, 12000.0);
+  final stances = <String, String>{
+    'Take the Deal': 'Cash ~\$${est.toStringAsFixed(0)}. +6% streams 3w.',
+    'Negotiate': 'Networking rolls for more pay. +8% streams 2w.',
+    'Decline': 'Keep indie cred. Reputation up.',
+  };
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: const Color(0xFF16213e),
+    builder: (_) => SafeArea(
+      child: ListView(
+        shrinkWrap: true,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              '$brand sponsorship pitch',
+              style: const TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+          ...stances.entries.map(
+            (e) => ListTile(
+              title: Text(e.key, style: const TextStyle(color: Colors.white)),
+              subtitle: Text(e.value,
+                  style: const TextStyle(color: Colors.white54)),
+              onTap: () {
+                Navigator.pop(context);
+                final err = game.resolveBrandSponsorship(e.key);
+                if (err != null) {
+                  ToastService().showError(err);
+                } else {
+                  ToastService().showSuccess(e.key);
+                }
+              },
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+void _showDanceChallengeSheet(BuildContext context, GameStateService game) {
+  final song = game.playerSongs.isEmpty
+      ? null
+      : game.playerSongs.reduce(
+          (a, b) => a.viralFactor >= b.viralFactor ? a : b,
+        );
+  final stances = <String, String>{
+    'Join the Trend': song == null
+        ? 'Film the dance.'
+        : 'Ride "${song.title}" — +14% for 2 weeks.',
+    'Mock It': 'Petty clout — +10% for 1 week, reputation hit.',
+    'Ignore': 'Stay off the timeline.',
+  };
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: const Color(0xFF16213e),
+    builder: (_) => SafeArea(
+      child: ListView(
+        shrinkWrap: true,
+        children: [
+          const Padding(
+            padding: EdgeInsets.all(16),
+            child: Text(
+              'Viral dance challenge',
+              style: TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+          ...stances.entries.map(
+            (e) => ListTile(
+              title: Text(e.key, style: const TextStyle(color: Colors.white)),
+              subtitle: Text(e.value,
+                  style: const TextStyle(color: Colors.white54)),
+              onTap: () {
+                Navigator.pop(context);
+                final err = game.resolveDanceChallenge(e.key);
+                if (err != null) {
+                  ToastService().showError(err);
+                } else {
+                  ToastService().showSuccess(e.key);
+                }
+              },
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+void _showMeetGreetSheet(BuildContext context, GameStateService game) {
+  final estPay =
+      (game.playerFanCount * 0.85 + 450).clamp(450.0, 3800.0);
+  final stances = <String, String>{
+    'Charge Tickets': 'Cash ~\$${estPay.toStringAsFixed(0)}. +5% streams 2w.',
+    'Free Meetup': 'Stamina hit. Fan love +9% streams 2w.',
+    'Skip': 'Stay off the floor. Fans notice.',
+  };
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: const Color(0xFF16213e),
+    builder: (_) => SafeArea(
+      child: ListView(
+        shrinkWrap: true,
+        children: [
+          const Padding(
+            padding: EdgeInsets.all(16),
+            child: Text(
+              'Superfan meet & greet',
+              style: TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+          ...stances.entries.map(
+            (e) => ListTile(
+              title: Text(e.key, style: const TextStyle(color: Colors.white)),
+              subtitle: Text(e.value,
+                  style: const TextStyle(color: Colors.white54)),
+              onTap: () {
+                Navigator.pop(context);
+                final err = game.resolveMeetGreet(e.key);
+                if (err != null) {
+                  ToastService().showError(err);
+                } else {
+                  ToastService().showSuccess(e.key);
+                }
+              },
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+void _showRadioLiveSheet(BuildContext context, GameStateService game) {
+  final plug = game.bestRadioPlugSong();
+  final stances = <String, String>{
+    'Perform Live': 'Session heat — +8% catalog for 2 weeks.',
+    'Plug the Single': plug == null
+        ? 'Talk the catalog.'
+        : 'Plug "${plug.title}" — +16% and a playlist bump.',
+    'Freeze': 'Dead air. Clips hurt. No heat.',
+  };
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: const Color(0xFF16213e),
+    builder: (_) => SafeArea(
+      child: ListView(
+        shrinkWrap: true,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              '${game.radioStation} wants you live',
+              style: const TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+          ...stances.entries.map(
+            (e) => ListTile(
+              title: Text(e.key, style: const TextStyle(color: Colors.white)),
+              subtitle: Text(e.value,
+                  style: const TextStyle(color: Colors.white54)),
+              onTap: () {
+                Navigator.pop(context);
+                final err = game.runRadioInterview(e.key);
+                if (err != null) {
+                  ToastService().showError(err);
+                } else {
+                  ToastService().showSuccess('${game.radioStation}: ${e.key}');
+                }
+              },
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+void _showPressSheet(BuildContext context, GameStateService game) {
+  const stances = <String, String>{
+    'Play It Safe': 'Clean cover. Reputation up, quieter streams.',
+    'Spill the Tea': 'Messy cover. Fans and viral, reputation hit.',
+    'Cancel': 'Walk out. No cover heat.',
+  };
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: const Color(0xFF16213e),
+    builder: (_) => SafeArea(
+      child: ListView(
+        shrinkWrap: true,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              '${game.pressMagazine} wants a cover story',
+              style: const TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+          ...stances.entries.map(
+            (e) => ListTile(
+              title: Text(e.key, style: const TextStyle(color: Colors.white)),
+              subtitle: Text(e.value,
+                  style: const TextStyle(color: Colors.white54)),
+              onTap: () {
+                Navigator.pop(context);
+                final err = game.runPressInterview(e.key);
+                if (err != null) {
+                  ToastService().showError(err);
+                } else {
+                  ToastService().showSuccess('${game.pressMagazine}: ${e.key}');
+                }
+              },
+            ),
+          ),
+        ],
+      ),
     ),
   );
 }

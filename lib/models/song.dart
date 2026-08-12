@@ -19,6 +19,21 @@ class Song {
   List<double> listenerHistory; // Stores weekly listener counts for trend graphs
   /// Remaining weeks a music video is boosting this song's listeners.
   int videoWeeksRemaining;
+  /// Remaining weeks a playlist/radio add is boosting this song.
+  int playlistWeeksRemaining;
+  /// `rush` · `standard` · `polish`
+  String studioFinish;
+  bool ghostwritten;
+  bool usesSample;
+  bool sampleCleared;
+  bool sampleTakedown;
+  bool deluxeIssued;
+  bool hasRemix;
+  /// Empty unless this song is a remix of another catalog track.
+  String sourceSongId;
+  /// `pending` · `press` · `fans` · `skip` · empty
+  String listeningParty;
+  int listeningPartyWeeks;
 
   Song({
     required this.id,
@@ -38,6 +53,17 @@ class Song {
     this.genre = 'Pop',
     List<double>? listenerHistory,
     this.videoWeeksRemaining = 0,
+    this.playlistWeeksRemaining = 0,
+    this.studioFinish = 'standard',
+    this.ghostwritten = false,
+    this.usesSample = false,
+    this.sampleCleared = false,
+    this.sampleTakedown = false,
+    this.deluxeIssued = false,
+    this.hasRemix = false,
+    this.sourceSongId = '',
+    this.listeningParty = '',
+    this.listeningPartyWeeks = 0,
   }) : listenerHistory = listenerHistory ?? [];
 
   Map<String, dynamic> toMap() {
@@ -59,6 +85,17 @@ class Song {
       'coverArt': coverArt, // Add to map
       'lengthMinutes': lengthMinutes, // Add to map
       'videoWeeksRemaining': videoWeeksRemaining,
+      'playlistWeeksRemaining': playlistWeeksRemaining,
+      'studioFinish': studioFinish,
+      'ghostwritten': ghostwritten,
+      'usesSample': usesSample,
+      'sampleCleared': sampleCleared,
+      'sampleTakedown': sampleTakedown,
+      'deluxeIssued': deluxeIssued,
+      'hasRemix': hasRemix,
+      'sourceSongId': sourceSongId,
+      'listeningParty': listeningParty,
+      'listeningPartyWeeks': listeningPartyWeeks,
     };
   }
 
@@ -84,6 +121,17 @@ class Song {
             .map((e) => (e as num).toDouble()),
       ),
       videoWeeksRemaining: map['videoWeeksRemaining'] as int? ?? 0,
+      playlistWeeksRemaining: map['playlistWeeksRemaining'] as int? ?? 0,
+      studioFinish: map['studioFinish'] as String? ?? 'standard',
+      ghostwritten: map['ghostwritten'] as bool? ?? false,
+      usesSample: map['usesSample'] as bool? ?? false,
+      sampleCleared: map['sampleCleared'] as bool? ?? false,
+      sampleTakedown: map['sampleTakedown'] as bool? ?? false,
+      deluxeIssued: map['deluxeIssued'] as bool? ?? false,
+      hasRemix: map['hasRemix'] as bool? ?? false,
+      sourceSongId: map['sourceSongId'] as String? ?? '',
+      listeningParty: map['listeningParty'] as String? ?? '',
+      listeningPartyWeeks: map['listeningPartyWeeks'] as int? ?? 0,
     );
   }
 }
