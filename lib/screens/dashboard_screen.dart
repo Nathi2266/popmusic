@@ -361,6 +361,60 @@ class DashboardScreen extends StatelessWidget {
                       ),
                     ),
                   ],
+                  if (gameState.documentaryWeeks > 0) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF80CBC4).withAlpha(40),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFF80CBC4).withAlpha(160),
+                        ),
+                      ),
+                      child: Text(
+                        gameState.documentaryBanner,
+                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                      ),
+                    ),
+                  ],
+                  if (gameState.therapyPodcastWeeks > 0) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFCE93D8).withAlpha(40),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFFCE93D8).withAlpha(160),
+                        ),
+                      ),
+                      child: Text(
+                        gameState.therapyPodcastBanner,
+                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                      ),
+                    ),
+                  ],
+                  if (gameState.collabDmWeeks > 0) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF90CAF9).withAlpha(40),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFF90CAF9).withAlpha(160),
+                        ),
+                      ),
+                      child: Text(
+                        gameState.collabDmBanner,
+                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                      ),
+                    ),
+                  ],
                   if (gameState.pressCoverWeeksRemaining > 0) ...[
                     const SizedBox(height: 12),
                     Container(
@@ -974,6 +1028,27 @@ class DashboardScreen extends StatelessWidget {
                           onPressed: () =>
                               _showRivalTruceSheet(context, gameState),
                         ),
+                      if (gameState.canOfferDocumentary)
+                        _ActionButton(
+                          label: 'Documentary',
+                          icon: Icons.videocam_outlined,
+                          onPressed: () =>
+                              _showDocumentarySheet(context, gameState),
+                        ),
+                      if (gameState.canOfferTherapyPodcast)
+                        _ActionButton(
+                          label: 'Podcast',
+                          icon: Icons.mic,
+                          onPressed: () =>
+                              _showTherapyPodcastSheet(context, gameState),
+                        ),
+                      if (gameState.canOfferCollabDm)
+                        _ActionButton(
+                          label: 'Collab DM',
+                          icon: Icons.mail_outline,
+                          onPressed: () =>
+                              _showCollabDmSheet(context, gameState),
+                        ),
                       _ActionButton(
                         label: 'Train',
                         icon: Icons.fitness_center,
@@ -1381,6 +1456,150 @@ void _showRivalTruceSheet(BuildContext context, GameStateService game) {
                 final err = game.resolveRivalTruce(
                   e.key,
                   rivalId: rival?.id,
+                );
+                if (err != null) {
+                  ToastService().showError(err);
+                } else {
+                  ToastService().showSuccess(e.key);
+                }
+              },
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+void _showDocumentarySheet(BuildContext context, GameStateService game) {
+  final crew = game.documentaryCrewName.isNotEmpty
+      ? game.documentaryCrewName
+      : 'A documentary crew';
+  final stances = <String, String>{
+    'Grant Full Access': 'Cameras everywhere — +11% streams 4w.',
+    'Limit Privacy': 'Curated story — +7% streams 3w.',
+    'Deny Crew': 'Keep mystique. Reputation up.',
+  };
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: const Color(0xFF16213e),
+    builder: (_) => SafeArea(
+      child: ListView(
+        shrinkWrap: true,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              '$crew wants access',
+              style: const TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+          ...stances.entries.map(
+            (e) => ListTile(
+              title: Text(e.key, style: const TextStyle(color: Colors.white)),
+              subtitle: Text(e.value,
+                  style: const TextStyle(color: Colors.white54)),
+              onTap: () {
+                Navigator.pop(context);
+                final err = game.resolveDocumentaryCrew(e.key);
+                if (err != null) {
+                  ToastService().showError(err);
+                } else {
+                  ToastService().showSuccess(e.key);
+                }
+              },
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+void _showTherapyPodcastSheet(BuildContext context, GameStateService game) {
+  final show = game.therapyPodcastName.isNotEmpty
+      ? game.therapyPodcastName
+      : 'A therapy podcast';
+  final stances = <String, String>{
+    'Open Up': 'Vulnerable — +8% streams 3w. Fans connect.',
+    'Deflect': 'Stay polished — +5% streams 2w.',
+    'Cancel Appearance': 'Skip it. Discipline up.',
+  };
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: const Color(0xFF16213e),
+    builder: (_) => SafeArea(
+      child: ListView(
+        shrinkWrap: true,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              '$show invite',
+              style: const TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+          ...stances.entries.map(
+            (e) => ListTile(
+              title: Text(e.key, style: const TextStyle(color: Colors.white)),
+              subtitle: Text(e.value,
+                  style: const TextStyle(color: Colors.white54)),
+              onTap: () {
+                Navigator.pop(context);
+                final err = game.resolveTherapyPodcast(e.key);
+                if (err != null) {
+                  ToastService().showError(err);
+                } else {
+                  ToastService().showSuccess(e.key);
+                }
+              },
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+void _showCollabDmSheet(BuildContext context, GameStateService game) {
+  final artist = game.worldArtists
+      .where((a) =>
+          a.id != game.player?.id &&
+          (a.attributes['popularity'] ?? 0) >= 30)
+      .toList();
+  final pick = artist.isNotEmpty ? artist.first : null;
+  final stances = <String, String>{
+    'Accept Collab': 'Studio with ${pick?.name ?? 'artist'} — +14% top song 3w.',
+    'Ghost Them': 'Leave on read. Reputation dips.',
+    'Leak Teaser': 'Snippet hype — +10% top song 2w. Messy.',
+  };
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: const Color(0xFF16213e),
+    builder: (_) => SafeArea(
+      child: ListView(
+        shrinkWrap: true,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              'Collab DM${pick != null ? ': ${pick.name}' : ''}',
+              style: const TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+          ...stances.entries.map(
+            (e) => ListTile(
+              title: Text(e.key, style: const TextStyle(color: Colors.white)),
+              subtitle: Text(e.value,
+                  style: const TextStyle(color: Colors.white54)),
+              onTap: () {
+                Navigator.pop(context);
+                final err = game.resolveCollabDm(
+                  e.key,
+                  fromEvent: false,
                 );
                 if (err != null) {
                   ToastService().showError(err);

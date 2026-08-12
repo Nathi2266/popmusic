@@ -152,6 +152,17 @@ class GameStateService extends ChangeNotifier {
   /// `access` · `privacy` · empty
   String documentaryKind = '';
   String documentaryCrewName = '';
+  int therapyPodcastCooldownWeeks = 0;
+  int therapyPodcastWeeks = 0;
+  /// `open` · `deflect` · empty
+  String therapyPodcastKind = '';
+  String therapyPodcastName = '';
+  int collabDmCooldownWeeks = 0;
+  int collabDmWeeks = 0;
+  /// `accept` · `teaser` · empty
+  String collabDmKind = '';
+  String collabDmArtistId = '';
+  String collabDmSongId = '';
 
   int get fanClubMembers => fanClubFounded
       ? (playerFanCount * 0.14).round().clamp(12, 9999999)
@@ -346,6 +357,59 @@ class GameStateService extends ChangeNotifier {
       return '$crew filming — +11% streams (${documentaryWeeks}w)';
     }
     return '$crew limited access — +7% streams (${documentaryWeeks}w)';
+  }
+
+  bool get hasPendingTherapyPodcast => lastWeekEvents.any(
+        (e) => e.id.startsWith('therapy_pod::') && e.needsPlayerDecision,
+      );
+
+  bool get canOfferTherapyPodcast {
+    if (_player == null) return false;
+    if (therapyPodcastCooldownWeeks > 0 || hasPendingTherapyPodcast) {
+      return false;
+    }
+    final pop = _player!.attributes['popularity'] ?? 0;
+    final controversy = _player!.attributes['controversy'] ?? 0;
+    return pop >= 18 || controversy >= 8;
+  }
+
+  String get therapyPodcastBanner {
+    if (therapyPodcastWeeks <= 0) return '';
+    final show = therapyPodcastName.isNotEmpty
+        ? therapyPodcastName
+        : 'Therapy podcast';
+    if (therapyPodcastKind == 'open') {
+      return '$show episode — +8% streams (${therapyPodcastWeeks}w)';
+    }
+    return '$show clip — +5% streams (${therapyPodcastWeeks}w)';
+  }
+
+  bool get hasPendingCollabDm => lastWeekEvents.any(
+        (e) => e.id.startsWith('collab_dm::') && e.needsPlayerDecision,
+      );
+
+  bool get canOfferCollabDm {
+    if (_player == null) return false;
+    if (collabDmCooldownWeeks > 0 || hasPendingCollabDm) return false;
+    if (playerSongs.isEmpty) return false;
+    return (_player!.attributes['popularity'] ?? 0) >= 22;
+  }
+
+  String get collabDmBanner {
+    if (collabDmWeeks <= 0) return '';
+    final artist = getArtistById(collabDmArtistId);
+    Song? song;
+    for (final s in worldSongs) {
+      if (s.id == collabDmSongId) {
+        song = s;
+        break;
+      }
+    }
+    final title = song?.title ?? 'track';
+    if (collabDmKind == 'accept') {
+      return '${artist?.name ?? 'Artist'} collab — "$title" +14% (${collabDmWeeks}w)';
+    }
+    return 'Leaked ${artist?.name ?? 'artist'} teaser — "$title" +10% (${collabDmWeeks}w)';
   }
 
   String get mentorCosignBanner {
@@ -759,6 +823,8 @@ class GameStateService extends ChangeNotifier {
     if (chartWagerCooldownWeeks > 0) chartWagerCooldownWeeks--;
     if (rivalTruceCooldownWeeks > 0) rivalTruceCooldownWeeks--;
     if (documentaryCooldownWeeks > 0) documentaryCooldownWeeks--;
+    if (therapyPodcastCooldownWeeks > 0) therapyPodcastCooldownWeeks--;
+    if (collabDmCooldownWeeks > 0) collabDmCooldownWeeks--;
 
     // New week: drop last week's cards, then build this week's.
     lastWeekEvents.clear();
@@ -1001,6 +1067,12 @@ class GameStateService extends ChangeNotifier {
     }
     if (documentaryWeeks > 0) {
       parts.add(documentaryBanner);
+    }
+    if (therapyPodcastWeeks > 0) {
+      parts.add(therapyPodcastBanner);
+    }
+    if (collabDmWeeks > 0) {
+      parts.add(collabDmBanner);
     }
     lastWeekRecap = parts.join(' · ');
     if (weeklyHeadlines.isEmpty) {
@@ -2178,6 +2250,244 @@ class GameStateService extends ChangeNotifier {
       ));
     }
     addPlayerXp(choice == 'Deny Crew' ? 10 : 22);
+    notifyListeners();
+    saveGame();
+    return null;
+  }
+
+  String _randomTherapyPodcastName() {
+    const shows = [
+      'Off the Record',
+      'Feelings & Frequencies',
+      'The Unfiltered Hour',
+      'Soft Launch Podcast',
+      'Couch Confessions',
+    ];
+    return shows[Random().nextInt(shows.length)];
+  }
+
+  double _therapyPodcastBoost(Song song) {
+    if (therapyPodcastWeeks <= 0 || song.artistId != _player?.id) return 1.0;
+    if (therapyPodcastKind == 'open') return 1.08;
+    if (therapyPodcastKind == 'deflect') return 1.05;
+    return 1.0;
+  }
+
+  String? resolveTherapyPodcast(String choice, {bool fromEvent = false}) {
+    if (_player == null) return 'No player';
+    if (!fromEvent) {
+      if (therapyPodcastCooldownWeeks > 0) {
+        return 'Podcast bookings cooling off ($therapyPodcastCooldownWeeks w)';
+      }
+      if (hasPendingTherapyPodcast) {
+        return 'Finish the podcast invite first';
+      }
+      final pop = _player!.attributes['popularity'] ?? 0;
+      final controversy = _player!.attributes['controversy'] ?? 0;
+      if (pop < 18 && controversy < 8) {
+        return 'Need 18 popularity or 8 controversy for podcast buzz';
+      }
+    }
+
+    final show = therapyPodcastName.isNotEmpty
+        ? therapyPodcastName
+        : _randomTherapyPodcastName();
+
+    switch (choice) {
+      case 'Open Up':
+        updatePlayerAttribute('fan_connection', 8);
+        updatePlayerAttribute('happiness', 5);
+        updatePlayerAttribute('reputation', 3);
+        updatePlayerAttribute('controversy', 4);
+        updatePlayerAttribute('charisma', 3);
+        therapyPodcastKind = 'open';
+        therapyPodcastWeeks = 3;
+        therapyPodcastName = show;
+        weeklyHeadlines.add(
+          '${_player!.name} got vulnerable on $show — fans are talking.',
+        );
+        break;
+      case 'Deflect':
+        updatePlayerAttribute('marketing', 4);
+        updatePlayerAttribute('charisma', 4);
+        updatePlayerAttribute('reputation', 2);
+        updatePlayerAttribute('discipline', 2);
+        therapyPodcastKind = 'deflect';
+        therapyPodcastWeeks = 2;
+        therapyPodcastName = show;
+        weeklyHeadlines.add(
+          '${_player!.name} kept it polished on $show.',
+        );
+        break;
+      default:
+        updatePlayerAttribute('discipline', 4);
+        updatePlayerAttribute('reputation', 3);
+        updatePlayerAttribute('fan_connection', -2);
+        updatePlayerAttribute('happiness', 2);
+        therapyPodcastKind = '';
+        therapyPodcastWeeks = 0;
+        therapyPodcastName = '';
+        weeklyHeadlines.add(
+          '${_player!.name} pulled out of $show at the last minute.',
+        );
+        break;
+    }
+
+    therapyPodcastCooldownWeeks = 5;
+    if (!fromEvent && choice != 'Cancel Appearance') {
+      therapyPodcastName = show;
+    }
+    if (!fromEvent) {
+      lastWeekEvents.add(GameEvent(
+        id: 'therapy_done_${DateTime.now().millisecondsSinceEpoch}',
+        title: 'Therapy Podcast: $choice',
+        description: choice == 'Open Up'
+            ? 'Raw honesty. Relatable — and a little risky.'
+            : choice == 'Deflect'
+                ? 'You stayed on message. Safe clip, smaller splash.'
+                : 'No episode. You kept the walls up.',
+        type: EventType.opportunity,
+        severity: EventSeverity.medium,
+      ));
+    }
+    addPlayerXp(choice == 'Cancel Appearance' ? 8 : 18);
+    notifyListeners();
+    saveGame();
+    return null;
+  }
+
+  Artist? _pickCollabDmArtist() {
+    if (_player == null) return null;
+    final candidates = worldArtists
+        .where((a) =>
+            a.id != _player!.id &&
+            !rivalIds.contains(a.id) &&
+            (a.attributes['popularity'] ?? 0) >= 30)
+        .toList();
+    if (candidates.isEmpty) return null;
+    candidates.sort((a, b) =>
+        (b.attributes['popularity'] ?? 0).compareTo(a.attributes['popularity'] ?? 0));
+    final pool = candidates.take(6).toList();
+    return pool[Random().nextInt(pool.length)];
+  }
+
+  Song? _pickCollabTargetSong() {
+    if (playerSongs.isEmpty) return null;
+    Song? best;
+    var bestRank = 999;
+    for (final s in playerSongs) {
+      final r = worldSongs.indexOf(s) + 1;
+      if (r < bestRank) {
+        bestRank = r;
+        best = s;
+      }
+    }
+    return best ?? playerSongs.first;
+  }
+
+  double _collabDmBoost(Song song) {
+    if (collabDmWeeks <= 0 ||
+        song.id != collabDmSongId ||
+        song.artistId != _player?.id) {
+      return 1.0;
+    }
+    if (collabDmKind == 'accept') return 1.14;
+    if (collabDmKind == 'teaser') return 1.10;
+    return 1.0;
+  }
+
+  String? resolveCollabDm(String choice, {bool fromEvent = false}) {
+    if (_player == null) return 'No player';
+    if (!fromEvent) {
+      if (collabDmCooldownWeeks > 0) {
+        return 'Collab inbox quiet ($collabDmCooldownWeeks w)';
+      }
+      if (hasPendingCollabDm) return 'Finish the collab DM first';
+      if (playerSongs.isEmpty) return 'Need a song to collab on';
+      if ((_player!.attributes['popularity'] ?? 0) < 22) {
+        return 'Need 22 popularity for collab DMs';
+      }
+    }
+
+    final artist =
+        getArtistById(collabDmArtistId) ?? _pickCollabDmArtist();
+    if (artist == null) return 'No collab artist available';
+    final song = _pickCollabTargetSong();
+    if (song == null) return 'No song to feature';
+
+    switch (choice) {
+      case 'Accept Collab':
+        if (!fromEvent) {
+          final stamina = _player!.attributes['stamina'] ?? 0;
+          if (stamina < 14) return 'Too tired for a collab session';
+          if (playerMoney < 400) return 'Need \$400 for studio time';
+        }
+        updatePlayerAttribute('stamina', -14);
+        if (playerMoney >= 400) updatePlayerMoney(-400);
+        updatePlayerAttribute('networking', 6);
+        updatePlayerAttribute('popularity', 4);
+        updatePlayerAttribute('marketing', 3);
+        updateArtistAttribute(artist.id, 'networking', 3);
+        updateArtistAttribute(artist.id, 'popularity', 2);
+        song.viralFactor = (song.viralFactor + 6).clamp(0.0, 100.0);
+        collabDmKind = 'accept';
+        collabDmWeeks = 3;
+        collabDmSongId = song.id;
+        collabDmArtistId = artist.id;
+        updatePlayerFanCount(350 + Random().nextInt(250));
+        weeklyHeadlines.add(
+          '${artist.name} and ${_player!.name} locked a collab on "${song.title}".',
+        );
+        break;
+      case 'Leak Teaser':
+        updatePlayerAttribute('marketing', 5);
+        updatePlayerAttribute('controversy', 6);
+        updatePlayerAttribute('fan_connection', 3);
+        updateArtistAttribute(artist.id, 'popularity', -2);
+        updateArtistAttribute(artist.id, 'controversy', 3);
+        song.viralFactor = (song.viralFactor + 10).clamp(0.0, 100.0);
+        collabDmKind = 'teaser';
+        collabDmWeeks = 2;
+        collabDmSongId = song.id;
+        collabDmArtistId = artist.id;
+        weeklyHeadlines.add(
+          '${_player!.name} leaked a ${artist.name} collab snippet.',
+        );
+        break;
+      default:
+        updatePlayerAttribute('discipline', 3);
+        updatePlayerAttribute('happiness', 2);
+        updatePlayerAttribute('reputation', -3);
+        updatePlayerAttribute('controversy', 2);
+        updateArtistAttribute(artist.id, 'popularity', 2);
+        collabDmKind = '';
+        collabDmWeeks = 0;
+        collabDmSongId = '';
+        collabDmArtistId = artist.id;
+        weeklyHeadlines.add(
+          '${_player!.name} left ${artist.name}\'s DM on read.',
+        );
+        break;
+    }
+
+    collabDmCooldownWeeks = 5;
+    if (!fromEvent && choice != 'Ghost Them') {
+      collabDmArtistId = artist.id;
+    }
+    if (!fromEvent) {
+      lastWeekEvents.add(GameEvent(
+        id: 'collab_dm_done_${DateTime.now().millisecondsSinceEpoch}',
+        title: 'Collab DM: $choice',
+        description: choice == 'Accept Collab'
+            ? 'Studio booked with ${artist.name}. The feature buzz is real.'
+            : choice == 'Leak Teaser'
+                ? 'Snippet out early. Hype up, trust down.'
+                : '${artist.name} might post the screenshots.',
+        type: EventType.collaboration,
+        severity: EventSeverity.high,
+      ));
+    }
+    addPlayerXp(choice == 'Ghost Them' ? 8 : 20);
     notifyListeners();
     saveGame();
     return null;
@@ -3585,6 +3895,48 @@ class GameStateService extends ChangeNotifier {
       ));
     }
 
+    // Therapy podcast invite (~17% if stressed or famous)
+    final pop = _player!.attributes['popularity'] ?? 0;
+    final controversy = _player!.attributes['controversy'] ?? 0;
+    if ((pop >= 18 || controversy >= 8) &&
+        therapyPodcastCooldownWeeks == 0 &&
+        !hasPendingTherapyPodcast &&
+        rng.nextDouble() < 0.17) {
+      therapyPodcastName = _randomTherapyPodcastName();
+      lastWeekEvents.add(GameEvent(
+        id: 'therapy_pod::$year-$month-$weekOfMonth',
+        title: '$therapyPodcastName Invite',
+        description:
+            '$therapyPodcastName wants you for a therapy-style episode. Open up, deflect, or cancel.',
+        type: EventType.opportunity,
+        severity: EventSeverity.medium,
+        choices: const ['Open Up', 'Deflect', 'Cancel Appearance'],
+        choiceOutcomes: const {},
+      ));
+    }
+
+    // Surprise collab DM (~18% if charting)
+    if (pop >= 22 &&
+        playerSongs.isNotEmpty &&
+        collabDmCooldownWeeks == 0 &&
+        !hasPendingCollabDm &&
+        rng.nextDouble() < 0.18) {
+      final collabArtist = _pickCollabDmArtist();
+      if (collabArtist != null) {
+        collabDmArtistId = collabArtist.id;
+        lastWeekEvents.add(GameEvent(
+          id: 'collab_dm::${collabArtist.id}',
+          title: 'Collab DM: ${collabArtist.name}',
+          description:
+              '${collabArtist.name} slid into your DMs. Accept, ghost, or leak a teaser.',
+          type: EventType.collaboration,
+          severity: EventSeverity.high,
+          choices: const ['Accept Collab', 'Ghost Them', 'Leak Teaser'],
+          choiceOutcomes: const {},
+        ));
+      }
+    }
+
     // Chart streak wager (~22% if charting)
     final wagerRank = bestPlayerChartRank;
     if (wagerRank != null &&
@@ -4059,6 +4411,16 @@ class GameStateService extends ChangeNotifier {
       resolveDocumentaryCrew(choice, fromEvent: true);
     }
 
+    if (event.id.startsWith('therapy_pod::')) {
+      resolveTherapyPodcast(choice, fromEvent: true);
+    }
+
+    if (event.id.startsWith('collab_dm::')) {
+      final artistId = event.id.substring('collab_dm::'.length);
+      if (artistId.isNotEmpty) collabDmArtistId = artistId;
+      resolveCollabDm(choice, fromEvent: true);
+    }
+
     event.selectedChoice = choice;
     event.resolved = true;
     notifyListeners();
@@ -4216,6 +4578,21 @@ class GameStateService extends ChangeNotifier {
       if (documentaryWeeks == 0) {
         documentaryKind = '';
         documentaryCrewName = '';
+      }
+    }
+    if (therapyPodcastWeeks > 0) {
+      therapyPodcastWeeks--;
+      if (therapyPodcastWeeks == 0) {
+        therapyPodcastKind = '';
+        therapyPodcastName = '';
+      }
+    }
+    if (collabDmWeeks > 0) {
+      collabDmWeeks--;
+      if (collabDmWeeks == 0) {
+        collabDmKind = '';
+        collabDmSongId = '';
+        collabDmArtistId = '';
       }
     }
 
@@ -4876,6 +5253,8 @@ class GameStateService extends ChangeNotifier {
         _chartWagerBoost(song) *
         _rivalTruceBoost(song) *
         _documentaryBoost(song) *
+        _therapyPodcastBoost(song) *
+        _collabDmBoost(song) *
         _listeningPartyBoost(song) *
         (song.sampleTakedown
             ? 0.22
@@ -5016,6 +5395,15 @@ class GameStateService extends ChangeNotifier {
     documentaryWeeks = 0;
     documentaryKind = '';
     documentaryCrewName = '';
+    therapyPodcastCooldownWeeks = 0;
+    therapyPodcastWeeks = 0;
+    therapyPodcastKind = '';
+    therapyPodcastName = '';
+    collabDmCooldownWeeks = 0;
+    collabDmWeeks = 0;
+    collabDmKind = '';
+    collabDmArtistId = '';
+    collabDmSongId = '';
     _player = Artist(
       id: 'player',
       name: playerName,
@@ -5401,6 +5789,15 @@ class GameStateService extends ChangeNotifier {
       'documentaryWeeks': documentaryWeeks,
       'documentaryKind': documentaryKind,
       'documentaryCrewName': documentaryCrewName,
+      'therapyPodcastCooldownWeeks': therapyPodcastCooldownWeeks,
+      'therapyPodcastWeeks': therapyPodcastWeeks,
+      'therapyPodcastKind': therapyPodcastKind,
+      'therapyPodcastName': therapyPodcastName,
+      'collabDmCooldownWeeks': collabDmCooldownWeeks,
+      'collabDmWeeks': collabDmWeeks,
+      'collabDmKind': collabDmKind,
+      'collabDmArtistId': collabDmArtistId,
+      'collabDmSongId': collabDmSongId,
       'worldArtists': worldArtists.map((a) => a.toMap()).toList(),
       'worldSongs': worldSongs.map((s) => s.toMap()).toList(),
       'playerId': _player!.id,
@@ -5509,6 +5906,20 @@ class GameStateService extends ChangeNotifier {
       rivalTruceWeeks = data['rivalTruceWeeks'] as int? ?? 0;
       rivalTruceKind = data['rivalTruceKind'] as String? ?? '';
       rivalTruceRivalId = data['rivalTruceRivalId'] as String? ?? '';
+      documentaryCooldownWeeks = data['documentaryCooldownWeeks'] as int? ?? 0;
+      documentaryWeeks = data['documentaryWeeks'] as int? ?? 0;
+      documentaryKind = data['documentaryKind'] as String? ?? '';
+      documentaryCrewName = data['documentaryCrewName'] as String? ?? '';
+      therapyPodcastCooldownWeeks =
+          data['therapyPodcastCooldownWeeks'] as int? ?? 0;
+      therapyPodcastWeeks = data['therapyPodcastWeeks'] as int? ?? 0;
+      therapyPodcastKind = data['therapyPodcastKind'] as String? ?? '';
+      therapyPodcastName = data['therapyPodcastName'] as String? ?? '';
+      collabDmCooldownWeeks = data['collabDmCooldownWeeks'] as int? ?? 0;
+      collabDmWeeks = data['collabDmWeeks'] as int? ?? 0;
+      collabDmKind = data['collabDmKind'] as String? ?? '';
+      collabDmArtistId = data['collabDmArtistId'] as String? ?? '';
+      collabDmSongId = data['collabDmSongId'] as String? ?? '';
       weeklyHeadlines =
           List<String>.from(data['weeklyHeadlines'] as List? ?? const []);
       playerAlbums = (data['playerAlbums'] as List? ?? const [])
@@ -5659,6 +6070,15 @@ class GameStateService extends ChangeNotifier {
     documentaryWeeks = 0;
     documentaryKind = '';
     documentaryCrewName = '';
+    therapyPodcastCooldownWeeks = 0;
+    therapyPodcastWeeks = 0;
+    therapyPodcastKind = '';
+    therapyPodcastName = '';
+    collabDmCooldownWeeks = 0;
+    collabDmWeeks = 0;
+    collabDmKind = '';
+    collabDmArtistId = '';
+    collabDmSongId = '';
     deleteSave();
     notifyListeners();
   }
