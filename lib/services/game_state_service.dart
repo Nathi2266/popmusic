@@ -2877,7 +2877,7 @@ class GameStateService extends ChangeNotifier {
           return 'Need \$1200 for premium merch';
         }
         if (playerMoney >= 1200) updatePlayerMoney(-1200);
-        updatePlayerMoney(1800 + Random().nextInt(600));
+        updatePlayerMoney((1800 + Random().nextInt(600)).toDouble());
         updatePlayerFanCount(180 + Random().nextInt(120));
         updatePlayerAttribute('networking', 4);
         updatePlayerAttribute('marketing', 3);
@@ -2892,7 +2892,7 @@ class GameStateService extends ChangeNotifier {
           return 'Need \$500 for mass merch';
         }
         if (playerMoney >= 500) updatePlayerMoney(-500);
-        updatePlayerMoney(1400 + Random().nextInt(500));
+        updatePlayerMoney((1400 + Random().nextInt(500)).toDouble());
         updatePlayerFanCount(90 + Random().nextInt(80));
         updatePlayerAttribute('marketing', 4);
         updatePlayerAttribute('reputation', -2);
@@ -2980,7 +2980,7 @@ class GameStateService extends ChangeNotifier {
           tourBusKind = '';
           tourBusWeeks = 0;
           updatePlayerAttribute('controversy', 5);
-          updatePlayerMoney(200 + Random().nextInt(150));
+          updatePlayerMoney((200 + Random().nextInt(150)).toDouble());
           weeklyHeadlines.add(
             '${_player!.name}\'s DIY bus fix failed — viral flop clips.',
           );
@@ -3190,7 +3190,7 @@ class GameStateService extends ChangeNotifier {
 
     switch (choice) {
       case 'Take Support Slot':
-        updatePlayerMoney(2200 + Random().nextInt(800));
+        updatePlayerMoney((2200 + Random().nextInt(800)).toDouble());
         updatePlayerFanCount(280 + Random().nextInt(200));
         updatePlayerAttribute('stamina', -10);
         updatePlayerAttribute('networking', 5);
