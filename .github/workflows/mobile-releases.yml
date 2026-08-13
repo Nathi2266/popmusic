@@ -42,10 +42,10 @@ jobs:
     timeout-minutes: 60
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "17"
@@ -90,7 +90,7 @@ jobs:
           ls -lh artifacts/
 
       - name: Upload Android artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: android-apk
           path: artifacts/*.apk
@@ -102,7 +102,7 @@ jobs:
     timeout-minutes: 90
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -204,7 +204,7 @@ jobs:
           ls -lh artifacts/
 
       - name: Upload iOS artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ios-build
           path: artifacts/*
@@ -218,7 +218,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ github.ref }}
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -226,14 +226,14 @@ jobs:
 
       - name: Download Android artifact
         if: needs.android.result == 'success'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: android-apk
           path: releases
 
       - name: Download iOS artifact
         if: needs.ios.result == 'success'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: ios-build
           path: releases
