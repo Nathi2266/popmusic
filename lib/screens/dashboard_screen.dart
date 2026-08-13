@@ -415,6 +415,187 @@ class DashboardScreen extends StatelessWidget {
                       ),
                     ),
                   ],
+
+                  if (gameState.stalkerFanWeeks > 0) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFF8A65).withAlpha(40),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFFFF8A65).withAlpha(160),
+                        ),
+                      ),
+                      child: Text(
+                        gameState.stalkerFanBanner,
+                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                      ),
+                    ),
+                  ],
+                  if (gameState.merchDropWeeks > 0) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF80CBC4).withAlpha(40),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFF80CBC4).withAlpha(160),
+                        ),
+                      ),
+                      child: Text(
+                        gameState.merchDropBanner,
+                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                      ),
+                    ),
+                  ],
+                  if (gameState.tourBusWeeks > 0) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFB74D).withAlpha(40),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFFFFB74D).withAlpha(160),
+                        ),
+                      ),
+                      child: Text(
+                        gameState.tourBusBanner,
+                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                      ),
+                    ),
+                  ],
+                  if (gameState.awardsCampWeeks > 0) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFD54F).withAlpha(40),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFFFFD54F).withAlpha(160),
+                        ),
+                      ),
+                      child: Text(
+                        gameState.awardsCampBanner,
+                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                      ),
+                    ),
+                  ],
+                  if (gameState.genrePivotWeeks > 0) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF4DB6AC).withAlpha(40),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFF4DB6AC).withAlpha(160),
+                        ),
+                      ),
+                      child: Text(
+                        gameState.genrePivotBanner,
+                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                      ),
+                    ),
+                  ],
+                  if (gameState.arenaSlotWeeks > 0) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF81C784).withAlpha(40),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFF81C784).withAlpha(160),
+                        ),
+                      ),
+                      child: Text(
+                        gameState.arenaSlotBanner,
+                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                      ),
+                    ),
+                  ],
+                  if (gameState.fanTheoryWeeks > 0) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFA1887F).withAlpha(40),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFFA1887F).withAlpha(160),
+                        ),
+                      ),
+                      child: Text(
+                        gameState.fanTheoryBanner,
+                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                      ),
+                    ),
+                  ],
+                  if (gameState.blacklistWeeks > 0) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE57373).withAlpha(40),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFFE57373).withAlpha(160),
+                        ),
+                      ),
+                      child: Text(
+                        gameState.blacklistBanner,
+                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                      ),
+                    ),
+                  ],
+                  if (gameState.comebackWeeks > 0) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF64B5F6).withAlpha(40),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFF64B5F6).withAlpha(160),
+                        ),
+                      ),
+                      child: Text(
+                        gameState.comebackBanner,
+                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                      ),
+                    ),
+                  ],
+                  if (gameState.charityWeeks > 0) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFAED581).withAlpha(40),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFFAED581).withAlpha(160),
+                        ),
+                      ),
+                      child: Text(
+                        gameState.charityBanner,
+                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                      ),
+                    ),
+                  ],
                   if (gameState.pressCoverWeeksRemaining > 0) ...[
                     const SizedBox(height: 12),
                     Container(
@@ -1049,6 +1230,77 @@ class DashboardScreen extends StatelessWidget {
                           onPressed: () =>
                               _showCollabDmSheet(context, gameState),
                         ),
+
+                      if (gameState.canOfferStalkerFan)
+                        _ActionButton(
+                          label: 'Fan Safety',
+                          icon: Icons.security,
+                          onPressed: () =>
+                              _showStalkerFanSheet(context, gameState),
+                        ),
+                      if (gameState.canOfferMerchDrop)
+                        _ActionButton(
+                          label: 'Merch Drop',
+                          icon: Icons.storefront,
+                          onPressed: () =>
+                              _showMerchDropSheet(context, gameState),
+                        ),
+                      if (gameState.canOfferTourBus)
+                        _ActionButton(
+                          label: 'Tour Bus',
+                          icon: Icons.directions_bus,
+                          onPressed: () =>
+                              _showTourBusSheet(context, gameState),
+                        ),
+                      if (gameState.canOfferAwardsCamp)
+                        _ActionButton(
+                          label: 'Awards Night',
+                          icon: Icons.emoji_events_outlined,
+                          onPressed: () =>
+                              _showAwardsCampSheet(context, gameState),
+                        ),
+                      if (gameState.canOfferGenrePivot)
+                        _ActionButton(
+                          label: 'Genre Rumor',
+                          icon: Icons.swap_horiz,
+                          onPressed: () =>
+                              _showGenrePivotSheet(context, gameState),
+                        ),
+                      if (gameState.canOfferArenaSlot)
+                        _ActionButton(
+                          label: 'Arena Slot',
+                          icon: Icons.stadium,
+                          onPressed: () =>
+                              _showArenaSlotSheet(context, gameState),
+                        ),
+                      if (gameState.canOfferFanTheory)
+                        _ActionButton(
+                          label: 'Fan Theory',
+                          icon: Icons.psychology_outlined,
+                          onPressed: () =>
+                              _showFanTheorySheet(context, gameState),
+                        ),
+                      if (gameState.canOfferBlacklist)
+                        _ActionButton(
+                          label: 'Blacklist',
+                          icon: Icons.block,
+                          onPressed: () =>
+                              _showBlacklistSheet(context, gameState),
+                        ),
+                      if (gameState.canOfferComeback)
+                        _ActionButton(
+                          label: 'Comeback',
+                          icon: Icons.album,
+                          onPressed: () =>
+                              _showComebackSheet(context, gameState),
+                        ),
+                      if (gameState.canOfferCharity)
+                        _ActionButton(
+                          label: 'Charity',
+                          icon: Icons.volunteer_activism,
+                          onPressed: () =>
+                              _showCharitySheet(context, gameState),
+                        ),
                       _ActionButton(
                         label: 'Train',
                         icon: Icons.fitness_center,
@@ -1601,6 +1853,437 @@ void _showCollabDmSheet(BuildContext context, GameStateService game) {
                   e.key,
                   fromEvent: false,
                 );
+                if (err != null) {
+                  ToastService().showError(err);
+                } else {
+                  ToastService().showSuccess(e.key);
+                }
+              },
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+
+void _showStalkerFanSheet(BuildContext context, GameStateService game) {
+  final stances = <String, String>{
+    'Restraining Order': '\$800 legal — +6% catalog 3w. Safer, colder.',
+    'Soft Block': 'Quiet boundary — +5% catalog 2w.',
+    'Engage': 'Lean into drama — +9% catalog 2w. Messy.',
+  };
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: const Color(0xFF16213e),
+    builder: (_) => SafeArea(
+      child: ListView(
+        shrinkWrap: true,
+        children: [
+          const Padding(
+            padding: EdgeInsets.all(16),
+            child: Text(
+              'Fan Safety',
+              style: TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+          ...stances.entries.map(
+            (e) => ListTile(
+              title: Text(e.key, style: const TextStyle(color: Colors.white)),
+              subtitle: Text(e.value,
+                  style: const TextStyle(color: Colors.white54)),
+              onTap: () {
+                Navigator.pop(context);
+                final err = game.resolveStalkerFan(e.key);
+                if (err != null) {
+                  ToastService().showError(err);
+                } else {
+                  ToastService().showSuccess(e.key);
+                }
+              },
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+void _showMerchDropSheet(BuildContext context, GameStateService game) {
+  final stances = <String, String>{
+    'Premium Drop': '\$1200 limited vinyl — +8% 3w, money + fans.',
+    'Mass Market': '\$500 flood the shops — +6% 2w, less cred.',
+    'Skip Drop': 'Hold inventory. Discipline + happiness.',
+  };
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: const Color(0xFF16213e),
+    builder: (_) => SafeArea(
+      child: ListView(
+        shrinkWrap: true,
+        children: [
+          const Padding(
+            padding: EdgeInsets.all(16),
+            child: Text(
+              'Merch Drop',
+              style: TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+          ...stances.entries.map(
+            (e) => ListTile(
+              title: Text(e.key, style: const TextStyle(color: Colors.white)),
+              subtitle: Text(e.value,
+                  style: const TextStyle(color: Colors.white54)),
+              onTap: () {
+                Navigator.pop(context);
+                final err = game.resolveMerchDrop(e.key);
+                if (err != null) {
+                  ToastService().showError(err);
+                } else {
+                  ToastService().showSuccess(e.key);
+                }
+              },
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+void _showTourBusSheet(BuildContext context, GameStateService game) {
+  final stances = <String, String>{
+    'Pay for Fix': '\$1500 mechanic — +7% 2w, keep dates.',
+    'DIY Repair': 'Stamina hit. 50% good buzz or flop drama.',
+    'Cancel Dates': 'Refunds lost. Fans dip. Discipline up.',
+  };
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: const Color(0xFF16213e),
+    builder: (_) => SafeArea(
+      child: ListView(
+        shrinkWrap: true,
+        children: [
+          const Padding(
+            padding: EdgeInsets.all(16),
+            child: Text(
+              'Tour Bus',
+              style: TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+          ...stances.entries.map(
+            (e) => ListTile(
+              title: Text(e.key, style: const TextStyle(color: Colors.white)),
+              subtitle: Text(e.value,
+                  style: const TextStyle(color: Colors.white54)),
+              onTap: () {
+                Navigator.pop(context);
+                final err = game.resolveTourBus(e.key);
+                if (err != null) {
+                  ToastService().showError(err);
+                } else {
+                  ToastService().showSuccess(e.key);
+                }
+              },
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+void _showAwardsCampSheet(BuildContext context, GameStateService game) {
+  final stances = <String, String>{
+    'Full Campaign': '\$2000 + stamina — +12% 3w campaign heat.',
+    'Keep It Chill': 'Soft presence — +7% 2w.',
+    'Skip Night': 'Stay home. Discipline + happiness.',
+  };
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: const Color(0xFF16213e),
+    builder: (_) => SafeArea(
+      child: ListView(
+        shrinkWrap: true,
+        children: [
+          const Padding(
+            padding: EdgeInsets.all(16),
+            child: Text(
+              'Awards Night',
+              style: TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+          ...stances.entries.map(
+            (e) => ListTile(
+              title: Text(e.key, style: const TextStyle(color: Colors.white)),
+              subtitle: Text(e.value,
+                  style: const TextStyle(color: Colors.white54)),
+              onTap: () {
+                Navigator.pop(context);
+                final err = game.resolveAwardsCamp(e.key);
+                if (err != null) {
+                  ToastService().showError(err);
+                } else {
+                  ToastService().showSuccess(e.key);
+                }
+              },
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+void _showGenrePivotSheet(BuildContext context, GameStateService game) {
+  final stances = <String, String>{
+    'Lean Into It': 'Own the rumor — +8% 3w, genre heat.',
+    'Deny the Rumor': 'Stay in lane — +5% 2w.',
+    'Double Down': '\$600 all-in — +11% 2w, controversy.',
+  };
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: const Color(0xFF16213e),
+    builder: (_) => SafeArea(
+      child: ListView(
+        shrinkWrap: true,
+        children: [
+          const Padding(
+            padding: EdgeInsets.all(16),
+            child: Text(
+              'Genre Rumor',
+              style: TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+          ...stances.entries.map(
+            (e) => ListTile(
+              title: Text(e.key, style: const TextStyle(color: Colors.white)),
+              subtitle: Text(e.value,
+                  style: const TextStyle(color: Colors.white54)),
+              onTap: () {
+                Navigator.pop(context);
+                final err = game.resolveGenrePivot(e.key);
+                if (err != null) {
+                  ToastService().showError(err);
+                } else {
+                  ToastService().showSuccess(e.key);
+                }
+              },
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+void _showArenaSlotSheet(BuildContext context, GameStateService game) {
+  final stances = <String, String>{
+    'Take Support Slot': 'Pay + fans — +9% 3w. Stamina hit.',
+    'Hold for Headliner': 'Patient play — +6% 2w networking.',
+    'Pass': 'Skip the offer. Happiness + discipline.',
+  };
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: const Color(0xFF16213e),
+    builder: (_) => SafeArea(
+      child: ListView(
+        shrinkWrap: true,
+        children: [
+          const Padding(
+            padding: EdgeInsets.all(16),
+            child: Text(
+              'Arena Slot',
+              style: TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+          ...stances.entries.map(
+            (e) => ListTile(
+              title: Text(e.key, style: const TextStyle(color: Colors.white)),
+              subtitle: Text(e.value,
+                  style: const TextStyle(color: Colors.white54)),
+              onTap: () {
+                Navigator.pop(context);
+                final err = game.resolveArenaSlot(e.key);
+                if (err != null) {
+                  ToastService().showError(err);
+                } else {
+                  ToastService().showSuccess(e.key);
+                }
+              },
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+void _showFanTheorySheet(BuildContext context, GameStateService game) {
+  final stances = <String, String>{
+    'Confirm Theory': 'Spoil the mystery — +7% 2w.',
+    'Deny Theory': 'Shut it down — +4% 2w.',
+    'Feed the Theory': 'Pour gasoline — +10% 3w.',
+  };
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: const Color(0xFF16213e),
+    builder: (_) => SafeArea(
+      child: ListView(
+        shrinkWrap: true,
+        children: [
+          const Padding(
+            padding: EdgeInsets.all(16),
+            child: Text(
+              'Fan Theory',
+              style: TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+          ...stances.entries.map(
+            (e) => ListTile(
+              title: Text(e.key, style: const TextStyle(color: Colors.white)),
+              subtitle: Text(e.value,
+                  style: const TextStyle(color: Colors.white54)),
+              onTap: () {
+                Navigator.pop(context);
+                final err = game.resolveFanTheory(e.key);
+                if (err != null) {
+                  ToastService().showError(err);
+                } else {
+                  ToastService().showSuccess(e.key);
+                }
+              },
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+void _showBlacklistSheet(BuildContext context, GameStateService game) {
+  final stances = <String, String>{
+    'Address It': '\$400 PR — +6% 3w, cool the room.',
+    'Ignore It': 'No stream boost. Discipline + happiness.',
+    'Clap Back': 'Fight back — +9% 2w, rep dips.',
+  };
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: const Color(0xFF16213e),
+    builder: (_) => SafeArea(
+      child: ListView(
+        shrinkWrap: true,
+        children: [
+          const Padding(
+            padding: EdgeInsets.all(16),
+            child: Text(
+              'Blacklist',
+              style: TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+          ...stances.entries.map(
+            (e) => ListTile(
+              title: Text(e.key, style: const TextStyle(color: Colors.white)),
+              subtitle: Text(e.value,
+                  style: const TextStyle(color: Colors.white54)),
+              onTap: () {
+                Navigator.pop(context);
+                final err = game.resolveBlacklistRumor(e.key);
+                if (err != null) {
+                  ToastService().showError(err);
+                } else {
+                  ToastService().showSuccess(e.key);
+                }
+              },
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+void _showComebackSheet(BuildContext context, GameStateService game) {
+  final stances = <String, String>{
+    'Intimate Concept': 'Soft album vision — +8% 3w.',
+    'Maximalist Concept': '\$2500 spectacle — +12% 3w, stamina hit.',
+    'Delay Project': 'Park it. Discipline + happiness.',
+  };
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: const Color(0xFF16213e),
+    builder: (_) => SafeArea(
+      child: ListView(
+        shrinkWrap: true,
+        children: [
+          const Padding(
+            padding: EdgeInsets.all(16),
+            child: Text(
+              'Comeback',
+              style: TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+          ...stances.entries.map(
+            (e) => ListTile(
+              title: Text(e.key, style: const TextStyle(color: Colors.white)),
+              subtitle: Text(e.value,
+                  style: const TextStyle(color: Colors.white54)),
+              onTap: () {
+                Navigator.pop(context);
+                final err = game.resolveComebackConcept(e.key);
+                if (err != null) {
+                  ToastService().showError(err);
+                } else {
+                  ToastService().showSuccess(e.key);
+                }
+              },
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+void _showCharitySheet(BuildContext context, GameStateService game) {
+  final stances = <String, String>{
+    'Donate Proceeds': 'Give away cash — +7% 3w, rep + fans.',
+    'Match Donations': '\$1200 match — +9% 2w.',
+    'Skip Charity': 'Pass. Mild -rep, +discipline.',
+  };
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: const Color(0xFF16213e),
+    builder: (_) => SafeArea(
+      child: ListView(
+        shrinkWrap: true,
+        children: [
+          const Padding(
+            padding: EdgeInsets.all(16),
+            child: Text(
+              'Charity',
+              style: TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+          ...stances.entries.map(
+            (e) => ListTile(
+              title: Text(e.key, style: const TextStyle(color: Colors.white)),
+              subtitle: Text(e.value,
+                  style: const TextStyle(color: Colors.white54)),
+              onTap: () {
+                Navigator.pop(context);
+                final err = game.resolveCharitySingle(e.key);
                 if (err != null) {
                   ToastService().showError(err);
                 } else {

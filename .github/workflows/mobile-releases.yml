@@ -1,0 +1,258 @@
+# Mobile release builds on every branch push.
+# Commits APK/IPA (or unsigned iOS zip) into releases/ on the same branch.
+#
+# Android works out of the box (debug-signed APK if no keystore secrets).
+#
+# For an installable iOS IPA, add these repository secrets:
+#   IOS_CERTIFICATE_BASE64
+#   IOS_CERTIFICATE_PASSWORD
+#   IOS_PROVISION_PROFILE_BASE64
+#   IOS_TEAM_ID
+# Optional:
+#   IOS_EXPORT_METHOD   (ad-hoc | app-store | development)  default: ad-hoc
+#
+# Optional Android Play signing:
+#   ANDROID_KEYSTORE_BASE64
+#   ANDROID_KEYSTORE_PASSWORD
+#   ANDROID_KEY_ALIAS
+#   ANDROID_KEY_PASSWORD
+
+name: Mobile Releases
+
+on:
+  push:
+    branches:
+      - "**"
+    paths-ignore:
+      - "releases/**"
+      - "**/*.md"
+  workflow_dispatch:
+
+concurrency:
+  group: mobile-releases-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  android:
+    name: Android release APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Decode Android keystore (optional)
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -z "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo "No ANDROID_KEYSTORE_BASE64 secret — release APK will use debug signing."
+            exit 0
+          fi
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/upload-keystore.jks
+          cat > android/key.properties <<EOF
+          storePassword=$ANDROID_KEYSTORE_PASSWORD
+          keyPassword=$ANDROID_KEY_PASSWORD
+          keyAlias=$ANDROID_KEY_ALIAS
+          storeFile=upload-keystore.jks
+          EOF
+
+      - name: Build release APK
+        run: flutter build apk --release
+
+      - name: Stage APK artifact
+        run: |
+          SAFE_REF=$(echo "${{ github.ref_name }}" | tr '/' '-')
+          mkdir -p artifacts
+          cp build/app/outputs/flutter-apk/app-release.apk \
+            "artifacts/popmusic-${SAFE_REF}-android.apk"
+          ls -lh artifacts/
+
+      - name: Upload Android artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: artifacts/*.apk
+          if-no-files-found: error
+
+  ios:
+    name: iOS release IPA
+    runs-on: macos-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Install CocoaPods
+        run: |
+          cd ios
+          pod install --repo-update
+
+      - name: Detect iOS signing secrets
+        id: signing
+        env:
+          IOS_CERTIFICATE_BASE64: ${{ secrets.IOS_CERTIFICATE_BASE64 }}
+          IOS_PROVISION_PROFILE_BASE64: ${{ secrets.IOS_PROVISION_PROFILE_BASE64 }}
+          IOS_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
+        run: |
+          if [ -n "$IOS_CERTIFICATE_BASE64" ] && [ -n "$IOS_PROVISION_PROFILE_BASE64" ] && [ -n "$IOS_TEAM_ID" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::iOS signing secrets missing. Building an unsigned iOS app zip (not installable on devices). Add IOS_CERTIFICATE_BASE64, IOS_CERTIFICATE_PASSWORD, IOS_PROVISION_PROFILE_BASE64, and IOS_TEAM_ID for a real IPA."
+          fi
+
+      - name: Import Apple signing certificate
+        if: steps.signing.outputs.enabled == 'true'
+        uses: apple-actions/import-codesign-certs@v3
+        with:
+          p12-file-base64: ${{ secrets.IOS_CERTIFICATE_BASE64 }}
+          p12-password: ${{ secrets.IOS_CERTIFICATE_PASSWORD }}
+
+      - name: Install provisioning profile
+        if: steps.signing.outputs.enabled == 'true'
+        env:
+          PROFILE_BASE64: ${{ secrets.IOS_PROVISION_PROFILE_BASE64 }}
+        run: |
+          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
+          echo "$PROFILE_BASE64" | base64 --decode > /tmp/profile.mobileprovision
+          UUID=$(security cms -D -i /tmp/profile.mobileprovision 2>/dev/null | plutil -extract UUID raw -)
+          cp /tmp/profile.mobileprovision \
+            "$HOME/Library/MobileDevice/Provisioning Profiles/${UUID}.mobileprovision"
+          echo "Installed provisioning profile UUID=${UUID}"
+          echo "PROVISIONING_PROFILE_UUID=${UUID}" >> "$GITHUB_ENV"
+
+      - name: Configure signing + ExportOptions
+        if: steps.signing.outputs.enabled == 'true'
+        env:
+          TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
+          EXPORT_METHOD: ${{ secrets.IOS_EXPORT_METHOD }}
+        run: |
+          METHOD="${EXPORT_METHOD:-ad-hoc}"
+          /usr/libexec/PlistBuddy -c "Set :method $METHOD" ios/ExportOptions.plist
+          /usr/libexec/PlistBuddy -c "Set :teamID $TEAM_ID" ios/ExportOptions.plist
+
+          # Inject Apple Team ID into Xcode project build settings
+          ruby - <<'RUBY'
+          path = "ios/Runner.xcodeproj/project.pbxproj"
+          team = ENV.fetch("TEAM_ID")
+          text = File.read(path)
+          unless text.include?("DEVELOPMENT_TEAM")
+            text.gsub!(/(buildSettings = \{)/, "\\1\n\t\t\t\tDEVELOPMENT_TEAM = #{team};")
+          else
+            text.gsub!(/DEVELOPMENT_TEAM = [^;]+;/, "DEVELOPMENT_TEAM = #{team};")
+          end
+          File.write(path, text)
+          RUBY
+
+          echo "Export method=${METHOD} team=${TEAM_ID}"
+          cat ios/ExportOptions.plist
+
+      - name: Build signed IPA
+        if: steps.signing.outputs.enabled == 'true'
+        run: flutter build ipa --release --export-options-plist=ios/ExportOptions.plist
+
+      - name: Build unsigned iOS app (fallback)
+        if: steps.signing.outputs.enabled != 'true'
+        run: |
+          flutter build ios --release --no-codesign
+          SAFE_REF=$(echo "${{ github.ref_name }}" | tr '/' '-')
+          mkdir -p artifacts
+          (
+            cd build/ios/iphoneos
+            zip -r "../../../artifacts/popmusic-${SAFE_REF}-ios-unsigned.zip" Runner.app
+          )
+
+      - name: Stage IPA artifact
+        if: steps.signing.outputs.enabled == 'true'
+        run: |
+          SAFE_REF=$(echo "${{ github.ref_name }}" | tr '/' '-')
+          mkdir -p artifacts
+          IPA=$(find build/ios/ipa -name "*.ipa" | head -n 1)
+          test -n "$IPA"
+          cp "$IPA" "artifacts/popmusic-${SAFE_REF}-ios.ipa"
+          ls -lh artifacts/
+
+      - name: Upload iOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-build
+          path: artifacts/*
+          if-no-files-found: error
+
+  publish:
+    name: Push builds to branch
+    needs: [android, ios]
+    if: always() && (needs.android.result == 'success' || needs.ios.result == 'success')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Download Android artifact
+        if: needs.android.result == 'success'
+        uses: actions/download-artifact@v4
+        with:
+          name: android-apk
+          path: releases
+
+      - name: Download iOS artifact
+        if: needs.ios.result == 'success'
+        uses: actions/download-artifact@v4
+        with:
+          name: ios-build
+          path: releases
+
+      - name: Commit and push release binaries
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          mkdir -p releases
+          ls -lah releases/ || true
+
+          git add -f releases/
+          if git diff --cached --quiet; then
+            echo "No release file changes to commit."
+            exit 0
+          fi
+
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          BRANCH="${{ github.ref_name }}"
+          git commit -m "chore(releases): mobile builds for ${BRANCH} @ ${SHORT_SHA} [skip ci]"
+          git push origin "HEAD:${BRANCH}"

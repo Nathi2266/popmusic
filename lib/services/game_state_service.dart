@@ -164,6 +164,47 @@ class GameStateService extends ChangeNotifier {
   String collabDmArtistId = '';
   String collabDmSongId = '';
 
+  int stalkerFanCooldownWeeks = 0;
+  int stalkerFanWeeks = 0;
+  /// `ro` · `soft` · `engage` · empty
+  String stalkerFanKind = '';
+  int merchDropCooldownWeeks = 0;
+  int merchDropWeeks = 0;
+  /// `premium` · `mass` · empty
+  String merchDropKind = '';
+  int tourBusCooldownWeeks = 0;
+  int tourBusWeeks = 0;
+  /// `fix` · `diy` · `cancel` · empty
+  String tourBusKind = '';
+  int awardsCampCooldownWeeks = 0;
+  int awardsCampWeeks = 0;
+  /// `campaign` · `chill` · empty
+  String awardsCampKind = '';
+  int genrePivotCooldownWeeks = 0;
+  int genrePivotWeeks = 0;
+  /// `lean` · `deny` · `double` · empty
+  String genrePivotKind = '';
+  int arenaSlotCooldownWeeks = 0;
+  int arenaSlotWeeks = 0;
+  /// `support` · `hold` · empty
+  String arenaSlotKind = '';
+  int fanTheoryCooldownWeeks = 0;
+  int fanTheoryWeeks = 0;
+  /// `confirm` · `deny` · `feed` · empty
+  String fanTheoryKind = '';
+  int blacklistCooldownWeeks = 0;
+  int blacklistWeeks = 0;
+  /// `address` · `ignore` · `clapback` · empty
+  String blacklistKind = '';
+  int comebackCooldownWeeks = 0;
+  int comebackWeeks = 0;
+  /// `intimate` · `maximal` · empty
+  String comebackKind = '';
+  int charityCooldownWeeks = 0;
+  int charityWeeks = 0;
+  /// `donate` · `match` · empty
+  String charityKind = '';
+
   int get fanClubMembers => fanClubFounded
       ? (playerFanCount * 0.14).round().clamp(12, 9999999)
       : 0;
@@ -410,6 +451,204 @@ class GameStateService extends ChangeNotifier {
       return '${artist?.name ?? 'Artist'} collab — "$title" +14% (${collabDmWeeks}w)';
     }
     return 'Leaked ${artist?.name ?? 'artist'} teaser — "$title" +10% (${collabDmWeeks}w)';
+  }
+
+  bool get hasPendingStalkerFan => lastWeekEvents.any(
+        (e) => e.id.startsWith('stalker_fan::') && e.needsPlayerDecision,
+      );
+
+  bool get canOfferStalkerFan {
+    if (_player == null) return false;
+    if (stalkerFanCooldownWeeks > 0 || hasPendingStalkerFan) return false;
+    final pop = _player!.attributes['popularity'] ?? 0;
+    return pop >= 25 || playerFanCount >= 800;
+  }
+
+  String get stalkerFanBanner {
+    if (stalkerFanWeeks <= 0) return '';
+    if (stalkerFanKind == 'ro') {
+      return 'Restraining order heat — +6% catalog (${stalkerFanWeeks}w)';
+    }
+    if (stalkerFanKind == 'soft') {
+      return 'Soft block boundary — +5% catalog (${stalkerFanWeeks}w)';
+    }
+    return 'Engaged stalker drama — +9% catalog (${stalkerFanWeeks}w)';
+  }
+
+  bool get hasPendingMerchDrop => lastWeekEvents.any(
+        (e) => e.id.startsWith('merch_drop::') && e.needsPlayerDecision,
+      );
+
+  bool get canOfferMerchDrop {
+    if (_player == null) return false;
+    if (merchDropCooldownWeeks > 0 || hasPendingMerchDrop) return false;
+    return (_player!.attributes['popularity'] ?? 0) >= 20;
+  }
+
+  String get merchDropBanner {
+    if (merchDropWeeks <= 0) return '';
+    if (merchDropKind == 'premium') {
+      return 'Premium merch drop — +8% streams (${merchDropWeeks}w)';
+    }
+    return 'Mass-market merch — +6% streams (${merchDropWeeks}w)';
+  }
+
+  bool get hasPendingTourBus => lastWeekEvents.any(
+        (e) => e.id.startsWith('tour_bus::') && e.needsPlayerDecision,
+      );
+
+  bool get canOfferTourBus {
+    if (_player == null) return false;
+    if (tourBusCooldownWeeks > 0 || hasPendingTourBus) return false;
+    return (_player!.attributes['popularity'] ?? 0) >= 15;
+  }
+
+  String get tourBusBanner {
+    if (tourBusWeeks <= 0) return '';
+    if (tourBusKind == 'fix') {
+      return 'Tour bus fixed — +7% streams (${tourBusWeeks}w)';
+    }
+    return 'DIY bus repair buzz — +5% streams (${tourBusWeeks}w)';
+  }
+
+  bool get hasPendingAwardsCamp => lastWeekEvents.any(
+        (e) => e.id.startsWith('awards_camp::') && e.needsPlayerDecision,
+      );
+
+  bool get canOfferAwardsCamp {
+    if (_player == null) return false;
+    if (awardsCampCooldownWeeks > 0 || hasPendingAwardsCamp) return false;
+    return (_player!.attributes['popularity'] ?? 0) >= 30;
+  }
+
+  String get awardsCampBanner {
+    if (awardsCampWeeks <= 0) return '';
+    if (awardsCampKind == 'campaign') {
+      return 'Awards campaign night — +12% streams (${awardsCampWeeks}w)';
+    }
+    return 'Chill awards night — +7% streams (${awardsCampWeeks}w)';
+  }
+
+  bool get hasPendingGenrePivot => lastWeekEvents.any(
+        (e) => e.id.startsWith('genre_pivot::') && e.needsPlayerDecision,
+      );
+
+  bool get canOfferGenrePivot {
+    if (_player == null) return false;
+    if (genrePivotCooldownWeeks > 0 || hasPendingGenrePivot) return false;
+    return (_player!.attributes['popularity'] ?? 0) >= 18;
+  }
+
+  String get genrePivotBanner {
+    if (genrePivotWeeks <= 0) return '';
+    if (genrePivotKind == 'lean') {
+      return 'Genre pivot rumor lean — +8% streams (${genrePivotWeeks}w)';
+    }
+    if (genrePivotKind == 'deny') {
+      return 'Rumor denied — +5% streams (${genrePivotWeeks}w)';
+    }
+    return 'Double-down pivot — +11% streams (${genrePivotWeeks}w)';
+  }
+
+  bool get hasPendingArenaSlot => lastWeekEvents.any(
+        (e) => e.id.startsWith('arena_slot::') && e.needsPlayerDecision,
+      );
+
+  bool get canOfferArenaSlot {
+    if (_player == null) return false;
+    if (arenaSlotCooldownWeeks > 0 || hasPendingArenaSlot) return false;
+    return (_player!.attributes['popularity'] ?? 0) >= 28;
+  }
+
+  String get arenaSlotBanner {
+    if (arenaSlotWeeks <= 0) return '';
+    if (arenaSlotKind == 'support') {
+      return 'Arena support slot — +9% streams (${arenaSlotWeeks}w)';
+    }
+    return 'Holding for headliner — +6% streams (${arenaSlotWeeks}w)';
+  }
+
+  bool get hasPendingFanTheory => lastWeekEvents.any(
+        (e) => e.id.startsWith('fan_theory::') && e.needsPlayerDecision,
+      );
+
+  bool get canOfferFanTheory {
+    if (_player == null) return false;
+    if (fanTheoryCooldownWeeks > 0 || hasPendingFanTheory) return false;
+    final pop = _player!.attributes['popularity'] ?? 0;
+    return pop >= 16 || playerFanCount >= 500;
+  }
+
+  String get fanTheoryBanner {
+    if (fanTheoryWeeks <= 0) return '';
+    if (fanTheoryKind == 'confirm') {
+      return 'Fan theory confirmed — +7% streams (${fanTheoryWeeks}w)';
+    }
+    if (fanTheoryKind == 'deny') {
+      return 'Theory denied — +4% streams (${fanTheoryWeeks}w)';
+    }
+    return 'Feeding the theory — +10% streams (${fanTheoryWeeks}w)';
+  }
+
+  bool get hasPendingBlacklist => lastWeekEvents.any(
+        (e) =>
+            e.id.startsWith('blacklist_rumor::') && e.needsPlayerDecision,
+      );
+
+  bool get canOfferBlacklist {
+    if (_player == null) return false;
+    if (blacklistCooldownWeeks > 0 || hasPendingBlacklist) return false;
+    final pop = _player!.attributes['popularity'] ?? 0;
+    final controversy = _player!.attributes['controversy'] ?? 0;
+    return controversy >= 10 || pop >= 25;
+  }
+
+  String get blacklistBanner {
+    if (blacklistWeeks <= 0) return '';
+    if (blacklistKind == 'address') {
+      return 'Blacklist addressed — +6% streams (${blacklistWeeks}w)';
+    }
+    return 'Clap-back heat — +9% streams (${blacklistWeeks}w)';
+  }
+
+  bool get hasPendingComeback => lastWeekEvents.any(
+        (e) =>
+            e.id.startsWith('comeback_concept::') && e.needsPlayerDecision,
+      );
+
+  bool get canOfferComeback {
+    if (_player == null) return false;
+    if (comebackCooldownWeeks > 0 || hasPendingComeback) return false;
+    final pop = _player!.attributes['popularity'] ?? 0;
+    final weeks = (_player!.attributes['weeksSinceDebut'] ?? 0);
+    return pop >= 35 || weeks >= 40;
+  }
+
+  String get comebackBanner {
+    if (comebackWeeks <= 0) return '';
+    if (comebackKind == 'intimate') {
+      return 'Intimate comeback concept — +8% streams (${comebackWeeks}w)';
+    }
+    return 'Maximalist comeback — +12% streams (${comebackWeeks}w)';
+  }
+
+  bool get hasPendingCharity => lastWeekEvents.any(
+        (e) =>
+            e.id.startsWith('charity_single::') && e.needsPlayerDecision,
+      );
+
+  bool get canOfferCharity {
+    if (_player == null) return false;
+    if (charityCooldownWeeks > 0 || hasPendingCharity) return false;
+    return (_player!.attributes['popularity'] ?? 0) >= 22;
+  }
+
+  String get charityBanner {
+    if (charityWeeks <= 0) return '';
+    if (charityKind == 'donate') {
+      return 'Charity single proceeds — +7% streams (${charityWeeks}w)';
+    }
+    return 'Matched charity push — +9% streams (${charityWeeks}w)';
   }
 
   String get mentorCosignBanner {
@@ -826,6 +1065,17 @@ class GameStateService extends ChangeNotifier {
     if (therapyPodcastCooldownWeeks > 0) therapyPodcastCooldownWeeks--;
     if (collabDmCooldownWeeks > 0) collabDmCooldownWeeks--;
 
+    if (stalkerFanCooldownWeeks > 0) stalkerFanCooldownWeeks--;
+    if (merchDropCooldownWeeks > 0) merchDropCooldownWeeks--;
+    if (tourBusCooldownWeeks > 0) tourBusCooldownWeeks--;
+    if (awardsCampCooldownWeeks > 0) awardsCampCooldownWeeks--;
+    if (genrePivotCooldownWeeks > 0) genrePivotCooldownWeeks--;
+    if (arenaSlotCooldownWeeks > 0) arenaSlotCooldownWeeks--;
+    if (fanTheoryCooldownWeeks > 0) fanTheoryCooldownWeeks--;
+    if (blacklistCooldownWeeks > 0) blacklistCooldownWeeks--;
+    if (comebackCooldownWeeks > 0) comebackCooldownWeeks--;
+    if (charityCooldownWeeks > 0) charityCooldownWeeks--;
+
     // New week: drop last week's cards, then build this week's.
     lastWeekEvents.clear();
     weeklyHeadlines.clear();
@@ -1073,6 +1323,37 @@ class GameStateService extends ChangeNotifier {
     }
     if (collabDmWeeks > 0) {
       parts.add(collabDmBanner);
+    }
+
+    if (stalkerFanWeeks > 0) {
+      parts.add(stalkerFanBanner);
+    }
+    if (merchDropWeeks > 0) {
+      parts.add(merchDropBanner);
+    }
+    if (tourBusWeeks > 0) {
+      parts.add(tourBusBanner);
+    }
+    if (awardsCampWeeks > 0) {
+      parts.add(awardsCampBanner);
+    }
+    if (genrePivotWeeks > 0) {
+      parts.add(genrePivotBanner);
+    }
+    if (arenaSlotWeeks > 0) {
+      parts.add(arenaSlotBanner);
+    }
+    if (fanTheoryWeeks > 0) {
+      parts.add(fanTheoryBanner);
+    }
+    if (blacklistWeeks > 0) {
+      parts.add(blacklistBanner);
+    }
+    if (comebackWeeks > 0) {
+      parts.add(comebackBanner);
+    }
+    if (charityWeeks > 0) {
+      parts.add(charityBanner);
     }
     lastWeekRecap = parts.join(' · ');
     if (weeklyHeadlines.isEmpty) {
@@ -2488,6 +2769,779 @@ class GameStateService extends ChangeNotifier {
       ));
     }
     addPlayerXp(choice == 'Ghost Them' ? 8 : 20);
+    notifyListeners();
+    saveGame();
+    return null;
+  }
+
+
+  double _stalkerFanBoost(Song song) {
+    if (stalkerFanWeeks <= 0 || song.artistId != _player?.id) return 1.0;
+    if (stalkerFanKind == 'ro') return 1.06;
+    if (stalkerFanKind == 'soft') return 1.05;
+    if (stalkerFanKind == 'engage') return 1.09;
+    return 1.0;
+  }
+
+  String? resolveStalkerFan(String choice, {bool fromEvent = false}) {
+    if (_player == null) return 'No player';
+    if (!fromEvent) {
+      if (stalkerFanCooldownWeeks > 0) {
+        return 'Fan safety quiet ($stalkerFanCooldownWeeks w)';
+      }
+      if (hasPendingStalkerFan) return 'Finish the stalker fan event first';
+      final pop = _player!.attributes['popularity'] ?? 0;
+      if (pop < 25 && playerFanCount < 800) {
+        return 'Need 25 popularity or 800 fans for stalker incidents';
+      }
+    }
+
+    switch (choice) {
+      case 'Restraining Order':
+        if (!fromEvent && playerMoney < 800) {
+          return 'Need \$800 for legal fees';
+        }
+        if (playerMoney >= 800) updatePlayerMoney(-800);
+        updatePlayerAttribute('discipline', 6);
+        updatePlayerAttribute('reputation', 4);
+        updatePlayerAttribute('happiness', -5);
+        stalkerFanKind = 'ro';
+        stalkerFanWeeks = 3;
+        weeklyHeadlines.add(
+          '${_player!.name} filed a restraining order on a stalker fan.',
+        );
+        break;
+      case 'Soft Block':
+        updatePlayerAttribute('discipline', 4);
+        updatePlayerAttribute('happiness', 3);
+        stalkerFanKind = 'soft';
+        stalkerFanWeeks = 2;
+        weeklyHeadlines.add(
+          '${_player!.name} soft-blocked a creepy superfan.',
+        );
+        break;
+      default:
+        updatePlayerAttribute('controversy', 7);
+        updatePlayerAttribute('fan_connection', 5);
+        updatePlayerAttribute('reputation', -4);
+        stalkerFanKind = 'engage';
+        stalkerFanWeeks = 2;
+        weeklyHeadlines.add(
+          '${_player!.name} engaged a stalker fan — messy headlines follow.',
+        );
+        break;
+    }
+
+    stalkerFanCooldownWeeks = 5;
+    if (!fromEvent) {
+      lastWeekEvents.add(GameEvent(
+        id: 'stalker_done_${DateTime.now().millisecondsSinceEpoch}',
+        title: 'Stalker Fan: $choice',
+        description: choice == 'Restraining Order'
+            ? 'Legal boundary set. Safer, colder vibe.'
+            : choice == 'Soft Block'
+                ? 'Quiet distance. You keep the peace.'
+                : 'You leaned into the chaos. Streams and drama.',
+        type: EventType.scandal,
+        severity: EventSeverity.high,
+      ));
+    }
+    addPlayerXp(choice == 'Soft Block' ? 12 : 18);
+    notifyListeners();
+    saveGame();
+    return null;
+  }
+
+  double _merchDropBoost(Song song) {
+    if (merchDropWeeks <= 0 || song.artistId != _player?.id) return 1.0;
+    if (merchDropKind == 'premium') return 1.08;
+    if (merchDropKind == 'mass') return 1.06;
+    return 1.0;
+  }
+
+  String? resolveMerchDrop(String choice, {bool fromEvent = false}) {
+    if (_player == null) return 'No player';
+    if (!fromEvent) {
+      if (merchDropCooldownWeeks > 0) {
+        return 'Merch warehouse cooling ($merchDropCooldownWeeks w)';
+      }
+      if (hasPendingMerchDrop) return 'Finish the merch drop first';
+      if ((_player!.attributes['popularity'] ?? 0) < 20) {
+        return 'Need 20 popularity for a merch drop';
+      }
+    }
+
+    switch (choice) {
+      case 'Premium Drop':
+        if (!fromEvent && playerMoney < 1200) {
+          return 'Need \$1200 for premium merch';
+        }
+        if (playerMoney >= 1200) updatePlayerMoney(-1200);
+        updatePlayerMoney(1800 + Random().nextInt(600));
+        updatePlayerFanCount(180 + Random().nextInt(120));
+        updatePlayerAttribute('networking', 4);
+        updatePlayerAttribute('marketing', 3);
+        merchDropKind = 'premium';
+        merchDropWeeks = 3;
+        weeklyHeadlines.add(
+          '${_player!.name} dropped limited vinyl and premium merch.',
+        );
+        break;
+      case 'Mass Market':
+        if (!fromEvent && playerMoney < 500) {
+          return 'Need \$500 for mass merch';
+        }
+        if (playerMoney >= 500) updatePlayerMoney(-500);
+        updatePlayerMoney(1400 + Random().nextInt(500));
+        updatePlayerFanCount(90 + Random().nextInt(80));
+        updatePlayerAttribute('marketing', 4);
+        updatePlayerAttribute('reputation', -2);
+        merchDropKind = 'mass';
+        merchDropWeeks = 2;
+        weeklyHeadlines.add(
+          '${_player!.name} flooded shops with mass-market merch.',
+        );
+        break;
+      default:
+        updatePlayerAttribute('discipline', 3);
+        updatePlayerAttribute('happiness', 3);
+        merchDropKind = '';
+        merchDropWeeks = 0;
+        weeklyHeadlines.add(
+          '${_player!.name} skipped the merch drop window.',
+        );
+        break;
+    }
+
+    merchDropCooldownWeeks = 5;
+    if (!fromEvent) {
+      lastWeekEvents.add(GameEvent(
+        id: 'merch_done_${DateTime.now().millisecondsSinceEpoch}',
+        title: 'Merch Drop: $choice',
+        description: choice == 'Premium Drop'
+            ? 'Limited run sold. Cred and cash.'
+            : choice == 'Mass Market'
+                ? 'Volume up, cool factor down a notch.'
+                : 'No drop. You kept inventory tight.',
+        type: EventType.opportunity,
+        severity: EventSeverity.medium,
+      ));
+    }
+    addPlayerXp(choice == 'Skip Drop' ? 8 : 16);
+    notifyListeners();
+    saveGame();
+    return null;
+  }
+
+  double _tourBusBoost(Song song) {
+    if (tourBusWeeks <= 0 || song.artistId != _player?.id) return 1.0;
+    if (tourBusKind == 'fix') return 1.07;
+    if (tourBusKind == 'diy') return 1.05;
+    return 1.0;
+  }
+
+  String? resolveTourBus(String choice, {bool fromEvent = false}) {
+    if (_player == null) return 'No player';
+    if (!fromEvent) {
+      if (tourBusCooldownWeeks > 0) {
+        return 'Tour logistics quiet ($tourBusCooldownWeeks w)';
+      }
+      if (hasPendingTourBus) return 'Finish the tour bus event first';
+      if ((_player!.attributes['popularity'] ?? 0) < 15) {
+        return 'Need 15 popularity for tour bus drama';
+      }
+    }
+
+    switch (choice) {
+      case 'Pay for Fix':
+        if (!fromEvent && playerMoney < 1500) {
+          return 'Need \$1500 for the mechanic';
+        }
+        if (playerMoney >= 1500) updatePlayerMoney(-1500);
+        updatePlayerAttribute('happiness', 4);
+        updatePlayerAttribute('discipline', 2);
+        tourBusKind = 'fix';
+        tourBusWeeks = 2;
+        weeklyHeadlines.add(
+          '${_player!.name} paid to fix the tour bus and kept the dates.',
+        );
+        break;
+      case 'DIY Repair':
+        updatePlayerAttribute('stamina', -14);
+        updatePlayerAttribute('marketing', 3);
+        if (Random().nextBool()) {
+          tourBusKind = 'diy';
+          tourBusWeeks = 2;
+          updatePlayerAttribute('happiness', 3);
+          weeklyHeadlines.add(
+            '${_player!.name} DIY-fixed the bus — road-warrior lore.',
+          );
+        } else {
+          tourBusKind = '';
+          tourBusWeeks = 0;
+          updatePlayerAttribute('controversy', 5);
+          updatePlayerMoney(200 + Random().nextInt(150));
+          weeklyHeadlines.add(
+            '${_player!.name}\'s DIY bus fix failed — viral flop clips.',
+          );
+        }
+        break;
+      default:
+        updatePlayerMoney(-600);
+        updatePlayerFanCount(-40);
+        updatePlayerAttribute('discipline', 4);
+        tourBusKind = 'cancel';
+        tourBusWeeks = 0;
+        weeklyHeadlines.add(
+          '${_player!.name} cancelled dates after the tour bus died.',
+        );
+        break;
+    }
+
+    tourBusCooldownWeeks = 5;
+    if (!fromEvent) {
+      lastWeekEvents.add(GameEvent(
+        id: 'tourbus_done_${DateTime.now().millisecondsSinceEpoch}',
+        title: 'Tour Bus: $choice',
+        description: choice == 'Pay for Fix'
+            ? 'Mechanic paid. Shows go on.'
+            : choice == 'DIY Repair'
+                ? 'You rolled the dice under the chassis.'
+                : 'Refunds and apologies. Discipline up.',
+        type: EventType.opportunity,
+        severity: EventSeverity.medium,
+      ));
+    }
+    addPlayerXp(choice == 'Cancel Dates' ? 10 : 16);
+    notifyListeners();
+    saveGame();
+    return null;
+  }
+
+  double _awardsCampBoost(Song song) {
+    if (awardsCampWeeks <= 0 || song.artistId != _player?.id) return 1.0;
+    if (awardsCampKind == 'campaign') return 1.12;
+    if (awardsCampKind == 'chill') return 1.07;
+    return 1.0;
+  }
+
+  String? resolveAwardsCamp(String choice, {bool fromEvent = false}) {
+    if (_player == null) return 'No player';
+    if (!fromEvent) {
+      if (awardsCampCooldownWeeks > 0) {
+        return 'Awards circuit quiet ($awardsCampCooldownWeeks w)';
+      }
+      if (hasPendingAwardsCamp) return 'Finish awards night first';
+      if ((_player!.attributes['popularity'] ?? 0) < 30) {
+        return 'Need 30 popularity for awards campaign night';
+      }
+    }
+
+    switch (choice) {
+      case 'Full Campaign':
+        if (!fromEvent && playerMoney < 2000) {
+          return 'Need \$2000 for a full campaign night';
+        }
+        if (playerMoney >= 2000) updatePlayerMoney(-2000);
+        updatePlayerAttribute('stamina', -12);
+        updatePlayerAttribute('marketing', 6);
+        updatePlayerAttribute('networking', 6);
+        updatePlayerAttribute('controversy', 4);
+        awardsCampKind = 'campaign';
+        awardsCampWeeks = 3;
+        weeklyHeadlines.add(
+          '${_player!.name} ran a full awards-night campaign.',
+        );
+        break;
+      case 'Keep It Chill':
+        updatePlayerAttribute('happiness', 5);
+        updatePlayerAttribute('networking', 4);
+        awardsCampKind = 'chill';
+        awardsCampWeeks = 2;
+        weeklyHeadlines.add(
+          '${_player!.name} kept awards night low-key and charming.',
+        );
+        break;
+      default:
+        updatePlayerAttribute('discipline', 4);
+        updatePlayerAttribute('happiness', 3);
+        awardsCampKind = '';
+        awardsCampWeeks = 0;
+        weeklyHeadlines.add(
+          '${_player!.name} skipped awards campaign night.',
+        );
+        break;
+    }
+
+    awardsCampCooldownWeeks = 6;
+    if (!fromEvent) {
+      lastWeekEvents.add(GameEvent(
+        id: 'awards_done_${DateTime.now().millisecondsSinceEpoch}',
+        title: 'Awards Night: $choice',
+        description: choice == 'Full Campaign'
+            ? 'Tables bought, speeches practiced, drama included.'
+            : choice == 'Keep It Chill'
+                ? 'Soft presence. Warm buzz.'
+                : 'Home early. Restored.',
+        type: EventType.opportunity,
+        severity: EventSeverity.high,
+      ));
+    }
+    addPlayerXp(choice == 'Skip Night' ? 8 : 22);
+    notifyListeners();
+    saveGame();
+    return null;
+  }
+
+  double _genrePivotBoost(Song song) {
+    if (genrePivotWeeks <= 0 || song.artistId != _player?.id) return 1.0;
+    if (genrePivotKind == 'lean') return 1.08;
+    if (genrePivotKind == 'deny') return 1.05;
+    if (genrePivotKind == 'double') return 1.11;
+    return 1.0;
+  }
+
+  String? resolveGenrePivot(String choice, {bool fromEvent = false}) {
+    if (_player == null) return 'No player';
+    if (!fromEvent) {
+      if (genrePivotCooldownWeeks > 0) {
+        return 'Genre rumor quiet ($genrePivotCooldownWeeks w)';
+      }
+      if (hasPendingGenrePivot) return 'Finish the genre rumor first';
+      if ((_player!.attributes['popularity'] ?? 0) < 18) {
+        return 'Need 18 popularity for genre pivot rumors';
+      }
+    }
+
+    switch (choice) {
+      case 'Lean Into It':
+        updatePlayerAttribute('marketing', 5);
+        final g = playerDominantGenre;
+        genreHeat[g] = ((genreHeat[g] ?? 40) + 6).clamp(15.0, 100.0);
+        genrePivotKind = 'lean';
+        genrePivotWeeks = 3;
+        weeklyHeadlines.add(
+          '${_player!.name} leaned into the $g pivot rumor.',
+        );
+        break;
+      case 'Deny the Rumor':
+        updatePlayerAttribute('reputation', 4);
+        updatePlayerAttribute('discipline', 3);
+        genrePivotKind = 'deny';
+        genrePivotWeeks = 2;
+        weeklyHeadlines.add(
+          '${_player!.name} denied a genre-pivot rumor.',
+        );
+        break;
+      default:
+        if (!fromEvent && playerMoney < 600) {
+          return 'Need \$600 to double down on the pivot';
+        }
+        if (playerMoney >= 600) updatePlayerMoney(-600);
+        updatePlayerAttribute('controversy', 6);
+        updatePlayerAttribute('stamina', -8);
+        updatePlayerAttribute('marketing', 4);
+        genrePivotKind = 'double';
+        genrePivotWeeks = 2;
+        weeklyHeadlines.add(
+          '${_player!.name} doubled down on a wild genre pivot.',
+        );
+        break;
+    }
+
+    genrePivotCooldownWeeks = 5;
+    if (!fromEvent) {
+      lastWeekEvents.add(GameEvent(
+        id: 'genre_pivot_done_${DateTime.now().millisecondsSinceEpoch}',
+        title: 'Genre Rumor: $choice',
+        description: choice == 'Lean Into It'
+            ? 'You own the rumor. Heat follows.'
+            : choice == 'Deny the Rumor'
+                ? 'Stay in lane. Cred intact.'
+                : 'All-in rebrand energy.',
+        type: EventType.opportunity,
+        severity: EventSeverity.medium,
+      ));
+    }
+    addPlayerXp(choice == 'Deny the Rumor' ? 12 : 18);
+    notifyListeners();
+    saveGame();
+    return null;
+  }
+
+  double _arenaSlotBoost(Song song) {
+    if (arenaSlotWeeks <= 0 || song.artistId != _player?.id) return 1.0;
+    if (arenaSlotKind == 'support') return 1.09;
+    if (arenaSlotKind == 'hold') return 1.06;
+    return 1.0;
+  }
+
+  String? resolveArenaSlot(String choice, {bool fromEvent = false}) {
+    if (_player == null) return 'No player';
+    if (!fromEvent) {
+      if (arenaSlotCooldownWeeks > 0) {
+        return 'Arena bookers quiet ($arenaSlotCooldownWeeks w)';
+      }
+      if (hasPendingArenaSlot) return 'Finish the arena slot first';
+      if ((_player!.attributes['popularity'] ?? 0) < 28) {
+        return 'Need 28 popularity for arena support slots';
+      }
+    }
+
+    switch (choice) {
+      case 'Take Support Slot':
+        updatePlayerMoney(2200 + Random().nextInt(800));
+        updatePlayerFanCount(280 + Random().nextInt(200));
+        updatePlayerAttribute('stamina', -10);
+        updatePlayerAttribute('networking', 5);
+        updatePlayerAttribute('performance', 3);
+        arenaSlotKind = 'support';
+        arenaSlotWeeks = 3;
+        weeklyHeadlines.add(
+          '${_player!.name} took an arena support slot.',
+        );
+        break;
+      case 'Hold for Headliner':
+        updatePlayerAttribute('networking', 4);
+        updatePlayerAttribute('discipline', 4);
+        arenaSlotKind = 'hold';
+        arenaSlotWeeks = 2;
+        weeklyHeadlines.add(
+          '${_player!.name} held out for a headliner slot.',
+        );
+        break;
+      default:
+        updatePlayerAttribute('happiness', 3);
+        updatePlayerAttribute('discipline', 3);
+        arenaSlotKind = '';
+        arenaSlotWeeks = 0;
+        weeklyHeadlines.add(
+          '${_player!.name} passed on the arena offer.',
+        );
+        break;
+    }
+
+    arenaSlotCooldownWeeks = 5;
+    if (!fromEvent) {
+      lastWeekEvents.add(GameEvent(
+        id: 'arena_done_${DateTime.now().millisecondsSinceEpoch}',
+        title: 'Arena Slot: $choice',
+        description: choice == 'Take Support Slot'
+            ? 'Big stage, opening set, instant fans.'
+            : choice == 'Hold for Headliner'
+                ? 'Patient play. Bookers remember.'
+                : 'No arena this month.',
+        type: EventType.opportunity,
+        severity: EventSeverity.high,
+      ));
+    }
+    addPlayerXp(choice == 'Pass' ? 8 : 20);
+    notifyListeners();
+    saveGame();
+    return null;
+  }
+
+  double _fanTheoryBoost(Song song) {
+    if (fanTheoryWeeks <= 0 || song.artistId != _player?.id) return 1.0;
+    if (fanTheoryKind == 'confirm') return 1.07;
+    if (fanTheoryKind == 'deny') return 1.04;
+    if (fanTheoryKind == 'feed') return 1.10;
+    return 1.0;
+  }
+
+  String? resolveFanTheory(String choice, {bool fromEvent = false}) {
+    if (_player == null) return 'No player';
+    if (!fromEvent) {
+      if (fanTheoryCooldownWeeks > 0) {
+        return 'Fan theories cooling ($fanTheoryCooldownWeeks w)';
+      }
+      if (hasPendingFanTheory) return 'Finish the fan theory first';
+      final pop = _player!.attributes['popularity'] ?? 0;
+      if (pop < 16 && playerFanCount < 500) {
+        return 'Need 16 popularity or 500 fans for theory rabbit holes';
+      }
+    }
+
+    switch (choice) {
+      case 'Confirm Theory':
+        updatePlayerAttribute('fan_connection', 6);
+        updatePlayerAttribute('happiness', 3);
+        updatePlayerAttribute('reputation', 2);
+        fanTheoryKind = 'confirm';
+        fanTheoryWeeks = 2;
+        weeklyHeadlines.add(
+          '${_player!.name} confirmed a wild fan theory.',
+        );
+        break;
+      case 'Deny Theory':
+        updatePlayerAttribute('discipline', 4);
+        updatePlayerAttribute('reputation', 3);
+        fanTheoryKind = 'deny';
+        fanTheoryWeeks = 2;
+        weeklyHeadlines.add(
+          '${_player!.name} shut down a fan theory rabbit hole.',
+        );
+        break;
+      default:
+        updatePlayerAttribute('controversy', 5);
+        updatePlayerAttribute('marketing', 5);
+        updatePlayerAttribute('fan_connection', 4);
+        fanTheoryKind = 'feed';
+        fanTheoryWeeks = 3;
+        weeklyHeadlines.add(
+          '${_player!.name} fed the fan theory machine.',
+        );
+        break;
+    }
+
+    fanTheoryCooldownWeeks = 5;
+    if (!fromEvent) {
+      lastWeekEvents.add(GameEvent(
+        id: 'fan_theory_done_${DateTime.now().millisecondsSinceEpoch}',
+        title: 'Fan Theory: $choice',
+        description: choice == 'Confirm Theory'
+            ? 'Mystery solved. Fans feel seen.'
+            : choice == 'Deny Theory'
+                ? 'Walls up. Lore stays murky.'
+                : 'The timeline goes feral.',
+        type: EventType.opportunity,
+        severity: EventSeverity.medium,
+      ));
+    }
+    addPlayerXp(choice == 'Deny Theory' ? 10 : 16);
+    notifyListeners();
+    saveGame();
+    return null;
+  }
+
+  double _blacklistBoost(Song song) {
+    if (blacklistWeeks <= 0 || song.artistId != _player?.id) return 1.0;
+    if (blacklistKind == 'address') return 1.06;
+    if (blacklistKind == 'clapback') return 1.09;
+    return 1.0;
+  }
+
+  String? resolveBlacklistRumor(String choice, {bool fromEvent = false}) {
+    if (_player == null) return 'No player';
+    if (!fromEvent) {
+      if (blacklistCooldownWeeks > 0) {
+        return 'Blacklist chatter quiet ($blacklistCooldownWeeks w)';
+      }
+      if (hasPendingBlacklist) return 'Finish the blacklist rumor first';
+      final pop = _player!.attributes['popularity'] ?? 0;
+      final controversy = _player!.attributes['controversy'] ?? 0;
+      if (controversy < 10 && pop < 25) {
+        return 'Need 10 controversy or 25 popularity for blacklist rumors';
+      }
+    }
+
+    switch (choice) {
+      case 'Address It':
+        if (!fromEvent && playerMoney < 400) {
+          return 'Need \$400 for PR';
+        }
+        if (playerMoney >= 400) updatePlayerMoney(-400);
+        updatePlayerAttribute('reputation', 5);
+        updatePlayerAttribute('controversy', -4);
+        blacklistKind = 'address';
+        blacklistWeeks = 3;
+        weeklyHeadlines.add(
+          '${_player!.name} addressed a social blacklist rumor.',
+        );
+        break;
+      case 'Ignore It':
+        updatePlayerAttribute('discipline', 4);
+        updatePlayerAttribute('happiness', 2);
+        blacklistKind = 'ignore';
+        blacklistWeeks = 0;
+        weeklyHeadlines.add(
+          '${_player!.name} ignored a blacklist rumor.',
+        );
+        break;
+      default:
+        updatePlayerAttribute('controversy', 6);
+        updatePlayerAttribute('marketing', 4);
+        updatePlayerAttribute('reputation', -3);
+        blacklistKind = 'clapback';
+        blacklistWeeks = 2;
+        weeklyHeadlines.add(
+          '${_player!.name} clapped back at blacklist whispers.',
+        );
+        break;
+    }
+
+    blacklistCooldownWeeks = 5;
+    if (!fromEvent) {
+      lastWeekEvents.add(GameEvent(
+        id: 'blacklist_done_${DateTime.now().millisecondsSinceEpoch}',
+        title: 'Blacklist: $choice',
+        description: choice == 'Address It'
+            ? 'PR statement out. Waters calm.'
+            : choice == 'Ignore It'
+                ? 'Silence. Discipline holds.'
+                : 'Clap back viral. Messy heat.',
+        type: EventType.scandal,
+        severity: EventSeverity.high,
+      ));
+    }
+    addPlayerXp(choice == 'Ignore It' ? 8 : 16);
+    notifyListeners();
+    saveGame();
+    return null;
+  }
+
+  double _comebackBoost(Song song) {
+    if (comebackWeeks <= 0 || song.artistId != _player?.id) return 1.0;
+    if (comebackKind == 'intimate') return 1.08;
+    if (comebackKind == 'maximal') return 1.12;
+    return 1.0;
+  }
+
+  String? resolveComebackConcept(String choice, {bool fromEvent = false}) {
+    if (_player == null) return 'No player';
+    if (!fromEvent) {
+      if (comebackCooldownWeeks > 0) {
+        return 'Comeback planning quiet ($comebackCooldownWeeks w)';
+      }
+      if (hasPendingComeback) return 'Finish the comeback concept first';
+      final pop = _player!.attributes['popularity'] ?? 0;
+      final weeks = (_player!.attributes['weeksSinceDebut'] ?? 0);
+      if (pop < 35 && weeks < 40) {
+        return 'Need 35 popularity or 40 weeks since debut';
+      }
+    }
+
+    switch (choice) {
+      case 'Intimate Concept':
+        updatePlayerAttribute('songwriting', 5);
+        updatePlayerAttribute('fan_connection', 5);
+        updatePlayerAttribute('happiness', 4);
+        comebackKind = 'intimate';
+        comebackWeeks = 3;
+        weeklyHeadlines.add(
+          '${_player!.name} sketched an intimate comeback album concept.',
+        );
+        break;
+      case 'Maximalist Concept':
+        if (!fromEvent && playerMoney < 2500) {
+          return 'Need \$2500 for a maximalist concept';
+        }
+        if (playerMoney >= 2500) updatePlayerMoney(-2500);
+        updatePlayerAttribute('stamina', -15);
+        updatePlayerAttribute('marketing', 6);
+        updatePlayerAttribute('controversy', 4);
+        comebackKind = 'maximal';
+        comebackWeeks = 3;
+        weeklyHeadlines.add(
+          '${_player!.name} greenlit a maximalist comeback spectacle.',
+        );
+        break;
+      default:
+        updatePlayerAttribute('discipline', 4);
+        updatePlayerAttribute('happiness', 3);
+        comebackKind = '';
+        comebackWeeks = 0;
+        weeklyHeadlines.add(
+          '${_player!.name} delayed the comeback album concept.',
+        );
+        break;
+    }
+
+    comebackCooldownWeeks = 6;
+    if (!fromEvent) {
+      lastWeekEvents.add(GameEvent(
+        id: 'comeback_done_${DateTime.now().millisecondsSinceEpoch}',
+        title: 'Comeback: $choice',
+        description: choice == 'Intimate Concept'
+            ? 'Soft songs, close fans, long game.'
+            : choice == 'Maximalist Concept'
+                ? 'Big budget, big risk, big noise.'
+                : 'Project on ice. Head clear.',
+        type: EventType.opportunity,
+        severity: EventSeverity.high,
+      ));
+    }
+    addPlayerXp(choice == 'Delay Project' ? 10 : 22);
+    notifyListeners();
+    saveGame();
+    return null;
+  }
+
+  double _charityBoost(Song song) {
+    if (charityWeeks <= 0 || song.artistId != _player?.id) return 1.0;
+    if (charityKind == 'donate') return 1.07;
+    if (charityKind == 'match') return 1.09;
+    return 1.0;
+  }
+
+  String? resolveCharitySingle(String choice, {bool fromEvent = false}) {
+    if (_player == null) return 'No player';
+    if (!fromEvent) {
+      if (charityCooldownWeeks > 0) {
+        return 'Charity calendar quiet ($charityCooldownWeeks w)';
+      }
+      if (hasPendingCharity) return 'Finish the charity single first';
+      if ((_player!.attributes['popularity'] ?? 0) < 22) {
+        return 'Need 22 popularity for a charity single push';
+      }
+    }
+
+    switch (choice) {
+      case 'Donate Proceeds':
+        final give = playerMoney >= 2000
+            ? (playerMoney * 0.4).clamp(800.0, 2000.0)
+            : 800.0;
+        if (!fromEvent && playerMoney < give) {
+          return 'Need enough cash to donate proceeds';
+        }
+        if (playerMoney >= give) updatePlayerMoney(-give);
+        updatePlayerAttribute('reputation', 6);
+        updatePlayerAttribute('fan_connection', 5);
+        charityKind = 'donate';
+        charityWeeks = 3;
+        weeklyHeadlines.add(
+          '${_player!.name} donated charity-single proceeds.',
+        );
+        break;
+      case 'Match Donations':
+        if (!fromEvent && playerMoney < 1200) {
+          return 'Need \$1200 to match donations';
+        }
+        if (playerMoney >= 1200) updatePlayerMoney(-1200);
+        updatePlayerAttribute('reputation', 5);
+        updatePlayerAttribute('networking', 4);
+        charityKind = 'match';
+        charityWeeks = 2;
+        weeklyHeadlines.add(
+          '${_player!.name} matched fan donations on a charity single.',
+        );
+        break;
+      default:
+        updatePlayerAttribute('reputation', -2);
+        updatePlayerAttribute('discipline', 3);
+        charityKind = '';
+        charityWeeks = 0;
+        weeklyHeadlines.add(
+          '${_player!.name} skipped the charity single push.',
+        );
+        break;
+    }
+
+    charityCooldownWeeks = 5;
+    if (!fromEvent) {
+      lastWeekEvents.add(GameEvent(
+        id: 'charity_done_${DateTime.now().millisecondsSinceEpoch}',
+        title: 'Charity: $choice',
+        description: choice == 'Donate Proceeds'
+            ? 'Cash out, goodwill in.'
+            : choice == 'Match Donations'
+                ? 'You matched the community. Cred rises.'
+                : 'No charity this week. Mild side-eye.',
+        type: EventType.opportunity,
+        severity: EventSeverity.medium,
+      ));
+    }
+    addPlayerXp(choice == 'Skip Charity' ? 8 : 18);
     notifyListeners();
     saveGame();
     return null;
@@ -3937,6 +4991,182 @@ class GameStateService extends ChangeNotifier {
       }
     }
 
+    // Stalker fan incident (~16%)
+    if ((pop >= 25 || playerFanCount >= 800) &&
+        stalkerFanCooldownWeeks == 0 &&
+        !hasPendingStalkerFan &&
+        rng.nextDouble() < 0.16) {
+      lastWeekEvents.add(GameEvent(
+        id: 'stalker_fan::$year-$month-$weekOfMonth',
+        title: 'Stalker Fan Incident',
+        description:
+            'A fan crossed the line. Restraining order, soft block, or engage?',
+        type: EventType.scandal,
+        severity: EventSeverity.high,
+        choices: const ['Restraining Order', 'Soft Block', 'Engage'],
+        choiceOutcomes: const {},
+      ));
+    }
+
+    // Vinyl / merch drop (~18%)
+    if (pop >= 20 &&
+        merchDropCooldownWeeks == 0 &&
+        !hasPendingMerchDrop &&
+        rng.nextDouble() < 0.18) {
+      lastWeekEvents.add(GameEvent(
+        id: 'merch_drop::$year-$month-$weekOfMonth',
+        title: 'Merch Drop Window',
+        description:
+            'Warehouse is ready. Premium drop, mass market, or skip?',
+        type: EventType.opportunity,
+        severity: EventSeverity.medium,
+        choices: const ['Premium Drop', 'Mass Market', 'Skip Drop'],
+        choiceOutcomes: const {},
+      ));
+    }
+
+    // Tour bus breakdown (~15%)
+    if (pop >= 15 &&
+        tourBusCooldownWeeks == 0 &&
+        !hasPendingTourBus &&
+        rng.nextDouble() < 0.15) {
+      lastWeekEvents.add(GameEvent(
+        id: 'tour_bus::$year-$month-$weekOfMonth',
+        title: 'Tour Bus Breakdown',
+        description:
+            'The bus died on the highway. Pay for fix, DIY, or cancel dates?',
+        type: EventType.opportunity,
+        severity: EventSeverity.medium,
+        choices: const ['Pay for Fix', 'DIY Repair', 'Cancel Dates'],
+        choiceOutcomes: const {},
+      ));
+    }
+
+    // Awards campaign night (~14%)
+    if (pop >= 30 &&
+        awardsCampCooldownWeeks == 0 &&
+        !hasPendingAwardsCamp &&
+        rng.nextDouble() < 0.14) {
+      lastWeekEvents.add(GameEvent(
+        id: 'awards_camp::$year-$month-$weekOfMonth',
+        title: 'Awards Campaign Night',
+        description:
+            'Tables are open. Full campaign, keep it chill, or skip?',
+        type: EventType.opportunity,
+        severity: EventSeverity.high,
+        choices: const ['Full Campaign', 'Keep It Chill', 'Skip Night'],
+        choiceOutcomes: const {},
+      ));
+    }
+
+    // Genre pivot rumor (~17%)
+    if (pop >= 18 &&
+        genrePivotCooldownWeeks == 0 &&
+        !hasPendingGenrePivot &&
+        rng.nextDouble() < 0.17) {
+      lastWeekEvents.add(GameEvent(
+        id: 'genre_pivot::$year-$month-$weekOfMonth',
+        title: 'Genre Pivot Rumor',
+        description:
+            'Blogs say you are switching lanes. Lean in, deny, or double down?',
+        type: EventType.opportunity,
+        severity: EventSeverity.medium,
+        choices: const ['Lean Into It', 'Deny the Rumor', 'Double Down'],
+        choiceOutcomes: const {},
+      ));
+    }
+
+    // Arena support slot (~16%)
+    if (pop >= 28 &&
+        arenaSlotCooldownWeeks == 0 &&
+        !hasPendingArenaSlot &&
+        rng.nextDouble() < 0.16) {
+      lastWeekEvents.add(GameEvent(
+        id: 'arena_slot::$year-$month-$weekOfMonth',
+        title: 'Arena Support Slot',
+        description:
+            'An arena opener opened up. Take it, hold for headliner, or pass?',
+        type: EventType.opportunity,
+        severity: EventSeverity.high,
+        choices: const ['Take Support Slot', 'Hold for Headliner', 'Pass'],
+        choiceOutcomes: const {},
+      ));
+    }
+
+    // Fan theory rabbit hole (~18%)
+    if ((pop >= 16 || playerFanCount >= 500) &&
+        fanTheoryCooldownWeeks == 0 &&
+        !hasPendingFanTheory &&
+        rng.nextDouble() < 0.18) {
+      lastWeekEvents.add(GameEvent(
+        id: 'fan_theory::$year-$month-$weekOfMonth',
+        title: 'Fan Theory Rabbit Hole',
+        description:
+            'A theory is trending. Confirm, deny, or feed it?',
+        type: EventType.opportunity,
+        severity: EventSeverity.medium,
+        choices: const ['Confirm Theory', 'Deny Theory', 'Feed the Theory'],
+        choiceOutcomes: const {},
+      ));
+    }
+
+    // Social blacklist rumor (~15%)
+    if ((controversy >= 10 || pop >= 25) &&
+        blacklistCooldownWeeks == 0 &&
+        !hasPendingBlacklist &&
+        rng.nextDouble() < 0.15) {
+      lastWeekEvents.add(GameEvent(
+        id: 'blacklist_rumor::$year-$month-$weekOfMonth',
+        title: 'Social Blacklist Rumor',
+        description:
+            'Whispers say you are blacklisted. Address it, ignore it, or clap back?',
+        type: EventType.scandal,
+        severity: EventSeverity.high,
+        choices: const ['Address It', 'Ignore It', 'Clap Back'],
+        choiceOutcomes: const {},
+      ));
+    }
+
+    // Comeback album concept (~12%)
+    final weeksDebut = (_player!.attributes['weeksSinceDebut'] ?? 0);
+    if ((pop >= 35 || weeksDebut >= 40) &&
+        comebackCooldownWeeks == 0 &&
+        !hasPendingComeback &&
+        rng.nextDouble() < 0.12) {
+      lastWeekEvents.add(GameEvent(
+        id: 'comeback_concept::$year-$month-$weekOfMonth',
+        title: 'Comeback Album Concept',
+        description:
+            'A-list writers want a concept. Intimate, maximalist, or delay?',
+        type: EventType.opportunity,
+        severity: EventSeverity.high,
+        choices: const [
+          'Intimate Concept',
+          'Maximalist Concept',
+          'Delay Project'
+        ],
+        choiceOutcomes: const {},
+      ));
+    }
+
+    // Charity single push (~16%)
+    if (pop >= 22 &&
+        charityCooldownWeeks == 0 &&
+        !hasPendingCharity &&
+        rng.nextDouble() < 0.16) {
+      lastWeekEvents.add(GameEvent(
+        id: 'charity_single::$year-$month-$weekOfMonth',
+        title: 'Charity Single Push',
+        description:
+            'A cause wants your single. Donate proceeds, match donations, or skip?',
+        type: EventType.opportunity,
+        severity: EventSeverity.medium,
+        choices: const ['Donate Proceeds', 'Match Donations', 'Skip Charity'],
+        choiceOutcomes: const {},
+      ));
+    }
+
+
     // Chart streak wager (~22% if charting)
     final wagerRank = bestPlayerChartRank;
     if (wagerRank != null &&
@@ -4421,6 +5651,47 @@ class GameStateService extends ChangeNotifier {
       resolveCollabDm(choice, fromEvent: true);
     }
 
+    if (event.id.startsWith('stalker_fan::')) {
+      resolveStalkerFan(choice, fromEvent: true);
+    }
+
+    if (event.id.startsWith('merch_drop::')) {
+      resolveMerchDrop(choice, fromEvent: true);
+    }
+
+    if (event.id.startsWith('tour_bus::')) {
+      resolveTourBus(choice, fromEvent: true);
+    }
+
+    if (event.id.startsWith('awards_camp::')) {
+      resolveAwardsCamp(choice, fromEvent: true);
+    }
+
+    if (event.id.startsWith('genre_pivot::')) {
+      resolveGenrePivot(choice, fromEvent: true);
+    }
+
+    if (event.id.startsWith('arena_slot::')) {
+      resolveArenaSlot(choice, fromEvent: true);
+    }
+
+    if (event.id.startsWith('fan_theory::')) {
+      resolveFanTheory(choice, fromEvent: true);
+    }
+
+    if (event.id.startsWith('blacklist_rumor::')) {
+      resolveBlacklistRumor(choice, fromEvent: true);
+    }
+
+    if (event.id.startsWith('comeback_concept::')) {
+      resolveComebackConcept(choice, fromEvent: true);
+    }
+
+    if (event.id.startsWith('charity_single::')) {
+      resolveCharitySingle(choice, fromEvent: true);
+    }
+
+
     event.selectedChoice = choice;
     event.resolved = true;
     notifyListeners();
@@ -4593,6 +5864,67 @@ class GameStateService extends ChangeNotifier {
         collabDmKind = '';
         collabDmSongId = '';
         collabDmArtistId = '';
+      }
+    }
+
+    if (stalkerFanWeeks > 0) {
+      stalkerFanWeeks--;
+      if (stalkerFanWeeks == 0) {
+        stalkerFanKind = '';
+      }
+    }
+    if (merchDropWeeks > 0) {
+      merchDropWeeks--;
+      if (merchDropWeeks == 0) {
+        merchDropKind = '';
+      }
+    }
+    if (tourBusWeeks > 0) {
+      tourBusWeeks--;
+      if (tourBusWeeks == 0) {
+        tourBusKind = '';
+      }
+    }
+    if (awardsCampWeeks > 0) {
+      awardsCampWeeks--;
+      if (awardsCampWeeks == 0) {
+        awardsCampKind = '';
+      }
+    }
+    if (genrePivotWeeks > 0) {
+      genrePivotWeeks--;
+      if (genrePivotWeeks == 0) {
+        genrePivotKind = '';
+      }
+    }
+    if (arenaSlotWeeks > 0) {
+      arenaSlotWeeks--;
+      if (arenaSlotWeeks == 0) {
+        arenaSlotKind = '';
+      }
+    }
+    if (fanTheoryWeeks > 0) {
+      fanTheoryWeeks--;
+      if (fanTheoryWeeks == 0) {
+        fanTheoryKind = '';
+      }
+    }
+    if (blacklistWeeks > 0) {
+      blacklistWeeks--;
+      if (blacklistWeeks == 0) {
+        blacklistKind = '';
+      }
+    }
+    if (comebackWeeks > 0) {
+      comebackWeeks--;
+      if (comebackWeeks == 0) {
+        comebackKind = '';
+      }
+    }
+    if (charityWeeks > 0) {
+      charityWeeks--;
+      if (charityWeeks == 0) {
+        charityKind = '';
       }
     }
 
@@ -5255,6 +6587,16 @@ class GameStateService extends ChangeNotifier {
         _documentaryBoost(song) *
         _therapyPodcastBoost(song) *
         _collabDmBoost(song) *
+        _stalkerFanBoost(song) *
+        _merchDropBoost(song) *
+        _tourBusBoost(song) *
+        _awardsCampBoost(song) *
+        _genrePivotBoost(song) *
+        _arenaSlotBoost(song) *
+        _fanTheoryBoost(song) *
+        _blacklistBoost(song) *
+        _comebackBoost(song) *
+        _charityBoost(song) *
         _listeningPartyBoost(song) *
         (song.sampleTakedown
             ? 0.22
@@ -5404,6 +6746,37 @@ class GameStateService extends ChangeNotifier {
     collabDmKind = '';
     collabDmArtistId = '';
     collabDmSongId = '';
+
+    stalkerFanCooldownWeeks = 0;
+    stalkerFanWeeks = 0;
+    stalkerFanKind = '';
+    merchDropCooldownWeeks = 0;
+    merchDropWeeks = 0;
+    merchDropKind = '';
+    tourBusCooldownWeeks = 0;
+    tourBusWeeks = 0;
+    tourBusKind = '';
+    awardsCampCooldownWeeks = 0;
+    awardsCampWeeks = 0;
+    awardsCampKind = '';
+    genrePivotCooldownWeeks = 0;
+    genrePivotWeeks = 0;
+    genrePivotKind = '';
+    arenaSlotCooldownWeeks = 0;
+    arenaSlotWeeks = 0;
+    arenaSlotKind = '';
+    fanTheoryCooldownWeeks = 0;
+    fanTheoryWeeks = 0;
+    fanTheoryKind = '';
+    blacklistCooldownWeeks = 0;
+    blacklistWeeks = 0;
+    blacklistKind = '';
+    comebackCooldownWeeks = 0;
+    comebackWeeks = 0;
+    comebackKind = '';
+    charityCooldownWeeks = 0;
+    charityWeeks = 0;
+    charityKind = '';
     _player = Artist(
       id: 'player',
       name: playerName,
@@ -5798,6 +7171,37 @@ class GameStateService extends ChangeNotifier {
       'collabDmKind': collabDmKind,
       'collabDmArtistId': collabDmArtistId,
       'collabDmSongId': collabDmSongId,
+
+      'stalkerFanCooldownWeeks': stalkerFanCooldownWeeks,
+      'stalkerFanWeeks': stalkerFanWeeks,
+      'stalkerFanKind': stalkerFanKind,
+      'merchDropCooldownWeeks': merchDropCooldownWeeks,
+      'merchDropWeeks': merchDropWeeks,
+      'merchDropKind': merchDropKind,
+      'tourBusCooldownWeeks': tourBusCooldownWeeks,
+      'tourBusWeeks': tourBusWeeks,
+      'tourBusKind': tourBusKind,
+      'awardsCampCooldownWeeks': awardsCampCooldownWeeks,
+      'awardsCampWeeks': awardsCampWeeks,
+      'awardsCampKind': awardsCampKind,
+      'genrePivotCooldownWeeks': genrePivotCooldownWeeks,
+      'genrePivotWeeks': genrePivotWeeks,
+      'genrePivotKind': genrePivotKind,
+      'arenaSlotCooldownWeeks': arenaSlotCooldownWeeks,
+      'arenaSlotWeeks': arenaSlotWeeks,
+      'arenaSlotKind': arenaSlotKind,
+      'fanTheoryCooldownWeeks': fanTheoryCooldownWeeks,
+      'fanTheoryWeeks': fanTheoryWeeks,
+      'fanTheoryKind': fanTheoryKind,
+      'blacklistCooldownWeeks': blacklistCooldownWeeks,
+      'blacklistWeeks': blacklistWeeks,
+      'blacklistKind': blacklistKind,
+      'comebackCooldownWeeks': comebackCooldownWeeks,
+      'comebackWeeks': comebackWeeks,
+      'comebackKind': comebackKind,
+      'charityCooldownWeeks': charityCooldownWeeks,
+      'charityWeeks': charityWeeks,
+      'charityKind': charityKind,
       'worldArtists': worldArtists.map((a) => a.toMap()).toList(),
       'worldSongs': worldSongs.map((s) => s.toMap()).toList(),
       'playerId': _player!.id,
@@ -5920,6 +7324,37 @@ class GameStateService extends ChangeNotifier {
       collabDmKind = data['collabDmKind'] as String? ?? '';
       collabDmArtistId = data['collabDmArtistId'] as String? ?? '';
       collabDmSongId = data['collabDmSongId'] as String? ?? '';
+
+      stalkerFanCooldownWeeks = data['stalkerFanCooldownWeeks'] as int? ?? 0;
+      stalkerFanWeeks = data['stalkerFanWeeks'] as int? ?? 0;
+      stalkerFanKind = data['stalkerFanKind'] as String? ?? '';
+      merchDropCooldownWeeks = data['merchDropCooldownWeeks'] as int? ?? 0;
+      merchDropWeeks = data['merchDropWeeks'] as int? ?? 0;
+      merchDropKind = data['merchDropKind'] as String? ?? '';
+      tourBusCooldownWeeks = data['tourBusCooldownWeeks'] as int? ?? 0;
+      tourBusWeeks = data['tourBusWeeks'] as int? ?? 0;
+      tourBusKind = data['tourBusKind'] as String? ?? '';
+      awardsCampCooldownWeeks = data['awardsCampCooldownWeeks'] as int? ?? 0;
+      awardsCampWeeks = data['awardsCampWeeks'] as int? ?? 0;
+      awardsCampKind = data['awardsCampKind'] as String? ?? '';
+      genrePivotCooldownWeeks = data['genrePivotCooldownWeeks'] as int? ?? 0;
+      genrePivotWeeks = data['genrePivotWeeks'] as int? ?? 0;
+      genrePivotKind = data['genrePivotKind'] as String? ?? '';
+      arenaSlotCooldownWeeks = data['arenaSlotCooldownWeeks'] as int? ?? 0;
+      arenaSlotWeeks = data['arenaSlotWeeks'] as int? ?? 0;
+      arenaSlotKind = data['arenaSlotKind'] as String? ?? '';
+      fanTheoryCooldownWeeks = data['fanTheoryCooldownWeeks'] as int? ?? 0;
+      fanTheoryWeeks = data['fanTheoryWeeks'] as int? ?? 0;
+      fanTheoryKind = data['fanTheoryKind'] as String? ?? '';
+      blacklistCooldownWeeks = data['blacklistCooldownWeeks'] as int? ?? 0;
+      blacklistWeeks = data['blacklistWeeks'] as int? ?? 0;
+      blacklistKind = data['blacklistKind'] as String? ?? '';
+      comebackCooldownWeeks = data['comebackCooldownWeeks'] as int? ?? 0;
+      comebackWeeks = data['comebackWeeks'] as int? ?? 0;
+      comebackKind = data['comebackKind'] as String? ?? '';
+      charityCooldownWeeks = data['charityCooldownWeeks'] as int? ?? 0;
+      charityWeeks = data['charityWeeks'] as int? ?? 0;
+      charityKind = data['charityKind'] as String? ?? '';
       weeklyHeadlines =
           List<String>.from(data['weeklyHeadlines'] as List? ?? const []);
       playerAlbums = (data['playerAlbums'] as List? ?? const [])
@@ -6079,6 +7514,37 @@ class GameStateService extends ChangeNotifier {
     collabDmKind = '';
     collabDmArtistId = '';
     collabDmSongId = '';
+
+    stalkerFanCooldownWeeks = 0;
+    stalkerFanWeeks = 0;
+    stalkerFanKind = '';
+    merchDropCooldownWeeks = 0;
+    merchDropWeeks = 0;
+    merchDropKind = '';
+    tourBusCooldownWeeks = 0;
+    tourBusWeeks = 0;
+    tourBusKind = '';
+    awardsCampCooldownWeeks = 0;
+    awardsCampWeeks = 0;
+    awardsCampKind = '';
+    genrePivotCooldownWeeks = 0;
+    genrePivotWeeks = 0;
+    genrePivotKind = '';
+    arenaSlotCooldownWeeks = 0;
+    arenaSlotWeeks = 0;
+    arenaSlotKind = '';
+    fanTheoryCooldownWeeks = 0;
+    fanTheoryWeeks = 0;
+    fanTheoryKind = '';
+    blacklistCooldownWeeks = 0;
+    blacklistWeeks = 0;
+    blacklistKind = '';
+    comebackCooldownWeeks = 0;
+    comebackWeeks = 0;
+    comebackKind = '';
+    charityCooldownWeeks = 0;
+    charityWeeks = 0;
+    charityKind = '';
     deleteSave();
     notifyListeners();
   }
