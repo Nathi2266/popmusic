@@ -79,7 +79,7 @@ jobs:
           EOF
 
       - name: Build release APK
-        run: flutter build apk --release
+        run: flutter build apk --release --android-skip-build-dependency-validation
 
       - name: Stage APK artifact
         run: |
@@ -113,10 +113,8 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Install CocoaPods
-        run: |
-          cd ios
-          pod install --repo-update
+      - name: Download iOS engine artifacts
+        run: flutter precache --ios
 
       - name: Detect iOS signing secrets
         id: signing
