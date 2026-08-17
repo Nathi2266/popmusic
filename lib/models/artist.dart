@@ -10,6 +10,8 @@ class Artist {
   List<String> awardsWon;
   ArtistAppearance appearance;
   LabelTier labelTier;
+  /// Named label id from the world catalog, `player_imprint`, or empty if unsigned.
+  String labelId;
 
   Artist({
     required this.id,
@@ -18,6 +20,7 @@ class Artist {
     List<String>? awardsWon,
     ArtistAppearance? appearance,
     this.labelTier = LabelTier.unsigned,
+    this.labelId = '',
   }) : attributes = attributes ?? {
           'popularity': 10,
           'reputation': 10,
@@ -37,6 +40,7 @@ class Artist {
       'awardsWon': awardsWon,
       'appearance': appearance.toMap(),
       'labelTier': labelTier.storageName,
+      'labelId': labelId,
     };
   }
 
@@ -50,6 +54,7 @@ class Artist {
           ? ArtistAppearance.fromMap(map['appearance'] as Map<String, dynamic>)
           : ArtistAppearance.defaults,
       labelTier: LabelTierX.fromName(map['labelTier'] as String?),
+      labelId: map['labelId'] as String? ?? '',
     );
   }
 }

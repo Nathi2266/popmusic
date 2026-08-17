@@ -141,6 +141,8 @@ class _ArtistsScreenState extends State<ArtistsScreen> {
                           artist: artist,
                           isRival: gameState.isRival(artist.id),
                           isPlayer: artist.id == gameState.player?.id,
+                          isTeam: gameState.isOnRoster(artist.id),
+                          labelName: gameState.labelDisplayName(artist),
                           onTap: () {
                             Navigator.push(
                               context,
@@ -170,6 +172,8 @@ class _ArtistCard extends StatelessWidget {
   final Artist artist;
   final bool isRival;
   final bool isPlayer;
+  final bool isTeam;
+  final String labelName;
   final VoidCallback onTap;
 
   const _ArtistCard({
@@ -177,6 +181,8 @@ class _ArtistCard extends StatelessWidget {
     required this.onTap,
     this.isRival = false,
     this.isPlayer = false,
+    this.isTeam = false,
+    this.labelName = '',
   });
 
   @override
@@ -247,11 +253,22 @@ class _ArtistCard extends StatelessWidget {
                               visualDensity: VisualDensity.compact,
                             ),
                           ),
+                        if (isTeam)
+                          const Padding(
+                            padding: EdgeInsets.only(left: 6),
+                            child: Chip(
+                              label: Text('TEAM'),
+                              backgroundColor: Color(0xFFFFD700),
+                              labelStyle: TextStyle(
+                                  color: Colors.black, fontSize: 10),
+                              visualDensity: VisualDensity.compact,
+                            ),
+                          ),
                       ],
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      artist.labelTier.displayName,
+                      labelName.isEmpty ? artist.labelTier.displayName : labelName,
                       style: TextStyle(
                         color: Color(artist.labelTier.colorValue),
                         fontSize: 13,

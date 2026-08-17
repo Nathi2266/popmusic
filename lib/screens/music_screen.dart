@@ -4,11 +4,13 @@ import '../services/game_state_service.dart';
 import 'create_song_screen.dart';
 import '../models/song.dart';
 import '../models/studio_finish.dart';
+import '../models/label_tier.dart';
 import '../widgets/shimmer_loader.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/glass_card.dart';
 import '../utils/animations.dart';
 import '../utils/toast_service.dart';
+import 'labels_screen.dart';
 
 class MusicScreen extends StatelessWidget {
   const MusicScreen({super.key});
@@ -18,9 +20,8 @@ class MusicScreen extends StatelessWidget {
     return Consumer<GameStateService>(
       builder: (context, gameState, child) {
         final player = gameState.player;
-        final playerSongs = gameState.worldSongs // Changed from allSongs to worldSongs
-            .where((song) => song.artistId == player?.id)
-            .toList();
+        final playerSongs = gameState.playerSongs;
+        final roster = gameState.activeRoster;
 
         return Scaffold(
           appBar: AppBar(
@@ -84,7 +85,6 @@ class MusicScreen extends StatelessWidget {
               ),
               const SizedBox(height: 8),
 
-              // Songs List
               Expanded(
                 child: player == null
                     ? ListView.builder(
@@ -94,7 +94,7 @@ class MusicScreen extends StatelessWidget {
                           return const ShimmerSongCard();
                         },
                       )
-                    : playerSongs.isEmpty
+                    : playerSongs.isEmpty && roster.isEmpty
                         ? EmptyState(
                             icon: Icons.music_note,
                             title: 'No songs yet',
@@ -109,16 +109,24 @@ class MusicScreen extends StatelessWidget {
                               );
                             },
                           )
-                        : ListView.builder(
+                        : ListView(
                             padding: const EdgeInsets.symmetric(horizontal: 16),
-                            itemCount: playerSongs.length,
-                            itemBuilder: (context, index) {
-                              final song = playerSongs[index];
-                              return AppAnimations.fadeIn(
-                                duration: Duration(milliseconds: 300 + (index * 50)),
-                                child: _SongCard(song: song),
-                              );
-                            },
+                            children: [
+                              _CatalogSection(
+                                title: player.name,
+                                subtitle: 'You',
+                                songs: gameState.catalogSongsFor(player.id),
+                              ),
+                              for (final signing in roster)
+                                _CatalogSection(
+                                  title: gameState.getArtistById(signing.artistId)?.name ??
+                                      'Signed artist',
+                                  subtitle:
+                                      '${signing.deal.displayName} · you keep ${(signing.playerCut * 100).toStringAsFixed(0)}%',
+                                  songs: gameState.catalogSongsFor(signing.artistId),
+                                  artistId: signing.artistId,
+                                ),
+                            ],
                           ),
               ),
             ],
@@ -217,6 +225,80 @@ void _showAlbumDialog(BuildContext context, GameStateService game) {
   );
 }
 
+class _CatalogSection extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final List<Song> songs;
+  final String? artistId;
+
+  const _CatalogSection({
+    required this.title,
+    required this.subtitle,
+    required this.songs,
+    this.artistId,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final game = Provider.of<GameStateService>(context, listen: false);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 8),
+        Text(
+          title.toUpperCase(),
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.2,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(subtitle, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+        if (artistId != null) ...[
+          const SizedBox(height: 8),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () {
+                final err = game.commissionRosterDemo(artistId!);
+                if (err != null) {
+                  ToastService().showError(err);
+                } else {
+                  ToastService().showSuccess('Demo ready to release');
+                }
+              },
+              icon: const Icon(Icons.mic_none),
+              label: const Text('Write a demo (\$400)'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.white,
+                side: const BorderSide(color: Colors.white24),
+              ),
+            ),
+          ),
+        ],
+        const SizedBox(height: 8),
+        if (songs.isEmpty)
+          const Padding(
+            padding: EdgeInsets.only(bottom: 16),
+            child: Text(
+              'No tracks in this catalog yet.',
+              style: TextStyle(color: Colors.white38),
+            ),
+          )
+        else
+          ...songs.asMap().entries.map(
+            (entry) => AppAnimations.fadeIn(
+              duration: Duration(milliseconds: 220 + (entry.key * 40)),
+              child: _SongCard(song: entry.value),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
 class _SongCard extends StatelessWidget {
   final Song song;
 
@@ -260,12 +342,19 @@ class _SongCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 4),
-                      Text(
-                        '${song.genre} · Weeks: ${song.weeksSinceRelease} • Weekly: ${song.weeklyListeners.toStringAsFixed(0)}${song.videoWeeksRemaining > 0 ? ' · MV ${song.videoWeeksRemaining}w' : ''}${song.playlistWeeksRemaining > 0 ? ' · PL ${song.playlistWeeksRemaining}w' : ''}${song.weeksSinceRelease <= 1 ? ' · DEBUT' : ''}${song.deluxeIssued ? ' · DELUXE' : ''}${song.sourceSongId.isNotEmpty ? ' · REMIX' : ''}${song.listeningPartyWeeks > 0 ? ' · PARTY' : ''}',
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 14,
-                        ),
+                      Consumer<GameStateService>(
+                        builder: (context, game, _) {
+                          final demo = song.released ? '' : ' · DEMO';
+                          return Text(
+                            '${game.songCredit(song)} · ${song.genre} · Weeks: ${song.weeksSinceRelease} • Weekly: ${song.weeklyListeners.toStringAsFixed(0)}${song.videoWeeksRemaining > 0 ? ' · MV ${song.videoWeeksRemaining}w' : ''}${song.playlistWeeksRemaining > 0 ? ' · PL ${song.playlistWeeksRemaining}w' : ''}${song.released && song.weeksSinceRelease <= 1 ? ' · DEBUT' : ''}${song.deluxeIssued ? ' · DELUXE' : ''}${song.sourceSongId.isNotEmpty ? ' · REMIX' : ''}${song.listeningPartyWeeks > 0 ? ' · PARTY' : ''}$demo',
+                            style: TextStyle(
+                              color: song.released
+                                  ? Colors.white70
+                                  : const Color(0xFFFFD700),
+                              fontSize: 13,
+                            ),
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -345,7 +434,14 @@ void _showSongSheet(BuildContext context, Song song) {
                     fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             Text(
-              '${song.genre} · ${song.lengthMinutes.toStringAsFixed(1)} min',
+              game.songCredit(song),
+              style: const TextStyle(color: Color(0xFFFFD700)),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              song.released
+                  ? '${song.genre} · ${song.lengthMinutes.toStringAsFixed(1)} min'
+                  : 'Unreleased demo · ${song.genre}',
               style: const TextStyle(color: Colors.white70),
             ),
             Text(
@@ -425,6 +521,44 @@ void _showSongSheet(BuildContext context, Song song) {
                 ),
               ),
             const SizedBox(height: 16),
+            if (!song.released) ...[
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    final err = game.releaseRosterSong(song.id);
+                    if (err != null) {
+                      ToastService().showError(err);
+                    } else {
+                      ToastService().showSuccess('Released "${song.title}"');
+                    }
+                  },
+                  icon: const Icon(Icons.publish),
+                  label: const Text('Release this demo (\$350)'),
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
+            if (song.released && song.artistId == game.player?.id) ...[
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const LabelsScreen(),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.business),
+                  label: const Text('Submit to a record label'),
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
             if (song.listeningParty == 'pending') ...[
               SizedBox(
                 width: double.infinity,

@@ -34,6 +34,10 @@ class Song {
   /// `pending` · `press` · `fans` · `skip` · empty
   String listeningParty;
   int listeningPartyWeeks;
+  /// Featured / collab partners (not the primary [artistId]).
+  List<String> featuredArtistIds;
+  /// Demos sit in the catalog until the player releases them.
+  bool released;
 
   Song({
     required this.id,
@@ -64,7 +68,10 @@ class Song {
     this.sourceSongId = '',
     this.listeningParty = '',
     this.listeningPartyWeeks = 0,
-  }) : listenerHistory = listenerHistory ?? [];
+    List<String>? featuredArtistIds,
+    this.released = true,
+  }) : listenerHistory = listenerHistory ?? [],
+       featuredArtistIds = featuredArtistIds ?? [];
 
   Map<String, dynamic> toMap() {
     return {
@@ -96,6 +103,8 @@ class Song {
       'sourceSongId': sourceSongId,
       'listeningParty': listeningParty,
       'listeningPartyWeeks': listeningPartyWeeks,
+      'featuredArtistIds': featuredArtistIds,
+      'released': released,
     };
   }
 
@@ -132,6 +141,11 @@ class Song {
       sourceSongId: map['sourceSongId'] as String? ?? '',
       listeningParty: map['listeningParty'] as String? ?? '',
       listeningPartyWeeks: map['listeningPartyWeeks'] as int? ?? 0,
+      featuredArtistIds: List<String>.from(map['featuredArtistIds'] as List? ?? const []),
+      released: map['released'] as bool? ?? true,
     );
   }
+
+  bool creditsArtist(String id) =>
+      artistId == id || featuredArtistIds.contains(id);
 }

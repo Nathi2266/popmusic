@@ -8,7 +8,9 @@ import '../models/artist_appearance.dart';
 import '../models/song.dart';
 import '../models/event.dart';
 import '../models/label_tier.dart';
+import '../models/record_label.dart';
 import '../data/npc_artists.dart'; // Corrected import for NPCArtists
+import '../data/record_labels.dart';
 import '../models/player_level.dart';
 import '../models/challenge.dart';
 import '../models/album.dart';
@@ -85,6 +87,11 @@ class GameStateService extends ChangeNotifier {
   ActiveTour? activeTour;
   double lastWeekTourPay = 0;
   LabelDealStyle labelDealStyle = LabelDealStyle.standard;
+  /// Named catalog label the player is signed to, or empty if unsigned.
+  String playerLabelId = '';
+  final List<RosterSigning> rosterSignings = [];
+  final Map<String, int> labelPitchCooldowns = {};
+  final Map<String, int> signOfferCooldowns = {};
   final Set<String> ownedAssetIds = {};
   final List<OwnedInvestment> investments = [];
   double lastWeekPassive = 0;
@@ -1075,6 +1082,8 @@ class GameStateService extends ChangeNotifier {
     if (blacklistCooldownWeeks > 0) blacklistCooldownWeeks--;
     if (comebackCooldownWeeks > 0) comebackCooldownWeeks--;
     if (charityCooldownWeeks > 0) charityCooldownWeeks--;
+    _tickCooldownMap(labelPitchCooldowns);
+    _tickCooldownMap(signOfferCooldowns);
 
     // New week: drop last week's cards, then build this week's.
     lastWeekEvents.clear();
@@ -1153,6 +1162,7 @@ class GameStateService extends ChangeNotifier {
     _generateWeeklyEvents(); // Generate events for the current week
     _checkStoryBeats();
     _generateNPCSongs(); // Generate new songs from NPCs
+    _simulateRosterWeek();
     if (yearRolled) {
       _runYearEndAwards();
       _queueAwardAfterparty();
@@ -1172,18 +1182,29 @@ class GameStateService extends ChangeNotifier {
   void _payStreamRoyalties() {
     lastWeekRoyalties = 0;
     if (_player == null) return;
+    const perStream = 0.0038;
     final streams = playerSongs.fold<double>(
       0,
-      (sum, song) => sum + song.weeklyListeners,
+      (sum, song) => song.released ? sum + song.weeklyListeners : sum,
     );
-    if (streams <= 0) return;
-
-    const perStream = 0.0038;
     lastWeekRoyalties = streams * perStream * effectiveRoyaltyKeep;
+
+    var rosterCut = 0.0;
+    for (final signing in activeRoster) {
+      final cut = signing.playerCut;
+      for (final song in worldSongs) {
+        if (!song.released || song.artistId != signing.artistId) continue;
+        rosterCut += song.weeklyListeners * perStream * cut;
+      }
+    }
+    lastWeekRoyalties += rosterCut;
+
     if (lastWeekRoyalties > 0) {
       updatePlayerMoney(lastWeekRoyalties);
       weeklyHeadlines.add(
-        'Streaming paid \$${lastWeekRoyalties.toStringAsFixed(0)} this week.',
+        rosterCut > 0
+            ? 'Streaming paid \$${lastWeekRoyalties.toStringAsFixed(0)} this week (imprint \$${rosterCut.toStringAsFixed(0)}).'
+            : 'Streaming paid \$${lastWeekRoyalties.toStringAsFixed(0)} this week.',
       );
     }
   }
@@ -4124,6 +4145,7 @@ class GameStateService extends ChangeNotifier {
       id: 'song_${DateTime.now().millisecondsSinceEpoch}_ask_collab',
       title: '${_player!.name} & ${partner.name} - Link Up',
       artistId: _player!.id,
+      featuredArtistIds: [partner.id],
       popularityFactor: quality,
       viralFactor: (38 + Random().nextDouble() * 28).clamp(10.0, 90.0),
       salesPotential: (32 + Random().nextDouble() * 28).clamp(10.0, 90.0),
@@ -4810,6 +4832,7 @@ class GameStateService extends ChangeNotifier {
           id: 'song_${DateTime.now().millisecondsSinceEpoch}_collab',
           title: '${artist1.name} & ${artist2.name} - Unity Track',
           artistId: artist1.id,
+          featuredArtistIds: [artist2.id],
           popularityFactor:
               ((artist1.attributes['popularity'] ?? 10) +
                       (artist2.attributes['popularity'] ?? 10)) /
@@ -5750,6 +5773,10 @@ class GameStateService extends ChangeNotifier {
     }
 
     for (var song in worldSongs) {
+      if (!song.released) {
+        song.weeklyListeners = 0;
+        continue;
+      }
       song.lastWeekListeners = song.weeklyListeners;
       song.lastWeekRank = currentRanks[song.id]; // Assign the rank from the previous week
       song.isNewEntry = song.weeksSinceRelease == 0; // If weeksSinceRelease is 0, it's a new entry
@@ -6157,6 +6184,7 @@ class GameStateService extends ChangeNotifier {
 
     for (var artist in worldArtists) {
       if (artist.id == 'player') continue;
+      if (isOnRoster(artist.id)) continue;
 
       final rival = isRival(artist.id);
       // Rivals drop much more often, especially when you're charting
@@ -6213,7 +6241,9 @@ class GameStateService extends ChangeNotifier {
 
     // NPC song retirement
     final songsToRetire = worldSongs.where((song) =>
+        song.released &&
         song.artistId != 'player' &&
+        !isOnRoster(song.artistId) &&
         song.weeksSinceRelease > 12 &&
         song.weeklyListeners < 500 &&
         rng.nextDouble() < 0.05
@@ -6266,19 +6296,25 @@ class GameStateService extends ChangeNotifier {
       }
     }
 
-    songsToConsider = List<Song>.from(songsToConsider)..sort(_compareByChartScore);
+    songsToConsider = List<Song>.from(
+      songsToConsider.where((song) => song.released),
+    )..sort(_compareByChartScore);
     return songsToConsider.take(limit).toList();
   }
 
   double getArtistCumulativeStreams(String artistId) {
-    return worldSongs.where((song) => song.artistId == artistId).fold(0.0, (sum, song) => sum + song.totalStreams);
+    return worldSongs.where((song) => song.released && song.creditsArtist(artistId)).fold(0.0, (sum, song) => sum + song.totalStreams);
   }
 
   List<Artist> getTopArtists(int limit) {
     // Calculate cumulative streams for each artist
     Map<String, double> artistStreams = {};
     for (var song in worldSongs) {
+      if (!song.released) continue;
       artistStreams.update(song.artistId, (value) => value + song.totalStreams, ifAbsent: () => song.totalStreams);
+      for (final feat in song.featuredArtistIds) {
+        artistStreams.update(feat, (value) => value + song.totalStreams * 0.4, ifAbsent: () => song.totalStreams * 0.4);
+      }
     }
 
     // Sort artists by cumulative streams
@@ -6685,6 +6721,10 @@ class GameStateService extends ChangeNotifier {
     investments.clear();
     activeTour = null;
     labelDealStyle = LabelDealStyle.standard;
+    playerLabelId = '';
+    rosterSignings.clear();
+    labelPitchCooldowns.clear();
+    signOfferCooldowns.clear();
     dissCooldownWeeks = 0;
     lastFestivalYearPlayed = 0;
     pressCooldownWeeks = 0;
@@ -6805,6 +6845,7 @@ class GameStateService extends ChangeNotifier {
     );
     worldArtists.add(_player!); // Add player to worldArtists
     worldArtists.addAll(NPCArtists.generateNPCs()); // Add NPC artists to worldArtists
+    _ensureNamedLabels();
     playerMoney = 5000;
     playerFanCount = 100;
     playerXp = 0;
@@ -6814,7 +6855,481 @@ class GameStateService extends ChangeNotifier {
     notifyListeners();
   }
 
-  List<Song> get playerSongs => worldSongs.where((song) => song.artistId == _player?.id).toList();
+  List<Song> get playerSongs => worldSongs
+      .where((song) => song.artistId == _player?.id)
+      .toList();
+
+  List<RosterSigning> get activeRoster =>
+      rosterSignings.where((s) => s.active).toList();
+
+  bool isOnRoster(String artistId) =>
+      activeRoster.any((s) => s.artistId == artistId);
+
+  RosterSigning? rosterFor(String artistId) {
+    for (final signing in activeRoster) {
+      if (signing.artistId == artistId) return signing;
+    }
+    return null;
+  }
+
+  RecordLabel? labelById(String? id) {
+    if (id == null || id.isEmpty) return null;
+    if (id == RecordLabels.playerImprintId && _player != null) {
+      return RecordLabels.playerImprint(_player!.name, _player!.labelTier);
+    }
+    return RecordLabels.byId(id);
+  }
+
+  RecordLabel? labelForArtist(Artist artist) {
+    if (isOnRoster(artist.id) || artist.labelId == RecordLabels.playerImprintId) {
+      return RecordLabels.playerImprint(
+        _player?.name ?? 'Player',
+        _player?.labelTier ?? LabelTier.indie,
+      );
+    }
+    if (artist.id == _player?.id && playerLabelId.isNotEmpty) {
+      return labelById(playerLabelId);
+    }
+    return labelById(artist.labelId);
+  }
+
+  String labelDisplayName(Artist? artist) {
+    if (artist == null) return 'Unsigned';
+    final named = labelForArtist(artist);
+    if (named != null) return named.name;
+    return artist.labelTier.displayName;
+  }
+
+  String songCredit(Song song) {
+    final primary = getArtistById(song.artistId)?.name ?? 'Unknown';
+    if (song.featuredArtistIds.isEmpty) return primary;
+    final feats = song.featuredArtistIds
+        .map((id) => getArtistById(id)?.name ?? '')
+        .where((name) => name.isNotEmpty)
+        .toList();
+    if (feats.isEmpty) return primary;
+    return '$primary ft. ${feats.join(', ')}';
+  }
+
+  List<RecordLabel> visibleLabels() {
+    return RecordLabels.allVisible(
+      playerName: _player?.name ?? 'Player',
+      playerTier: _player?.labelTier ?? LabelTier.unsigned,
+    );
+  }
+
+  List<Artist> artistsOnLabel(String labelId) {
+    if (labelId == RecordLabels.playerImprintId) {
+      return worldArtists.where((a) => isOnRoster(a.id)).toList();
+    }
+    return worldArtists
+        .where((a) => a.labelId == labelId && a.id != _player?.id)
+        .toList();
+  }
+
+  List<Song> catalogSongsFor(String artistId) {
+    return worldSongs.where((song) => song.creditsArtist(artistId)).toList();
+  }
+
+  List<Song> get managedCatalog {
+    final ids = <String>{if (_player != null) _player!.id};
+    for (final signing in activeRoster) {
+      ids.add(signing.artistId);
+    }
+    return worldSongs.where((song) => ids.any(song.creditsArtist)).toList();
+  }
+
+  void _tickCooldownMap(Map<String, int> map) {
+    final keys = map.keys.toList();
+    for (final key in keys) {
+      final next = (map[key] ?? 0) - 1;
+      if (next <= 0) {
+        map.remove(key);
+      } else {
+        map[key] = next;
+      }
+    }
+  }
+
+  void _ensureNamedLabels() {
+    for (final artist in worldArtists) {
+      if (artist.id == _player?.id) continue;
+      if (isOnRoster(artist.id)) {
+        artist.labelId = RecordLabels.playerImprintId;
+        continue;
+      }
+      if (artist.labelId.isEmpty && artist.labelTier != LabelTier.unsigned) {
+        artist.labelId = RecordLabels.assignIdFor(artist);
+      }
+    }
+    if (_player != null &&
+        playerLabelId.isEmpty &&
+        _player!.labelTier != LabelTier.unsigned) {
+      _assignPlayerToNamedLabel(_player!.labelTier);
+    }
+  }
+
+  void _assignPlayerToNamedLabel(LabelTier tier, {String? preferredId}) {
+    if (_player == null || tier == LabelTier.unsigned) {
+      playerLabelId = '';
+      _player?.labelId = '';
+      return;
+    }
+    final preferred = RecordLabels.byId(preferredId);
+    if (preferred != null && preferred.tier == tier) {
+      playerLabelId = preferred.id;
+      _player!.labelId = preferred.id;
+      return;
+    }
+    final current = RecordLabels.byId(playerLabelId);
+    if (current != null && current.tier == tier) {
+      _player!.labelId = current.id;
+      return;
+    }
+    final pool = RecordLabels.forTier(tier);
+    if (pool.isEmpty) return;
+    final pick = pool[(_player!.id.hashCode.abs()) % pool.length];
+    playerLabelId = pick.id;
+    _player!.labelId = pick.id;
+  }
+
+  String? pitchTrackToLabel(
+    String songId,
+    String labelId, {
+    LabelDealStyle deal = LabelDealStyle.standard,
+    bool forceAccept = false,
+    Random? rng,
+  }) {
+    if (_player == null) return 'No player';
+    final label = RecordLabels.byId(labelId);
+    if (label == null) return 'Label not found';
+    Song? song;
+    for (final s in worldSongs) {
+      if (s.id == songId) {
+        song = s;
+        break;
+      }
+    }
+    if (song == null || song.artistId != _player!.id) {
+      return 'Pick one of your tracks';
+    }
+    if (!song.released) return 'Release the demo first';
+    final cool = labelPitchCooldowns[labelId] ?? 0;
+    if (cool > 0) return 'A&R already heard you ($cool w)';
+    if (playerMoney < label.pitchCost) {
+      return 'Need \$${label.pitchCost} to submit';
+    }
+
+    final pop = _player!.attributes['popularity'] ?? 0;
+    if (label.tier == LabelTier.major &&
+        song.totalStreams < 20000 &&
+        pop < 40) {
+      return 'Need 20k streams on this track or 40 popularity';
+    }
+    if (label.tier == LabelTier.superstar &&
+        song.totalStreams < 100000 &&
+        pop < 70) {
+      return 'Need 100k streams on this track or 70 popularity';
+    }
+    if (label.tier == LabelTier.indie && playerSongs.where((s) => s.released).isEmpty) {
+      return 'Need a released song';
+    }
+
+    updatePlayerMoney(-label.pitchCost.toDouble());
+    labelPitchCooldowns[labelId] = RecordLabels.pitchCooldownWeeks;
+
+    var chance = 0.18 +
+        (song.popularityFactor / 220) +
+        (song.viralFactor / 280) +
+        pop / 250;
+    if (song.totalStreams >= 50000) chance += 0.12;
+    if (song.totalStreams >= 20000) chance += 0.06;
+    if (label.tier == LabelTier.major) chance -= 0.12;
+    if (label.tier == LabelTier.superstar) chance -= 0.22;
+    chance = chance.clamp(0.08, 0.88);
+
+    final roll = rng ?? Random();
+    final landed = forceAccept || roll.nextDouble() < chance;
+    if (!landed) {
+      weeklyHeadlines.add('${label.name} passed on "${song.title}".');
+      notifyListeners();
+      saveGame();
+      return '${label.name} passed on "${song.title}"';
+    }
+
+    final alreadyHere = playerLabelId == label.id;
+    final sameOrLower = _player!.labelTier.index >= label.tier.index;
+    if (alreadyHere || sameOrLower) {
+      song.playlistWeeksRemaining =
+          (song.playlistWeeksRemaining + 3).clamp(0, 8);
+      song.viralFactor = (song.viralFactor + 8).clamp(0, 100);
+      weeklyHeadlines.add(
+        '${label.name} added "${song.title}" to their playlist circuit.',
+      );
+      lastWeekEvents.add(GameEvent(
+        id: 'pitch_boost_${label.id}_${DateTime.now().millisecondsSinceEpoch}',
+        title: '${label.name} Playlist Add',
+        description:
+            '"${song.title}" is spinning on ${label.name} playlists for 3 weeks.',
+        type: EventType.labelOffer,
+        severity: EventSeverity.medium,
+      ));
+      notifyListeners();
+      saveGame();
+      return null;
+    }
+
+    _player!.labelTier = label.tier;
+    labelDealStyle = deal;
+    _assignPlayerToNamedLabel(label.tier, preferredId: label.id);
+    final advance = deal.signingAdvance(label.tier);
+    if (advance > 0) updatePlayerMoney(advance);
+    updatePlayerAttribute('influence', label.tier == LabelTier.indie ? 5 : 10);
+    updatePlayerAttribute('marketing', label.tier == LabelTier.indie ? 5 : 8);
+    weeklyHeadlines.add(
+      '${_player!.name} signed with ${label.name} (${deal.displayName}).',
+    );
+    lastWeekEvents.add(GameEvent(
+      id: 'pitch_sign_${label.id}_${DateTime.now().millisecondsSinceEpoch}',
+      title: 'Signed: ${label.name}',
+      description:
+          'They picked up "${song.title}". ${deal.displayName} deal. Advance \$${advance.toStringAsFixed(0)}.',
+      type: EventType.labelOffer,
+      severity: EventSeverity.high,
+    ));
+    notifyListeners();
+    saveGame();
+    return null;
+  }
+
+  String? signArtist(
+    String artistId,
+    LabelDealStyle deal, {
+    bool forceAccept = false,
+    Random? rng,
+  }) {
+    if (_player == null) return 'No player';
+    if (artistId == _player!.id) return 'You already run this imprint';
+    final artist = getArtistById(artistId);
+    if (artist == null) return 'Artist not found';
+    if (isOnRoster(artistId)) return 'Already on your roster';
+    if (activeRoster.length >= RecordLabels.maxRosterSize) {
+      return 'Roster full (${RecordLabels.maxRosterSize})';
+    }
+    final pop = _player!.attributes['popularity'] ?? 0;
+    if (pop < 22 && _player!.labelTier == LabelTier.unsigned) {
+      return 'Need 22 popularity to sign artists';
+    }
+    if (artist.labelTier == LabelTier.major &&
+        _player!.labelTier.index < LabelTier.indie.index) {
+      return 'Need Indie to poach a major-label act';
+    }
+    if (artist.labelTier == LabelTier.superstar &&
+        _player!.labelTier.index < LabelTier.major.index) {
+      return 'Need Major to poach a superstar act';
+    }
+    final cool = signOfferCooldowns[artistId] ?? 0;
+    if (cool > 0) return 'They already passed ($cool w)';
+
+    final cost = RosterSigning.signingCost(
+      artist.attributes['popularity'] ?? 10,
+      deal,
+    );
+    if (playerMoney < cost) {
+      return 'Need \$${cost.toStringAsFixed(0)} for this contract';
+    }
+
+    final chance = RosterSigning.acceptChance(
+      playerPopularity: pop,
+      playerReputation: _player!.attributes['reputation'] ?? 10,
+      artistPopularity: artist.attributes['popularity'] ?? 10,
+      deal: deal,
+    );
+    final roll = rng ?? Random();
+    updatePlayerMoney(-cost);
+    if (!forceAccept && roll.nextDouble() > chance) {
+      signOfferCooldowns[artistId] = RecordLabels.signRejectCooldownWeeks;
+      weeklyHeadlines.add(
+        '${artist.name} passed on your ${deal.displayName} contract.',
+      );
+      notifyListeners();
+      saveGame();
+      return '${artist.name} would not sign that contract';
+    }
+
+    rosterSignings.add(RosterSigning(
+      artistId: artistId,
+      deal: deal,
+      signedYear: year,
+      signedMonth: month,
+      signedWeek: weekOfMonth,
+    ));
+    artist.labelId = RecordLabels.playerImprintId;
+    if (artist.labelTier == LabelTier.unsigned) {
+      artist.labelTier = LabelTier.indie;
+    }
+    updatePlayerAttribute('influence', 4);
+    updatePlayerAttribute('networking', 3);
+    weeklyHeadlines.add(
+      '${artist.name} signed with ${_player!.name} Records (${deal.displayName}).',
+    );
+    lastWeekEvents.add(GameEvent(
+      id: 'roster_sign_${artistId}_${DateTime.now().millisecondsSinceEpoch}',
+      title: 'Signed: ${artist.name}',
+      description:
+          '${deal.displayName} contract. They keep ${(RosterSigning(artistId: artistId, deal: deal, signedYear: year, signedMonth: month, signedWeek: weekOfMonth).artistKeep * 100).toStringAsFixed(0)}% of their streams. Roster ${activeRoster.length}/${RecordLabels.maxRosterSize}.',
+      type: EventType.labelOffer,
+      severity: EventSeverity.high,
+    ));
+    notifyListeners();
+    saveGame();
+    return null;
+  }
+
+  String? commissionRosterDemo(
+    String artistId, {
+    String? collabArtistId,
+  }) {
+    if (_player == null) return 'No player';
+    if (!isOnRoster(artistId)) return 'Not on your roster';
+    final artist = getArtistById(artistId);
+    if (artist == null) return 'Artist not found';
+    if (hustlesThisWeek >= 2) return 'Already hustled enough this week';
+    const cost = 400.0;
+    if (playerMoney < cost) return 'Need \$400 studio time';
+    final stamina = _player!.attributes['stamina'] ?? 0;
+    if (stamina < 10) return 'Too tired to run a session';
+
+    String? featureId = collabArtistId;
+    if (featureId != null && featureId.isNotEmpty) {
+      if (featureId == artistId) return 'Pick a different collab partner';
+      final partner = getArtistById(featureId);
+      if (partner == null) return 'Collab partner not found';
+    } else {
+      featureId = null;
+    }
+
+    hustlesThisWeek++;
+    updatePlayerMoney(-cost);
+    updatePlayerAttribute('stamina', -10);
+    _spawnRosterTrack(artist, featureId: featureId, released: false);
+    notifyListeners();
+    saveGame();
+    return null;
+  }
+
+  String? releaseRosterSong(String songId) {
+    if (_player == null) return 'No player';
+    Song? song;
+    for (final s in worldSongs) {
+      if (s.id == songId) {
+        song = s;
+        break;
+      }
+    }
+    if (song == null) return 'Song not found';
+    if (song.released) return 'Already released';
+    final managed = song.artistId == _player!.id ||
+        isOnRoster(song.artistId) ||
+        song.featuredArtistIds.any(isOnRoster) ||
+        song.featuredArtistIds.contains(_player!.id);
+    if (!managed) return 'That demo is not on your imprint';
+    const cost = 350.0;
+    if (playerMoney < cost) return 'Need \$350 to release';
+    updatePlayerMoney(-cost);
+    song.released = true;
+    song.weeksSinceRelease = 0;
+    song.isNewEntry = true;
+    song.listeningParty = 'pending';
+    updatePlayerFanCount(80);
+    addPlayerXp(40);
+    _challenges?.updateProgress(ChallengeType.releaseSongs, 1);
+    weeklyHeadlines.add(
+      '${_player!.name} Records released "${song.title}" (${songCredit(song)}).',
+    );
+    notifyListeners();
+    saveGame();
+    return null;
+  }
+
+  void _simulateRosterWeek() {
+    if (_player == null || activeRoster.isEmpty) return;
+    final rng = Random();
+    for (final signing in activeRoster) {
+      final artist = getArtistById(signing.artistId);
+      if (artist == null) continue;
+      final pending = worldSongs
+          .where((s) => s.artistId == artist.id && !s.released)
+          .length;
+      if (pending < 2 && rng.nextDouble() < 0.42) {
+        _spawnRosterTrack(artist, released: false, rng: rng);
+      }
+      if (rng.nextDouble() < 0.18) {
+        final partner = _pickRosterCollabPartner(artist.id, rng);
+        if (partner != null) {
+          _spawnRosterTrack(
+            artist,
+            featureId: partner.id,
+            released: false,
+            rng: rng,
+          );
+        }
+      }
+    }
+  }
+
+  Artist? _pickRosterCollabPartner(String artistId, Random rng) {
+    final roll = rng.nextDouble();
+    if (roll < 0.40 && _player != null) return _player;
+    if (roll < 0.70) {
+      final teammates = activeRoster
+          .where((s) => s.artistId != artistId)
+          .map((s) => getArtistById(s.artistId))
+          .whereType<Artist>()
+          .toList();
+      if (teammates.isNotEmpty) {
+        return teammates[rng.nextInt(teammates.length)];
+      }
+    }
+    final outsiders = worldArtists
+        .where((a) => a.id != artistId && a.id != _player?.id && !isOnRoster(a.id))
+        .toList();
+    if (outsiders.isEmpty) return _player;
+    return outsiders[rng.nextInt(outsiders.length)];
+  }
+
+  void _spawnRosterTrack(
+    Artist artist, {
+    String? featureId,
+    required bool released,
+    Random? rng,
+  }) {
+    final roll = rng ?? Random();
+    final feature = featureId == null ? null : getArtistById(featureId);
+    final title = feature == null
+        ? _npcSongTitles[roll.nextInt(_npcSongTitles.length)]
+        : '${artist.name} & ${feature.name} - ${_npcSongTitles[roll.nextInt(_npcSongTitles.length)]}';
+    final pop = ((artist.attributes['popularity'] ?? 20) +
+            (feature?.attributes['popularity'] ?? 0) * 0.35)
+        .clamp(18.0, 92.0);
+    worldSongs.add(Song(
+      id: 'song_${DateTime.now().millisecondsSinceEpoch}_${artist.id}',
+      title: title,
+      artistId: artist.id,
+      featuredArtistIds: feature == null ? const [] : [feature.id],
+      popularityFactor: pop,
+      viralFactor: (artist.attributes['creativity'] ?? 20).clamp(10.0, 80.0),
+      salesPotential: (artist.attributes['marketing'] ?? 20).clamp(10.0, 80.0),
+      genre: availableGenres[roll.nextInt(availableGenres.length)],
+      isNewEntry: released,
+      released: released,
+    ));
+    if (!released) {
+      weeklyHeadlines.add(
+        '${artist.name} cut a demo${feature == null ? '' : ' with ${feature.name}'} for ${_player?.name ?? 'you'} Records.',
+      );
+    }
+  }
 
   void addPlayerXp(int amount, {bool countTowardChallenges = true}) {
     final oldLevel = PlayerLevel.fromTotalXp(playerXp).level;
@@ -6922,6 +7437,7 @@ class GameStateService extends ChangeNotifier {
     if (!canUpgradeLabelTier(target)) return false;
     _player!.labelTier = target;
     labelDealStyle = deal;
+    _assignPlayerToNamedLabel(target);
     final advance = deal.signingAdvance(target);
     if (advance > 0) {
       updatePlayerMoney(advance);
@@ -7202,6 +7718,10 @@ class GameStateService extends ChangeNotifier {
       'charityCooldownWeeks': charityCooldownWeeks,
       'charityWeeks': charityWeeks,
       'charityKind': charityKind,
+      'playerLabelId': playerLabelId,
+      'rosterSignings': rosterSignings.map((s) => s.toMap()).toList(),
+      'labelPitchCooldowns': labelPitchCooldowns,
+      'signOfferCooldowns': signOfferCooldowns,
       'worldArtists': worldArtists.map((a) => a.toMap()).toList(),
       'worldSongs': worldSongs.map((s) => s.toMap()).toList(),
       'playerId': _player!.id,
@@ -7355,6 +7875,20 @@ class GameStateService extends ChangeNotifier {
       charityCooldownWeeks = data['charityCooldownWeeks'] as int? ?? 0;
       charityWeeks = data['charityWeeks'] as int? ?? 0;
       charityKind = data['charityKind'] as String? ?? '';
+      playerLabelId = data['playerLabelId'] as String? ?? '';
+      rosterSignings
+        ..clear()
+        ..addAll(
+          (data['rosterSignings'] as List? ?? const []).map(
+            (e) => RosterSigning.fromMap(Map<String, dynamic>.from(e as Map)),
+          ),
+        );
+      labelPitchCooldowns
+        ..clear()
+        ..addAll(_stringIntMap(data['labelPitchCooldowns']));
+      signOfferCooldowns
+        ..clear()
+        ..addAll(_stringIntMap(data['signOfferCooldowns']));
       weeklyHeadlines =
           List<String>.from(data['weeklyHeadlines'] as List? ?? const []);
       playerAlbums = (data['playerAlbums'] as List? ?? const [])
@@ -7392,12 +7926,21 @@ class GameStateService extends ChangeNotifier {
       }
       if (_player == null) return false;
 
+      _ensureNamedLabels();
+
       lastWeekEvents.clear();
       notifyListeners();
       return true;
     } catch (_) {
       return false;
     }
+  }
+
+  Map<String, int> _stringIntMap(dynamic raw) {
+    if (raw is! Map) return {};
+    return raw.map(
+      (k, v) => MapEntry(k.toString(), (v as num).toInt()),
+    );
   }
 
   Map<String, dynamic> _normalizeArtistMap(Map raw) {
@@ -7453,6 +7996,10 @@ class GameStateService extends ChangeNotifier {
     investments.clear();
     activeTour = null;
     labelDealStyle = LabelDealStyle.standard;
+    playerLabelId = '';
+    rosterSignings.clear();
+    labelPitchCooldowns.clear();
+    signOfferCooldowns.clear();
     dissCooldownWeeks = 0;
     lastFestivalYearPlayed = 0;
     pressCooldownWeeks = 0;

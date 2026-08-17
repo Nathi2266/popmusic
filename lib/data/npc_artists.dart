@@ -1,5 +1,6 @@
 import '../models/artist.dart';
 import '../models/label_tier.dart';
+import 'record_labels.dart';
 import 'dart:math';
 
 class NPCArtists {
@@ -54,13 +55,14 @@ class NPCArtists {
 
       final popularity = attributes['popularity'] ?? 0;
       final labelTier = LabelTierX.forNpcPopularity(popularity, random);
-
-      npcs.add(Artist(
+      final npc = Artist(
         id: 'npc_$i',
         name: artistNames[i],
         attributes: attributes,
         labelTier: labelTier,
-      ));
+      );
+      npc.labelId = RecordLabels.assignIdFor(npc);
+      npcs.add(npc);
     }
 
     return npcs;

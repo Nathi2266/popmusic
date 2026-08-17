@@ -5,7 +5,6 @@ import 'dart:math'; // Import for min and max
 import '../services/game_state_service.dart';
 import '../models/song.dart';
 import '../models/artist.dart';
-import '../models/label_tier.dart';
 import 'artist_detail_screen.dart'; // Added import for ArtistDetailScreen
 
 /// ChartScreen - shows top 30 songs, weekly listeners, delta, and small artist snapshot.
@@ -171,7 +170,7 @@ class ChartsScreen extends StatelessWidget {
                                       ),
                                       const SizedBox(height: 1), // Reduced height
                                       Text(
-                                        'Total Artist Streams: ${game.getArtistCumulativeStreams(entry.artistId).toStringAsFixed(0)} • Label: ${_getArtistLabel(artist)}',
+                                        'Total Artist Streams: ${game.getArtistCumulativeStreams(entry.artistId).toStringAsFixed(0)} • Label: ${_getArtistLabel(game, artist)}',
                                         style: const TextStyle(fontSize: 11, color: Colors.white54), // Reduced font size
                                       ),
                                       const SizedBox(height: 2), // Reduced height
@@ -237,7 +236,7 @@ class ChartsScreen extends StatelessWidget {
                       itemBuilder: (context, idx) {
                         final artist = game.getTopArtists(30)[idx];
                         final cumulativeStreams = game.getArtistCumulativeStreams(artist.id);
-                        final label = _getArtistLabel(artist);
+                        final label = _getArtistLabel(game, artist);
 
                         return Card(
                           margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -282,9 +281,9 @@ class ChartsScreen extends StatelessWidget {
     );
   }
 
-  String _getArtistLabel(Artist? artist) {
+  String _getArtistLabel(GameStateService game, Artist? artist) {
     if (artist == null) return 'Unknown';
-    return artist.labelTier.displayName;
+    return game.labelDisplayName(artist);
   }
 
   String _getWeeklyListenerChangePercentage(Song song) {

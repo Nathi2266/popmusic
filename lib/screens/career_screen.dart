@@ -6,6 +6,7 @@ import '../models/label_tier.dart';
 import '../screens/award_detail_screen.dart';
 import '../screens/achievements_screen.dart';
 import '../screens/lifestyle_screen.dart';
+import '../screens/labels_screen.dart';
 import '../widgets/empty_state.dart';
 import '../utils/toast_service.dart';
 
@@ -58,6 +59,18 @@ class CareerScreen extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
+                      if (gameState.labelDisplayName(player) !=
+                          player.labelTier.displayName) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          gameState.labelDisplayName(player),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 8),
                       Text(
                         player.labelTier == LabelTier.unsigned
@@ -119,6 +132,31 @@ class CareerScreen extends StatelessWidget {
                     style: OutlinedButton.styleFrom(
                       foregroundColor: const Color(0xFFFFD700),
                       side: const BorderSide(color: Color(0xFFFFD700)),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const LabelsScreen(),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.album_outlined),
+                    label: Text(
+                      gameState.activeRoster.isEmpty
+                          ? 'Record labels & your imprint'
+                          : 'Imprint roster ${gameState.activeRoster.length}/5',
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      side: const BorderSide(color: Colors.white24),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
                   ),

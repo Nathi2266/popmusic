@@ -10,6 +10,7 @@ import '../models/label_tier.dart';
 import 'weekly_events_and_proceed_button.dart';
 import 'charts_screen.dart';
 import 'lifestyle_screen.dart';
+import 'labels_screen.dart';
 import '../widgets/error_widget.dart';
 import '../widgets/xp_bar.dart';
 import '../utils/toast_service.dart';
@@ -93,6 +94,19 @@ class DashboardScreen extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                         builder: (context) => const LifestyleScreen(),
+                      ),
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.album_outlined, color: Colors.white70),
+                  title: const Text('Record Labels', style: TextStyle(color: Colors.white)),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const LabelsScreen(),
                       ),
                     );
                   },
