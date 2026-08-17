@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:flutter/widgets.dart';
@@ -7,10 +9,8 @@ import 'theme_music_config.dart';
 import 'theme_music_local.dart'
     if (dart.library.html) 'theme_music_local_web.dart' as local;
 
-/// Loops the main theme without bundling the MP3 into APK/IPA.
-///
-/// The track is hosted under `web/audio/theme_music.mp3` (web builds + GitHub).
-/// Mobile/desktop download once and cache on device.
+/// Loops the main theme. Uses a bundled asset on mobile/desktop; web serves
+/// `web/audio/theme_music.mp3`. Respects Settings → Music on/off and volume.
 class ThemeMusicService with WidgetsBindingObserver {
   ThemeMusicService(this._settings);
 
@@ -26,24 +26,20 @@ class ThemeMusicService with WidgetsBindingObserver {
     _started = true;
 
     WidgetsBinding.instance.addObserver(this);
-    _settingsListener = _onSettingsChanged;
+    _settingsListener = () => unawaited(_applySettings());
     _settings.addListener(_settingsListener!);
 
     await _player.setLoopMode(LoopMode.one);
-    await _player.setVolume(_settings.musicVolume);
-
-    if (_settings.musicEnabled) {
-      await _ensurePlaying();
-    }
+    await _applySettings();
   }
 
-  void _onSettingsChanged() {
-    _player.setVolume(_settings.musicVolume);
+  Future<void> _applySettings() async {
+    await _player.setVolume(_settings.musicVolume);
     if (!_settings.musicEnabled) {
-      _player.pause();
+      await _player.pause();
       return;
     }
-    _ensurePlaying();
+    await _ensurePlaying();
   }
 
   Future<void> _ensurePlaying() async {
@@ -54,15 +50,24 @@ class ThemeMusicService with WidgetsBindingObserver {
     if (_player.audioSource != null) {
       try {
         await _player.play();
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('Theme music resume failed: $e');
+      }
       return;
     }
 
     _loading = true;
     try {
-      final source = await _resolveSource();
+      AudioSource? source = await _resolveSource();
       if (source == null) return;
-      await _player.setAudioSource(source);
+      try {
+        await _player.setAudioSource(source);
+      } catch (e) {
+        debugPrint('Theme music asset load failed, trying fallback: $e');
+        source = await _resolveFallbackSource();
+        if (source == null) return;
+        await _player.setAudioSource(source);
+      }
       if (_settings.musicEnabled) {
         await _player.setVolume(_settings.musicVolume);
         await _player.play();
@@ -79,11 +84,16 @@ class ThemeMusicService with WidgetsBindingObserver {
       return AudioSource.uri(Uri.parse('audio/theme_music.mp3'));
     }
 
+    // Primary: bundled asset (works offline in release builds).
+    return AudioSource.asset(ThemeMusicConfig.assetPath);
+  }
+
+  /// Optional fallback if asset load fails (e.g. missing from bundle).
+  Future<AudioSource?> _resolveFallbackSource() async {
     final localPath = await local.resolveLocalThemePath();
     if (localPath != null) {
       return AudioSource.uri(Uri.file(localPath));
     }
-
     if (ThemeMusicConfig.remoteUrl.isNotEmpty) {
       return AudioSource.uri(Uri.parse(ThemeMusicConfig.remoteUrl));
     }
@@ -95,13 +105,13 @@ class ThemeMusicService with WidgetsBindingObserver {
     if (!_settings.musicEnabled) return;
     switch (state) {
       case AppLifecycleState.resumed:
-        _ensurePlaying();
+        unawaited(_ensurePlaying());
         break;
       case AppLifecycleState.inactive:
       case AppLifecycleState.paused:
       case AppLifecycleState.hidden:
       case AppLifecycleState.detached:
-        _player.pause();
+        unawaited(_player.pause());
         break;
     }
   }

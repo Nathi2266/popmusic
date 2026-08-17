@@ -52,7 +52,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
-    # Theme music lives in web/audio/ (downloaded+cached at runtime) so APK/IPA stay small.
+    - assets/audio/theme_music.mp3
     - assets/fonts/poppins/
   fonts:
     - family: Poppins

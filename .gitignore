@@ -26,6 +26,7 @@ migrate_working_dir/
 # Large theme track kept for local reference only (not bundled in APK/IPA).
 # Runtime music is served from web/audio/theme_music.mp3 and cached on device.
 assets/audio/*.mp3
+!assets/audio/theme_music.mp3
 
 # Flutter/Dart/Pub related
 **/doc/api/

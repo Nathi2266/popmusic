@@ -19,6 +19,7 @@ Future<String?> resolveLocalThemePath() async {
 
   if (!kReleaseMode) {
     for (final path in const [
+      'assets/audio/theme_music.mp3',
       'web/audio/theme_music.mp3',
       'assets/audio/Under The Sun II (Jazz_Feel).mp3',
     ]) {

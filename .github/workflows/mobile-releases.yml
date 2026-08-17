@@ -1,6 +1,9 @@
 # Mobile release builds on every branch push.
 # Commits APK/IPA (or unsigned iOS zip) into releases/ on the same branch.
 #
+# Each job starts from a clean tree: no reused build/ output or stale pub lock
+# resolution from prior runs (Flutter/Gradle action caches disabled).
+#
 # Android works out of the box (debug-signed APK if no keystore secrets).
 #
 # For an installable iOS IPA, add these repository secrets:
@@ -47,22 +50,33 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
       - name: Set up Java
         uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "17"
-          cache: gradle
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-          cache: true
+          cache: false
+
+      - name: Clean workspace (fresh build)
+        run: |
+          flutter clean
+          rm -rf build .dart_tool
+          cd android && ./gradlew clean --no-daemon || true
+          cd "$GITHUB_WORKSPACE"
 
       - name: Install dependencies
         run: flutter pub get
+
+      - name: Verify dependency lock
+        run: flutter pub get --enforce-lockfile
 
       - name: Prepare app icon from logo
         run: |
@@ -93,7 +107,9 @@ jobs:
           EOF
 
       - name: Build release APK
-        run: flutter build apk --release --android-skip-build-dependency-validation
+        run: |
+          flutter pub get
+          flutter build apk --release --android-skip-build-dependency-validation
 
       - name: Stage APK artifact
         run: |
@@ -117,18 +133,28 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-          cache: true
+          cache: false
 
       - name: Disable Swift Package Manager
         run: flutter config --no-enable-swift-package-manager
 
+      - name: Clean workspace (fresh build)
+        run: |
+          flutter clean
+          rm -rf build .dart_tool ios/Pods ios/Podfile.lock ios/.symlinks
+
       - name: Install dependencies
         run: flutter pub get
+
+      - name: Verify dependency lock
+        run: flutter pub get --enforce-lockfile
 
       - name: Prepare app icon from logo
         run: |
@@ -145,8 +171,7 @@ jobs:
       - name: Install CocoaPods
         run: |
           cd ios
-          rm -rf Pods Podfile.lock .symlinks
-          pod install
+          pod install --repo-update
 
       - name: Detect iOS signing secrets
         id: signing
@@ -210,11 +235,14 @@ jobs:
 
       - name: Build signed IPA
         if: steps.signing.outputs.enabled == 'true'
-        run: flutter build ipa --release --export-options-plist=ios/ExportOptions.plist
+        run: |
+          flutter pub get
+          flutter build ipa --release --export-options-plist=ios/ExportOptions.plist
 
       - name: Build unsigned iOS app (fallback)
         if: steps.signing.outputs.enabled != 'true'
         run: |
+          flutter pub get
           flutter build ios --release --no-codesign
           SAFE_REF=$(echo "${{ github.ref_name }}" | tr '/' '-')
           mkdir -p artifacts
