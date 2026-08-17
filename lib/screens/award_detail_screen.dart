@@ -21,7 +21,7 @@ class AwardDetailScreen extends StatelessWidget {
                   margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: ListTile(
                     leading: const Icon(Icons.emoji_events, color: Colors.amber, size: 32),
-                    title: Text(award, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    title: Text(award, style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 );
               },

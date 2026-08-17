@@ -10,8 +10,8 @@ class ProceedWeekButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ElevatedButton.icon(
-      icon: const Icon(Icons.skip_next),
-      label: const Text('Proceed Week'),
+      icon: Icon(Icons.skip_next),
+      label: Text('Proceed Week'),
       onPressed: () async {
         final game = Provider.of<GameStateService>(context, listen: false);
         game.proceedWeek();
@@ -49,12 +49,12 @@ class EventPopup extends StatelessWidget {
               padding: const EdgeInsets.all(12),
               child: Row(
                 children: [
-                  const Icon(Icons.event_note),
+                  Icon(Icons.event_note),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       'Week ${game.weekOfMonth} • Month ${game.month} • ${game.year}',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                   TextButton(
@@ -86,7 +86,7 @@ class EventPopup extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       if (events.isNotEmpty) ...[
-                        const Text(
+                        Text(
                           'Events',
                           style: TextStyle(
                               fontSize: 16, fontWeight: FontWeight.w600),
@@ -99,13 +99,13 @@ class EventPopup extends StatelessWidget {
                           ),
                         ),
                       ],
-                      const Text(
+                      Text(
                         'Top Charts',
                         style: TextStyle(
                             fontSize: 16, fontWeight: FontWeight.w600),
                       ),
                       ...topCharts.map((s) => _buildChartRow(s, game)),
-                      const Text(
+                      Text(
                         'Player Summary',
                         style: TextStyle(
                             fontSize: 16, fontWeight: FontWeight.w600),
@@ -128,7 +128,7 @@ class EventPopup extends StatelessWidget {
     final artist = game.getArtistById(s.artistId);
     return ListTile(
       dense: true,
-      leading: const Icon(Icons.music_note),
+      leading: Icon(Icons.music_note),
       title: Text(s.title),
       subtitle: Text(
         '${artist?.name ?? 'Unknown Artist'} • ${s.weeklyListeners.toStringAsFixed(0)} listeners',
@@ -168,13 +168,13 @@ class _EventCard extends StatelessWidget {
           children: [
             Text(
               event.title,
-              style: const TextStyle(
-                  fontWeight: FontWeight.bold, color: Colors.white),
+              style: TextStyle(
+                  fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),
             ),
             const SizedBox(height: 4),
             Text(
               event.description,
-              style: const TextStyle(color: Colors.white70),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72)),
             ),
             if (event.needsPlayerDecision) ...[
               const SizedBox(height: 10),
@@ -198,7 +198,7 @@ class _EventCard extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 'You chose: ${event.selectedChoice}',
-                style: const TextStyle(
+                style: TextStyle(
                   color: Colors.lightGreenAccent,
                   fontWeight: FontWeight.w600,
                 ),

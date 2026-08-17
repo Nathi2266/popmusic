@@ -30,8 +30,8 @@ class CustomErrorWidget extends StatelessWidget {
             const SizedBox(height: 24),
             Text(
               message,
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
@@ -41,8 +41,8 @@ class CustomErrorWidget extends StatelessWidget {
               const SizedBox(height: 12),
               Text(
                 details!,
-                style: const TextStyle(
-                  color: Colors.white70,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72),
                   fontSize: 14,
                 ),
                 textAlign: TextAlign.center,
@@ -52,11 +52,11 @@ class CustomErrorWidget extends StatelessWidget {
               const SizedBox(height: 32),
               ElevatedButton.icon(
                 onPressed: onRetry,
-                icon: const Icon(Icons.refresh),
-                label: const Text('Retry'),
+                icon: Icon(Icons.refresh),
+                label: Text('Retry'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFe94560),
-                  foregroundColor: Colors.white,
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 24,
                     vertical: 12,

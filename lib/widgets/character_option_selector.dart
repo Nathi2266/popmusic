@@ -22,8 +22,8 @@ class CharacterOptionSelector extends StatelessWidget {
       children: [
         Text(
           title,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
             fontSize: 14,
             fontWeight: FontWeight.w700,
             letterSpacing: 1.2,
@@ -48,12 +48,12 @@ class CharacterOptionSelector extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 14),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? const Color(0xFFe94560).withValues(alpha: 0.18)
+                        ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.18)
                         : Colors.white.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
                       color: isSelected
-                          ? const Color(0xFFe94560)
+                          ? Theme.of(context).colorScheme.primary
                           : Colors.white.withValues(alpha: 0.1),
                       width: isSelected ? 1.5 : 1,
                     ),

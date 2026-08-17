@@ -24,7 +24,7 @@ class AchievementBadge extends StatelessWidget {
           decoration: BoxDecoration(
             color: achievement.isUnlocked
                 ? achievement.color.withValues(alpha: 0.2)
-                : const Color(0xFF2a2a3e),
+                : Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: achievement.isUnlocked
@@ -48,7 +48,7 @@ class AchievementBadge extends StatelessWidget {
                 child: Center(
                   child: Text(
                     achievement.icon,
-                    style: const TextStyle(fontSize: 32),
+                    style: TextStyle(fontSize: 32),
                   ),
                 ),
               ),
@@ -73,7 +73,7 @@ class AchievementBadge extends StatelessWidget {
                           ),
                         ),
                         if (achievement.isUnlocked)
-                          const Icon(
+                          Icon(
                             Icons.check_circle,
                             color: Color(0xFF4CAF50),
                             size: 20,
@@ -94,7 +94,7 @@ class AchievementBadge extends StatelessWidget {
                       const SizedBox(height: 8),
                       LinearProgressIndicator(
                         value: achievement.progressPercentage,
-                        backgroundColor: const Color(0xFF1a1a2e),
+                        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
                         valueColor: AlwaysStoppedAnimation<Color>(
                           achievement.color,
                         ),
@@ -103,8 +103,8 @@ class AchievementBadge extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         '${achievement.currentProgress} / ${achievement.targetValue}',
-                        style: const TextStyle(
-                          color: Colors.white54,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54),
                           fontSize: 11,
                         ),
                       ),

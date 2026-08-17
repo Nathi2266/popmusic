@@ -24,8 +24,8 @@ class AttributeBar extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                 ),
@@ -46,7 +46,7 @@ class AttributeBar extends StatelessWidget {
             child: LinearProgressIndicator(
               value: value / 100,
               minHeight: 8,
-              backgroundColor: const Color(0xFF2a2a3e),
+              backgroundColor: Theme.of(context).colorScheme.surface,
               valueColor: AlwaysStoppedAnimation<Color>(color),
             ),
           ),

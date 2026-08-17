@@ -2,59 +2,150 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/settings_service.dart';
 import '../services/game_state_service.dart';
+import '../theme/game_palette.dart';
 import '../utils/toast_service.dart';
 import 'main_menu_screen.dart';
 
-class SettingsScreen extends StatefulWidget {
+class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
   @override
-  State<SettingsScreen> createState() => _SettingsScreenState();
-}
-
-class _SettingsScreenState extends State<SettingsScreen> {
-  @override
   Widget build(BuildContext context) {
+    final p = context.palette;
     return Consumer<SettingsService>(
       builder: (context, settings, child) {
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Settings'),
-            backgroundColor: const Color(0xFF16213e),
+            title: Text('Settings'),
           ),
           body: ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              // Audio Settings
+              _SettingsSection(
+                title: 'Theme',
+                icon: Icons.palette,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                    child: Text(
+                      'Applies to every screen. Pick light, dark, or a custom look.',
+                      style: TextStyle(color: p.textMuted, fontSize: 13),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
+                    child: Wrap(
+                      spacing: 10,
+                      runSpacing: 10,
+                      children: AppThemeId.values.map((id) {
+                        final selected = settings.themeId == id;
+                        final swatch = GamePalette.forId(id);
+                        return SizedBox(
+                          width: 156,
+                          child: Material(
+                            color: swatch.card,
+                            borderRadius: BorderRadius.circular(12),
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(12),
+                              onTap: () {
+                                settings.setThemeId(id);
+                                ToastService().showInfo('${id.displayName} theme on');
+                              },
+                              child: Semantics(
+                                button: true,
+                                selected: selected,
+                                label: '${id.displayName} theme. ${id.blurb}',
+                                child: Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: selected
+                                          ? swatch.primary
+                                          : swatch.divider,
+                                      width: selected ? 2 : 1,
+                                    ),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Icon(id.icon,
+                                              color: swatch.primary, size: 20),
+                                          const SizedBox(width: 6),
+                                          Expanded(
+                                            child: Text(
+                                              id.displayName,
+                                              style: TextStyle(
+                                                color: swatch.text,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                          if (selected)
+                                            Icon(Icons.check_circle,
+                                                color: swatch.primary, size: 18),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Row(
+                                        children: [
+                                          _Swatch(swatch.scaffold),
+                                          _Swatch(swatch.appBar),
+                                          _Swatch(swatch.primary),
+                                          _Swatch(swatch.gold),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        id.blurb,
+                                        style: TextStyle(
+                                          color: swatch.textMuted,
+                                          fontSize: 11,
+                                          height: 1.3,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
               _SettingsSection(
                 title: 'Audio',
                 icon: Icons.volume_up,
                 children: [
                   SwitchListTile(
-                    title: const Text('Sound Effects', style: TextStyle(color: Colors.white)),
-                    subtitle: const Text('Enable sound effects for game actions', style: TextStyle(color: Colors.white70)),
+                    title: Text('Sound Effects'),
+                    subtitle: Text('Enable sound effects for game actions'),
                     value: settings.soundEnabled,
                     onChanged: (value) {
                       settings.setSoundEnabled(value);
-                      ToastService().showInfo(value ? 'Sound effects enabled' : 'Sound effects disabled');
+                      ToastService().showInfo(
+                        value
+                            ? 'Sound effects enabled'
+                            : 'Sound effects disabled',
+                      );
                     },
-                    activeTrackColor: const Color(0xFFe94560),
                   ),
-                  const Divider(color: Colors.white24),
+                  const Divider(),
                   ListTile(
-                    title: const Text('Music Volume', style: TextStyle(color: Colors.white)),
+                    title: Text('Music Volume'),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('${(settings.musicVolume * 100).toInt()}%', style: const TextStyle(color: Colors.white70)),
-                        const SizedBox(height: 8),
+                        Text('${(settings.musicVolume * 100).toInt()}%'),
                         Slider(
                           value: settings.musicVolume,
-                          onChanged: (value) {
-                            settings.setMusicVolume(value);
-                          },
-                          activeColor: const Color(0xFFe94560),
-                          inactiveColor: Colors.white24,
+                          onChanged: settings.setMusicVolume,
                         ),
                       ],
                     ),
@@ -62,51 +153,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ],
               ),
               const SizedBox(height: 24),
-
-              // Appearance Settings
               _SettingsSection(
-                title: 'Appearance',
-                icon: Icons.palette,
+                title: 'Text',
+                icon: Icons.format_size,
                 children: [
                   ListTile(
-                    title: const Text('Theme', style: TextStyle(color: Colors.white)),
-                    subtitle: const Text('Choose your preferred theme', style: TextStyle(color: Colors.white70)),
-                    trailing: DropdownButton<String>(
-                      value: settings.theme,
-                      dropdownColor: const Color(0xFF2a2a3e),
-                      style: const TextStyle(color: Colors.white),
-                      items: const [
-                        DropdownMenuItem(value: 'dark', child: Text('Dark')),
-                        DropdownMenuItem(value: 'darker', child: Text('Darker')),
-                        DropdownMenuItem(value: 'neon', child: Text('Neon')),
-                      ],
-                      onChanged: (value) {
-                        if (value != null) {
-                          settings.setTheme(value);
-                          ToastService().showInfo('Theme changed to ${value.capitalize()}');
-                        }
-                      },
-                    ),
-                  ),
-                  const Divider(color: Colors.white24),
-                  ListTile(
-                    title: const Text('Font Size', style: TextStyle(color: Colors.white)),
+                    title: Text('Font Size'),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('${(settings.fontSize * 100).toInt()}%', style: const TextStyle(color: Colors.white70)),
-                        const SizedBox(height: 8),
+                        Text('${(settings.fontSize * 100).toInt()}%'),
                         Slider(
                           value: settings.fontSize,
                           min: 0.8,
                           max: 1.5,
                           divisions: 7,
                           label: '${(settings.fontSize * 100).toInt()}%',
-                          onChanged: (value) {
-                            settings.setFontSize(value);
-                          },
-                          activeColor: const Color(0xFFe94560),
-                          inactiveColor: Colors.white24,
+                          onChanged: settings.setFontSize,
                         ),
                       ],
                     ),
@@ -114,8 +177,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ],
               ),
               const SizedBox(height: 24),
-
-              // Game Settings
               _SettingsSection(
                 title: 'Game',
                 icon: Icons.sports_esports,
@@ -123,43 +184,41 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Consumer<GameStateService>(
                     builder: (context, gameState, child) {
                       return ListTile(
-                        title: const Text('Reset Game Data', style: TextStyle(color: Colors.white)),
-                        subtitle: const Text('Delete all saved game progress', style: TextStyle(color: Colors.white70)),
-                        leading: const Icon(Icons.delete_outline, color: Color(0xFFF44336)),
-                        onTap: () {
-                          _showResetGameDialog(context, gameState);
-                        },
+                        title: Text('Reset Game Data'),
+                        subtitle: Text(
+                          'Delete all saved game progress',
+                        ),
+                        leading: Icon(Icons.delete_outline,
+                            color: Theme.of(context).colorScheme.error),
+                        onTap: () => _showResetGameDialog(context, gameState),
                       );
                     },
                   ),
-                  const Divider(color: Colors.white24),
+                  const Divider(),
                   ListTile(
-                    title: const Text('Reset Settings', style: TextStyle(color: Colors.white)),
-                    subtitle: const Text('Restore all settings to default values', style: TextStyle(color: Colors.white70)),
-                    leading: const Icon(Icons.restore, color: Color(0xFFFF9800)),
-                    onTap: () {
-                      _showResetSettingsDialog(context, settings);
-                    },
+                    title: Text('Reset Settings'),
+                    subtitle: Text(
+                      'Restore all settings to default values',
+                    ),
+                    leading: Icon(Icons.restore, color: p.gold),
+                    onTap: () => _showResetSettingsDialog(context, settings),
                   ),
                 ],
               ),
               const SizedBox(height: 24),
-
-              // About Section
               const _SettingsSection(
                 title: 'About',
                 icon: Icons.info,
                 children: [
                   ListTile(
-                    title: Text('Version', style: TextStyle(color: Colors.white)),
-                    subtitle: Text('1.0.0', style: TextStyle(color: Colors.white70)),
+                    title: Text('Version'),
+                    subtitle: Text('1.0.0'),
                   ),
-                  Divider(color: Colors.white24),
+                  Divider(),
                   ListTile(
-                    title: Text('Description', style: TextStyle(color: Colors.white)),
+                    title: Text('Description'),
                     subtitle: Text(
                       'PopMusic is a music industry simulation game where you build your career as an artist.',
-                      style: TextStyle(color: Colors.white70),
                     ),
                   ),
                 ],
@@ -172,24 +231,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _showResetGameDialog(BuildContext context, GameStateService gameState) {
-    showDialog(
+    showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF2a2a3e),
-        title: const Text('Reset Game Data', style: TextStyle(color: Colors.white)),
-        content: const Text(
+        title: Text('Reset Game Data'),
+        content: Text(
           'This will delete all your game progress including your artist, songs, and achievements. This action cannot be undone.',
-          style: TextStyle(color: Colors.white70),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
+            child: Text('Cancel'),
           ),
-            ElevatedButton(
+          ElevatedButton(
             onPressed: () {
               gameState.resetGame();
-              
               Navigator.pop(context);
               Navigator.pushReplacement(
                 context,
@@ -198,30 +254,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ToastService().showSuccess('Game data reset successfully');
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFF44336),
-              foregroundColor: Colors.white,
+              backgroundColor: Theme.of(context).colorScheme.error,
             ),
-            child: const Text('Reset'),
+            child: Text('Reset'),
           ),
         ],
       ),
     );
   }
 
-  void _showResetSettingsDialog(BuildContext context, SettingsService settings) {
-    showDialog(
+  void _showResetSettingsDialog(
+    BuildContext context,
+    SettingsService settings,
+  ) {
+    showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF2a2a3e),
-        title: const Text('Reset Settings', style: TextStyle(color: Colors.white)),
-        content: const Text(
+        title: Text('Reset Settings'),
+        content: Text(
           'This will restore all settings to their default values.',
-          style: TextStyle(color: Colors.white70),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
+            child: Text('Cancel'),
           ),
           ElevatedButton(
             onPressed: () {
@@ -229,13 +285,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Navigator.pop(context);
               ToastService().showSuccess('Settings reset to defaults');
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFe94560),
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Reset'),
+            child: Text('Reset'),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _Swatch extends StatelessWidget {
+  final Color color;
+  const _Swatch(this.color);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 18,
+      height: 18,
+      margin: const EdgeInsets.only(right: 6),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: Colors.black26),
       ),
     );
   }
@@ -254,9 +325,10 @@ class _SettingsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final p = context.palette;
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF2a2a3e),
+        color: p.card,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -266,12 +338,12 @@ class _SettingsSection extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                Icon(icon, color: const Color(0xFFe94560), size: 24),
+                Icon(icon, color: p.primary, size: 24),
                 const SizedBox(width: 12),
                 Text(
                   title,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: p.text,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
@@ -283,11 +355,5 @@ class _SettingsSection extends StatelessWidget {
         ],
       ),
     );
-  }
-}
-
-extension StringExtension on String {
-  String capitalize() {
-    return '${this[0].toUpperCase()}${substring(1)}';
   }
 }

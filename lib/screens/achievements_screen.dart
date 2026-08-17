@@ -28,34 +28,33 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Achievements'),
-            backgroundColor: const Color(0xFF16213e),
-          ),
+            title: Text('Achievements'),
+                      ),
           body: Column(
             children: [
               // Progress Header
               Container(
                 padding: const EdgeInsets.all(16),
-                decoration: const BoxDecoration(
-                  color: Color(0xFF2a2a3e),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
                 ),
                 child: Column(
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
+                        Text(
                           'Progress',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         Text(
                           '$unlockedCount / $totalCount',
-                          style: const TextStyle(
-                            color: Color(0xFFe94560),
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.primary,
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
@@ -65,17 +64,17 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                     const SizedBox(height: 12),
                     LinearProgressIndicator(
                       value: completionPercentage / 100,
-                      backgroundColor: const Color(0xFF1a1a2e),
-                      valueColor: const AlwaysStoppedAnimation<Color>(
-                        Color(0xFFe94560),
+                      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        Theme.of(context).colorScheme.primary,
                       ),
                       minHeight: 8,
                     ),
                     const SizedBox(height: 4),
                     Text(
                       '${completionPercentage.toStringAsFixed(1)}% Complete',
-                      style: const TextStyle(
-                        color: Colors.white70,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72),
                         fontSize: 12,
                       ),
                     ),
@@ -124,10 +123,10 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
               // Achievements List
               Expanded(
                 child: achievements.isEmpty
-                    ? const Center(
+                    ? Center(
                         child: Text(
                           'No achievements found',
-                          style: TextStyle(color: Colors.white54),
+                          style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54)),
                         ),
                       )
                     : ListView.builder(
@@ -189,8 +188,8 @@ class _FilterChip extends StatelessWidget {
       label: Text(label),
       selected: isSelected,
       onSelected: (_) => onSelected(),
-      backgroundColor: const Color(0xFF2a2a3e),
-      selectedColor: const Color(0xFFe94560),
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      selectedColor: Theme.of(context).colorScheme.primary,
       labelStyle: TextStyle(
         color: isSelected ? Colors.white : Colors.white70,
       ),

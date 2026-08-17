@@ -7105,8 +7105,8 @@ class GameStateService extends ChangeNotifier {
   String? signArtist(
     String artistId,
     LabelDealStyle deal, {
+    double? artistKeep,
     bool forceAccept = false,
-    Random? rng,
   }) {
     if (_player == null) return 'No player';
     if (artistId == _player!.id) return 'You already run this imprint';
@@ -7128,41 +7128,29 @@ class GameStateService extends ChangeNotifier {
         _player!.labelTier.index < LabelTier.major.index) {
       return 'Need Major to poach a superstar act';
     }
-    final cool = signOfferCooldowns[artistId] ?? 0;
-    if (cool > 0) return 'They already passed ($cool w)';
 
-    final cost = RosterSigning.signingCost(
-      artist.attributes['popularity'] ?? 10,
-      deal,
-    );
+    final keep = (artistKeep ?? RosterSigning.artistKeepForDeal(deal))
+        .clamp(0.20, 0.85);
+    final eval = evaluateRosterContract(artist, keep);
+    if (!forceAccept && !eval.acceptable) {
+      return eval.suggestion == null
+          ? eval.message
+          : '${eval.message} ${eval.suggestion}';
+    }
+
+    final cost = eval.signingCost;
     if (playerMoney < cost) {
       return 'Need \$${cost.toStringAsFixed(0)} for this contract';
     }
 
-    final chance = RosterSigning.acceptChance(
-      playerPopularity: pop,
-      playerReputation: _player!.attributes['reputation'] ?? 10,
-      artistPopularity: artist.attributes['popularity'] ?? 10,
-      deal: deal,
-    );
-    final roll = rng ?? Random();
     updatePlayerMoney(-cost);
-    if (!forceAccept && roll.nextDouble() > chance) {
-      signOfferCooldowns[artistId] = RecordLabels.signRejectCooldownWeeks;
-      weeklyHeadlines.add(
-        '${artist.name} passed on your ${deal.displayName} contract.',
-      );
-      notifyListeners();
-      saveGame();
-      return '${artist.name} would not sign that contract';
-    }
-
     rosterSignings.add(RosterSigning(
       artistId: artistId,
-      deal: deal,
+      deal: RosterSigning.closestDeal(keep),
       signedYear: year,
       signedMonth: month,
       signedWeek: weekOfMonth,
+      customPlayerCut: eval.playerCut,
     ));
     artist.labelId = RecordLabels.playerImprintId;
     if (artist.labelTier == LabelTier.unsigned) {
@@ -7171,16 +7159,53 @@ class GameStateService extends ChangeNotifier {
     updatePlayerAttribute('influence', 4);
     updatePlayerAttribute('networking', 3);
     weeklyHeadlines.add(
-      '${artist.name} signed with ${_player!.name} Records (${deal.displayName}).',
+      '${artist.name} signed with ${_player!.name} Records · they keep ${(keep * 100).round()}%.',
     );
     lastWeekEvents.add(GameEvent(
       id: 'roster_sign_${artistId}_${DateTime.now().millisecondsSinceEpoch}',
       title: 'Signed: ${artist.name}',
       description:
-          '${deal.displayName} contract. They keep ${(RosterSigning(artistId: artistId, deal: deal, signedYear: year, signedMonth: month, signedWeek: weekOfMonth).artistKeep * 100).toStringAsFixed(0)}% of their streams. Roster ${activeRoster.length}/${RecordLabels.maxRosterSize}.',
+          '${artist.name} keeps ${(keep * 100).round()}% of streams. '
+          'Roster ${activeRoster.length}/${RecordLabels.maxRosterSize}.',
       type: EventType.labelOffer,
       severity: EventSeverity.high,
     ));
+    notifyListeners();
+    saveGame();
+    return null;
+  }
+
+  ContractEvaluation evaluateRosterContract(Artist artist, double artistKeep) {
+    return RosterSigning.evaluate(
+      artistName: artist.name,
+      tier: artist.labelTier,
+      popularity: artist.attributes['popularity'] ?? 10,
+      artistKeep: artistKeep,
+    );
+  }
+
+  String? renameRosterArtist(String artistId, String rawName) {
+    if (_player == null) return 'No player';
+    if (!isOnRoster(artistId)) return 'Only signed artists can be renamed';
+    final artist = getArtistById(artistId);
+    if (artist == null) return 'Artist not found';
+    final name = rawName.trim();
+    if (name.length < 2) return 'Name needs at least 2 letters';
+    if (name.length > 24) return 'Keep the name under 24 characters';
+    artist.name = name;
+    notifyListeners();
+    saveGame();
+    return null;
+  }
+
+  String? updateRosterAppearance(String artistId, ArtistAppearance appearance) {
+    if (_player == null) return 'No player';
+    if (!isOnRoster(artistId)) {
+      return 'Only signed artists can change their look';
+    }
+    final artist = getArtistById(artistId);
+    if (artist == null) return 'Artist not found';
+    artist.appearance = appearance;
     notifyListeners();
     saveGame();
     return null;

@@ -102,16 +102,15 @@ class _ProductionMinigameScreenState extends State<ProductionMinigameScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Production'),
-        backgroundColor: const Color(0xFF16213e),
-        automaticallyImplyLeading: false,
+        title: Text('Production'),
+                automaticallyImplyLeading: false,
       ),
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFF1a1a2e), Color(0xFF16213e)],
+            colors: [Theme.of(context).scaffoldBackgroundColor, Theme.of(context).colorScheme.surface],
           ),
         ),
         child: Padding(
@@ -130,14 +129,14 @@ class _ProductionMinigameScreenState extends State<ProductionMinigameScreen>
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
+                              Text(
                                 'Difficulty',
-                                style: TextStyle(color: Colors.white70, fontSize: 12),
+                                style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72), fontSize: 12),
                               ),
                               Text(
                                 _difficulty == 1 ? 'Easy' : _difficulty == 2 ? 'Medium' : 'Hard',
-                                style: const TextStyle(
-                                  color: Colors.white,
+                                style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -147,8 +146,8 @@ class _ProductionMinigameScreenState extends State<ProductionMinigameScreen>
                           if (_timeLeft == (_difficulty == 1 ? 45 : _difficulty == 2 ? 30 : 20))
                             DropdownButton<int>(
                               value: _difficulty,
-                              dropdownColor: const Color(0xFF2a2a3e),
-                              style: const TextStyle(color: Colors.white),
+                              dropdownColor: Theme.of(context).colorScheme.surface,
+                              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                               items: const [
                                 DropdownMenuItem(value: 1, child: Text('Easy')),
                                 DropdownMenuItem(value: 2, child: Text('Medium')),
@@ -172,12 +171,12 @@ class _ProductionMinigameScreenState extends State<ProductionMinigameScreen>
                       padding: const EdgeInsets.all(12),
                       child: Row(
                         children: [
-                          const Icon(Icons.timer, color: Colors.white, size: 20),
+                          Icon(Icons.timer, color: Theme.of(context).colorScheme.onSurface, size: 20),
                           const SizedBox(width: 8),
                           Text(
                             '$_timeLeft s',
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
@@ -192,8 +191,8 @@ class _ProductionMinigameScreenState extends State<ProductionMinigameScreen>
                       padding: const EdgeInsets.all(12),
                       child: Text(
                         'Score: $_score',
-                        style: const TextStyle(
-                          color: Color(0xFFe94560),
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.primary,
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
@@ -210,10 +209,10 @@ class _ProductionMinigameScreenState extends State<ProductionMinigameScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Waveform',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.onSurface,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -225,7 +224,11 @@ class _ProductionMinigameScreenState extends State<ProductionMinigameScreen>
                         animation: _waveformController,
                         builder: (context, child) {
                           return CustomPaint(
-                            painter: _WaveformPainter(_waveformData, _waveformController.value),
+                            painter: _WaveformPainter(
+                              _waveformData,
+                              _waveformController.value,
+                              Theme.of(context).colorScheme.primary,
+                            ),
                             size: Size.infinite,
                           );
                         },
@@ -300,12 +303,12 @@ class _ProductionMinigameScreenState extends State<ProductionMinigameScreen>
                   onPressed: _endGame,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF4CAF50),
-                    foregroundColor: Colors.white,
+                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text(
+                  child: Text(
                     'FINISH',
                     style: TextStyle(
                       fontSize: 18,
@@ -405,7 +408,7 @@ class _MixerControl extends StatelessWidget {
               SliderTheme(
                 data: SliderThemeData(
                   activeTrackColor: color,
-                  inactiveTrackColor: const Color(0xFF2a2a3e),
+                  inactiveTrackColor: Theme.of(context).colorScheme.surface,
                   thumbColor: color,
                   overlayColor: color.withAlpha((255 * 0.2).round()),
                   trackHeight: 10,
@@ -437,13 +440,14 @@ class _MixerControl extends StatelessWidget {
 class _WaveformPainter extends CustomPainter {
   final List<double> data;
   final double animationValue;
+  final Color color;
 
-  _WaveformPainter(this.data, this.animationValue);
+  _WaveformPainter(this.data, this.animationValue, this.color);
 
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = const Color(0xFFe94560)
+      ..color = color
       ..strokeWidth = 2
       ..style = PaintingStyle.stroke;
 
@@ -467,6 +471,8 @@ class _WaveformPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _WaveformPainter oldDelegate) {
-    return oldDelegate.animationValue != animationValue;
+    return oldDelegate.animationValue != animationValue ||
+        oldDelegate.color != color ||
+        oldDelegate.data != data;
   }
 }

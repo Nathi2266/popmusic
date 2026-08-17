@@ -37,9 +37,8 @@ class PerformanceScreen extends StatelessWidget {
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Performances'),
-            backgroundColor: const Color(0xFF16213e),
-          ),
+            title: Text('Performances'),
+                      ),
           body: ListView(
             padding: const EdgeInsets.all(16),
             children: [
@@ -47,7 +46,7 @@ class PerformanceScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF2a2a3e),
+                  color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
@@ -94,8 +93,8 @@ class PerformanceScreen extends StatelessWidget {
                     'On tour: ${gameState.activeTour!.name} · '
                     '${gameState.activeTour!.currentCity} next · '
                     '${gameState.activeTour!.weeksRemaining}w left',
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -118,16 +117,16 @@ class PerformanceScreen extends StatelessWidget {
                         gameState.canPlayFestival
                             ? 'Summer festival slot is open'
                             : 'Festival slot already played this year',
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                         ),
                       ),
                       const SizedBox(height: 6),
-                      const Text(
+                      Text(
                         'One exclusive set, June–August. Heat is up on Pop / Electronic / Hip-Hop.',
-                        style: TextStyle(color: Colors.white70, fontSize: 12),
+                        style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72), fontSize: 12),
                       ),
                       if (gameState.canPlayFestival) ...[
                         const SizedBox(height: 10),
@@ -142,8 +141,8 @@ class PerformanceScreen extends StatelessWidget {
                               );
                             }
                           },
-                          icon: const Icon(Icons.festival),
-                          label: const Text('Play festival slot'),
+                          icon: Icon(Icons.festival),
+                          label: Text('Play festival slot'),
                         ),
                       ],
                     ],
@@ -151,19 +150,19 @@ class PerformanceScreen extends StatelessWidget {
                 ),
               ],
 
-              const Text(
+              Text(
                 'BOOK A TOUR',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.onSurface,
                   letterSpacing: 2,
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 'Multi-week run: door money + merch each stop, stamina each week.',
-                style: TextStyle(color: Colors.white54, fontSize: 13),
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54), fontSize: 13),
               ),
               const SizedBox(height: 12),
               ...TourPackage.all.map((pack) {
@@ -173,7 +172,7 @@ class PerformanceScreen extends StatelessWidget {
                   margin: const EdgeInsets.only(bottom: 10),
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF2a2a3e),
+                    color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: locked ? Colors.white24 : const Color(0xFFFF9800),
@@ -195,16 +194,16 @@ class PerformanceScreen extends StatelessWidget {
                             ),
                             Text(
                               '${pack.weeks}w · \$${pack.weeklyPay.toStringAsFixed(0)}/stop + merch · −${pack.staminaCost.toStringAsFixed(0)} stam',
-                              style: const TextStyle(
-                                  color: Colors.white54, fontSize: 12),
+                              style: TextStyle(
+                                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54), fontSize: 12),
                             ),
                             if (locked)
                               Text(
                                 pack.minLabel.index > 0
                                     ? '${pack.minLabel.displayName} · ${pack.popularityRequired} pop'
                                     : '${pack.popularityRequired} popularity',
-                                style: const TextStyle(
-                                    color: Colors.white38, fontSize: 11),
+                                style: TextStyle(
+                                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.38), fontSize: 11),
                               ),
                           ],
                         ),
@@ -230,12 +229,12 @@ class PerformanceScreen extends StatelessWidget {
               }),
               const SizedBox(height: 24),
 
-              const Text(
+              Text(
                 'AVAILABLE VENUES',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.onSurface,
                   letterSpacing: 2,
                 ),
               ),
@@ -277,12 +276,12 @@ class PerformanceScreen extends StatelessWidget {
 
               if (availableVenues.length < VenueData.venues.length) ...[
                 const SizedBox(height: 24),
-                const Text(
+                Text(
                   'LOCKED VENUES',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white54,
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54),
                     letterSpacing: 2,
                   ),
                 ),
@@ -328,10 +327,10 @@ class PerformanceScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF2a2a3e),
-        title: const Text(
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        title: Text(
           'Performance Complete!',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -339,24 +338,25 @@ class PerformanceScreen extends StatelessWidget {
           children: [
             Text(
               'Score: $performanceScore',
-              style: const TextStyle(color: Colors.white, fontSize: 16),
+              style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface, fontSize: 16),
             ),
             const SizedBox(height: 8),
             Text(
               'Earned: \$$earnings',
-              style: const TextStyle(color: Color(0xFF4CAF50), fontSize: 16),
+              style: TextStyle(color: Color(0xFF4CAF50), fontSize: 16),
             ),
             const SizedBox(height: 8),
             Text(
               'New Fans: +$fanGain',
-              style: const TextStyle(color: Color(0xFF2196F3), fontSize: 16),
+              style: TextStyle(color: Color(0xFF2196F3), fontSize: 16),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+            child: Text('OK'),
           ),
         ],
       ),
@@ -393,8 +393,8 @@ class _StatItem extends StatelessWidget {
         ),
         Text(
           label,
-          style: const TextStyle(
-            color: Colors.white70,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72),
             fontSize: 12,
           ),
         ),
@@ -417,7 +417,7 @@ class _VenueCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: const Color(0xFF2a2a3e),
+      color: Theme.of(context).colorScheme.surface,
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
@@ -436,9 +436,9 @@ class _VenueCard extends StatelessWidget {
                     color: _getVenueColor(venue.size),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.location_city,
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.onSurface,
                     size: 32,
                   ),
                 ),
@@ -449,8 +449,8 @@ class _VenueCard extends StatelessWidget {
                     children: [
                       Text(
                         venue.name,
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
@@ -458,8 +458,8 @@ class _VenueCard extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         'Capacity: ${venue.capacity}',
-                        style: const TextStyle(
-                          color: Colors.white70,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72),
                           fontSize: 14,
                         ),
                       ),
@@ -471,17 +471,17 @@ class _VenueCard extends StatelessWidget {
                   children: [
                     Text(
                       '\$${venue.basePay}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Color(0xFF4CAF50),
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 4),
-                    const Text(
+                    Text(
                       'Base Pay',
                       style: TextStyle(
-                        color: Colors.white54,
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54),
                         fontSize: 12,
                       ),
                     ),
@@ -495,9 +495,9 @@ class _VenueCard extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: (player.attributes['stamina'] ?? 0) >= 20 ? onPerform : null,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFe94560),
-                  foregroundColor: Colors.white,
-                  disabledBackgroundColor: const Color(0xFF1a1a2e),
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                  disabledBackgroundColor: Theme.of(context).scaffoldBackgroundColor,
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -507,7 +507,7 @@ class _VenueCard extends StatelessWidget {
                   (player.attributes['stamina'] ?? 0) >= 20
                       ? 'PERFORM'
                       : 'NOT ENOUGH STAMINA',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
@@ -542,7 +542,7 @@ class _LockedVenueCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: const Color(0xFF1a1a2e),
+      color: Theme.of(context).scaffoldBackgroundColor,
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
@@ -555,12 +555,12 @@ class _LockedVenueCard extends StatelessWidget {
               width: 60,
               height: 60,
               decoration: BoxDecoration(
-                color: Colors.white24,
+                color: Theme.of(context).dividerColor,
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.lock,
-                color: Colors.white38,
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.38),
                 size: 32,
               ),
             ),
@@ -571,8 +571,8 @@ class _LockedVenueCard extends StatelessWidget {
                 children: [
                   Text(
                     venue.name,
-                    style: const TextStyle(
-                      color: Colors.white38,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.38),
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
@@ -580,8 +580,8 @@ class _LockedVenueCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     'Needs ${venue.popularityRequired} pop · ${venue.minLabel.displayName}+',
-                    style: const TextStyle(
-                      color: Colors.white24,
+                    style: TextStyle(
+                      color: Theme.of(context).dividerColor,
                       fontSize: 14,
                     ),
                   ),

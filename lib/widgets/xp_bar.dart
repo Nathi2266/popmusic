@@ -24,7 +24,7 @@ class XpBar extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.star,
                     color: Color(0xFFFFD700),
                     size: 20,
@@ -32,8 +32,8 @@ class XpBar extends StatelessWidget {
                   const SizedBox(width: 8),
                   Text(
                     'Level ${playerLevel.level}',
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
@@ -43,8 +43,8 @@ class XpBar extends StatelessWidget {
               if (showXpText)
                 Text(
                   '${playerLevel.totalXpForLevel} / ${playerLevel.xpRequired} XP',
-                  style: const TextStyle(
-                    color: Colors.white70,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72),
                     fontSize: 12,
                   ),
                 ),
@@ -61,7 +61,7 @@ class XpBar extends StatelessWidget {
               return LinearProgressIndicator(
                 value: value,
                 minHeight: showLevel ? 12 : 8,
-                backgroundColor: const Color(0xFF2a2a3e),
+                backgroundColor: Theme.of(context).colorScheme.surface,
                 valueColor: const AlwaysStoppedAnimation<Color>(
                   Color(0xFFFFD700),
                 ),
@@ -73,8 +73,8 @@ class XpBar extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             '${playerLevel.totalXpForLevel} / ${playerLevel.xpRequired} XP',
-            style: const TextStyle(
-              color: Colors.white70,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72),
               fontSize: 11,
             ),
           ),

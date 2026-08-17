@@ -43,21 +43,21 @@ class EmptyState extends StatelessWidget {
                 width: 120,
                 height: 120,
                 decoration: BoxDecoration(
-                  color: (iconColor ?? const Color(0xFFe94560)).withValues(alpha: 0.1),
+                  color: (iconColor ?? Theme.of(context).colorScheme.primary).withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   icon,
                   size: 64,
-                  color: iconColor ?? const Color(0xFFe94560),
+                  color: iconColor ?? Theme.of(context).colorScheme.primary,
                 ),
               ),
             ),
             const SizedBox(height: 24),
             Text(
               title,
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
@@ -67,8 +67,8 @@ class EmptyState extends StatelessWidget {
               const SizedBox(height: 12),
               Text(
                 subtitle!,
-                style: const TextStyle(
-                  color: Colors.white70,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72),
                   fontSize: 16,
                 ),
                 textAlign: TextAlign.center,
@@ -78,11 +78,11 @@ class EmptyState extends StatelessWidget {
               const SizedBox(height: 32),
               ElevatedButton.icon(
                 onPressed: onAction,
-                icon: const Icon(Icons.add),
+                icon: Icon(Icons.add),
                 label: Text(actionLabel!),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFe94560),
-                  foregroundColor: Colors.white,
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 24,
                     vertical: 12,

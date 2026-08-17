@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import '../theme/game_palette.dart';
 
 class GlassCard extends StatelessWidget {
   final Widget child;
@@ -45,7 +46,11 @@ class GlassCard extends StatelessWidget {
           child: Container(
             padding: padding ?? const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF2a2a3e).withValues(alpha: 0.7),
+              color: Theme.of(context)
+                  .extension<GamePalette>()
+                  ?.card
+                  .withValues(alpha: 0.7) ??
+                  Theme.of(context).colorScheme.surface.withValues(alpha: 0.7),
               borderRadius: borderRadius ?? BorderRadius.circular(12),
             ),
             child: child,

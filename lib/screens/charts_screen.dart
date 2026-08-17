@@ -43,7 +43,7 @@ class ChartsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Top 30 — Charts'),
+        title: Text('Top 30 — Charts'),
         centerTitle: true,
         actions: [
               // Toggle between songs and artists view
@@ -65,16 +65,16 @@ class ChartsScreen extends StatelessWidget {
               Expanded(
                 child: DropdownButton<String>(
                   value: game.currentGenreFilter,
-                  hint: const Text('Filter by Genre', style: TextStyle(color: Colors.white70)),
+                  hint: Text('Filter by Genre', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72))),
                   dropdownColor: Theme.of(context).primaryColorDark,
-                  icon: const Icon(Icons.filter_list, color: Colors.white70),
+                  icon: Icon(Icons.filter_list, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72)),
                   onChanged: (String? newValue) {
                     game.currentGenreFilter = newValue;
                   },
                   items: ['All', 'New Releases', ...game.availableGenres].map<DropdownMenuItem<String>>((String value) {
                     return DropdownMenuItem<String>(
                       value: value == 'All' ? null : value,
-                      child: Text(value, style: const TextStyle(color: Colors.white)),
+                      child: Text(value, style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
                     );
                   }).toList(),
                 ),
@@ -104,7 +104,7 @@ class ChartsScreen extends StatelessWidget {
                         if (game.playerChartPeak != null)
                           Padding(
                             padding: const EdgeInsets.all(8.0),
-                            child: Text('Your Best Peak: #${game.playerChartPeak}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.amber)),
+                            child: Text('Your Best Peak: #${game.playerChartPeak}', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.amber)),
                           ),
                         if (biggestGainer != null || biggestDropper != null) // Only show if there's something to show
                           Padding(
@@ -115,6 +115,7 @@ class ChartsScreen extends StatelessWidget {
                                 if (biggestGainer != null)
                                   Expanded(
                                     child: _buildHighlightCard(
+                                      context: context,
                                       title: 'Biggest Gainer',
                                       song: biggestGainer,
                                       rankChange: maxGain,
@@ -125,6 +126,7 @@ class ChartsScreen extends StatelessWidget {
                                 if (biggestDropper != null)
                                   Expanded(
                                     child: _buildHighlightCard(
+                                      context: context,
                                       title: 'Biggest Dropper',
                                       song: biggestDropper,
                                       rankChange: maxDrop,
@@ -155,23 +157,23 @@ class ChartsScreen extends StatelessWidget {
                                   ),
                                   title: Text(
                                     entry.title,
-                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                                   ),
                                   subtitle: Column( // Removed SizedBox wrapper
                         crossAxisAlignment: CrossAxisAlignment.start,
                                     mainAxisSize: MainAxisSize.min, // Ensure it takes minimum space
                         children: [
-                                      Text('Artist: ${artist?.name ?? 'Unknown'}', style: const TextStyle(fontSize: 12, color: Colors.white70)), // Display artist separately
-                                      Text('Pop: ${artist?.attributes['popularity']?.toStringAsFixed(0)}%', style: const TextStyle(fontSize: 11)),
+                                      Text('Artist: ${artist?.name ?? 'Unknown'}', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72))), // Display artist separately
+                                      Text('Pop: ${artist?.attributes['popularity']?.toStringAsFixed(0)}%', style: TextStyle(fontSize: 11)),
                                       const SizedBox(height: 1), // Reduced height
                                       Text(
                                         'Streams: ${entry.totalStreams.toStringAsFixed(0)} • Weekly: ${entry.weeklyListeners.toStringAsFixed(0)} (${_getWeeklyListenerChangePercentage(entry)}) ',
-                                        style: const TextStyle(fontSize: 11), // Reduced font size
+                                        style: TextStyle(fontSize: 11), // Reduced font size
                                       ),
                                       const SizedBox(height: 1), // Reduced height
                                       Text(
                                         'Total Artist Streams: ${game.getArtistCumulativeStreams(entry.artistId).toStringAsFixed(0)} • Label: ${_getArtistLabel(game, artist)}',
-                                        style: const TextStyle(fontSize: 11, color: Colors.white54), // Reduced font size
+                                        style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54)), // Reduced font size
                                       ),
                                       const SizedBox(height: 2), // Reduced height
                                       SizedBox(
@@ -208,7 +210,7 @@ class ChartsScreen extends StatelessWidget {
                                             minimumSize: const Size(0, 20), // Very small minimum height
                                             tapTargetSize: MaterialTapTargetSize.shrinkWrap, // Shrink tap target
                                           ),
-                                          child: const Text('Details', style: TextStyle(fontSize: 10)), // Smaller text for button
+                                          child: Text('Details', style: TextStyle(fontSize: 10)), // Smaller text for button
                             )
                           ],
                         ),
@@ -245,7 +247,7 @@ class ChartsScreen extends StatelessWidget {
                               radius: 22,
                               child: Text('#${idx + 1}'),
                             ),
-                            title: Text(artist.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                            title: Text(artist.name, style: TextStyle(fontWeight: FontWeight.bold)),
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -264,7 +266,7 @@ class ChartsScreen extends StatelessWidget {
                                 );
                               },
                               style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2)),
-                              child: const Text('View Artist'),
+                              child: Text('View Artist'),
                             ),
                           ),
                         );
@@ -299,7 +301,13 @@ class ChartsScreen extends StatelessWidget {
     }
   }
 
-  Widget _buildHighlightCard({required String title, required Song song, required int rankChange, required bool isGainer}) {
+  Widget _buildHighlightCard({
+    required BuildContext context,
+    required String title,
+    required Song song,
+    required int rankChange,
+    required bool isGainer,
+  }) {
     return Card(
       color: isGainer ? Colors.green.shade800 : Colors.red.shade800,
       child: Padding(
@@ -307,10 +315,10 @@ class ChartsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
+            Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).colorScheme.onSurface)),
             const SizedBox(height: 4),
-            Text(song.title, style: const TextStyle(fontSize: 14, color: Colors.white70)),
-            Text('Rank change: ${isGainer ? '+' : ''}${rankChange.abs()}', style: const TextStyle(fontSize: 12, color: Colors.white70)),
+            Text(song.title, style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72))),
+            Text('Rank change: ${isGainer ? '+' : ''}${rankChange.abs()}', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72))),
           ],
         ),
       ),
@@ -442,7 +450,7 @@ class SongDetailDialog extends StatelessWidget {
             _metricRow('Recency (weeks since release)', song.weeksSinceRelease.toDouble()),
             const SizedBox(height: 12),
             if (artist != null) ...[
-              const Text('Artist snapshot:'),
+              Text('Artist snapshot:'),
               const SizedBox(height: 6),
               Wrap(
                 spacing: 6,
@@ -454,7 +462,7 @@ class SongDetailDialog extends StatelessWidget {
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Close')),
+        TextButton(onPressed: () => Navigator.of(context).pop(), child: Text('Close')),
       ],
     );
   }

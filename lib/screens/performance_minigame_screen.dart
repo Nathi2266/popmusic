@@ -193,17 +193,16 @@ class _PerformanceMinigameScreenState extends State<PerformanceMinigameScreen>
     return Scaffold(
       appBar: AppBar(
         title: Text('Performing at ${widget.venue.name}'),
-        backgroundColor: const Color(0xFF16213e),
-        automaticallyImplyLeading: false,
+                automaticallyImplyLeading: false,
       ),
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFF1a1a2e),
-              Color(0xFF16213e),
+              Theme.of(context).scaffoldBackgroundColor,
+              Theme.of(context).colorScheme.surface,
               Colors.black,
             ],
           ),
@@ -213,7 +212,7 @@ class _PerformanceMinigameScreenState extends State<PerformanceMinigameScreen>
             // Stats
             Container(
               padding: const EdgeInsets.all(16),
-              color: const Color(0xFF2a2a3e).withValues(alpha: 0.8),
+              color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
               child: Column(
                 children: [
                   Row(
@@ -227,8 +226,8 @@ class _PerformanceMinigameScreenState extends State<PerformanceMinigameScreen>
                                   : 20))
                         DropdownButton<int>(
                           value: _difficulty,
-                          dropdownColor: const Color(0xFF2a2a3e),
-                          style: const TextStyle(color: Colors.white),
+                          dropdownColor: Theme.of(context).colorScheme.surface,
+                          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                           items: const [
                             DropdownMenuItem(value: 1, child: Text('Easy')),
                             DropdownMenuItem(value: 2, child: Text('Medium')),
@@ -244,12 +243,12 @@ class _PerformanceMinigameScreenState extends State<PerformanceMinigameScreen>
                         ),
                       Row(
                         children: [
-                          const Icon(Icons.timer, color: Colors.white),
+                          Icon(Icons.timer, color: Theme.of(context).colorScheme.onSurface),
                           const SizedBox(width: 8),
                           Text(
                             '$_timeLeft s',
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
@@ -258,8 +257,8 @@ class _PerformanceMinigameScreenState extends State<PerformanceMinigameScreen>
                       ),
                       Text(
                         'Score: $_score',
-                        style: const TextStyle(
-                          color: Color(0xFFe94560),
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.primary,
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
@@ -274,7 +273,7 @@ class _PerformanceMinigameScreenState extends State<PerformanceMinigameScreen>
                           ),
                           child: Text(
                             'Combo: x$_combo',
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: Color(0xFF4CAF50),
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -291,10 +290,10 @@ class _PerformanceMinigameScreenState extends State<PerformanceMinigameScreen>
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text(
+                          Text(
                             'Crowd Energy',
                             style:
-                                TextStyle(color: Colors.white70, fontSize: 12),
+                                TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72), fontSize: 12),
                           ),
                           Text(
                             '$_crowdEnergy%',
@@ -313,7 +312,7 @@ class _PerformanceMinigameScreenState extends State<PerformanceMinigameScreen>
                       const SizedBox(height: 4),
                       LinearProgressIndicator(
                         value: _crowdEnergy / 100,
-                        backgroundColor: const Color(0xFF2a2a3e),
+                        backgroundColor: Theme.of(context).colorScheme.surface,
                         valueColor: AlwaysStoppedAnimation<Color>(
                           _crowdEnergy > 70
                               ? const Color(0xFF4CAF50)
@@ -341,7 +340,7 @@ class _PerformanceMinigameScreenState extends State<PerformanceMinigameScreen>
                         end: Alignment.bottomCenter,
                         colors: [
                           Colors.black,
-                          const Color(0xFF1a1a2e).withValues(alpha: 0.5),
+                          Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.5),
                         ],
                       ),
                     ),
@@ -416,27 +415,27 @@ class _PerformanceMinigameScreenState extends State<PerformanceMinigameScreen>
                         height: 60,
                         margin: const EdgeInsets.symmetric(horizontal: 4),
                         decoration: BoxDecoration(
-                          gradient: const LinearGradient(
+                          gradient: LinearGradient(
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
                             colors: [
-                              Color(0xFFe94560),
+                              Theme.of(context).colorScheme.primary,
                               Color(0xFFc7354d),
                             ],
                           ),
                           borderRadius: BorderRadius.circular(8),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFFe94560)
+                              color: Theme.of(context).colorScheme.primary
                                   .withValues(alpha: 0.5),
                               blurRadius: 8,
                               spreadRadius: 2,
                             ),
                           ],
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.music_note,
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.onSurface,
                           size: 32,
                         ),
                       ),
@@ -456,13 +455,13 @@ class _PerformanceMinigameScreenState extends State<PerformanceMinigameScreen>
                         child: Container(
                           width: 20,
                           height: 20,
-                          decoration: const BoxDecoration(
+                          decoration: BoxDecoration(
                             color: Color(0xFF4CAF50),
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.star,
-                            color: Colors.white,
+                            color: Theme.of(context).colorScheme.onSurface,
                             size: 12,
                           ),
                         ),
@@ -476,7 +475,7 @@ class _PerformanceMinigameScreenState extends State<PerformanceMinigameScreen>
             // Hit Buttons
             Container(
               padding: const EdgeInsets.all(16),
-              color: const Color(0xFF2a2a3e).withValues(alpha: 0.9),
+              color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
               child: Row(
                 children: List.generate(4, (index) {
                   return Expanded(
@@ -485,8 +484,8 @@ class _PerformanceMinigameScreenState extends State<PerformanceMinigameScreen>
                       child: ElevatedButton(
                         onPressed: () => _hitNote(index),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFe94560),
-                          foregroundColor: Colors.white,
+                          backgroundColor: Theme.of(context).colorScheme.primary,
+                          foregroundColor: Theme.of(context).colorScheme.onPrimary,
                           padding: const EdgeInsets.symmetric(vertical: 24),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -494,7 +493,7 @@ class _PerformanceMinigameScreenState extends State<PerformanceMinigameScreen>
                         ),
                         child: Text(
                           '${index + 1}',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
                           ),

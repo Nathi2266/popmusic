@@ -207,39 +207,38 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
 
     showDialog(context: context, builder: (BuildContext context) {
       return AlertDialog(
-        backgroundColor: const Color(0xFF16213e),
-        title: const Text('Confirm Song Release', style: TextStyle(color: Colors.white)),
+                title: Text('Confirm Song Release', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
         content: SingleChildScrollView(
           child: ListBody(
             children: <Widget>[
-              Text('Title: ${_titleController.text.trim()}', style: const TextStyle(color: Colors.white70)),
+              Text('Title: ${_titleController.text.trim()}', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72))),
               const SizedBox(height: 8),
               // Placeholder for Cover Art - will implement later
               Container(
                 width: 100,
                 height: 100,
                 color: Colors.grey,
-                child: const Center(child: Text('Cover Art', style: TextStyle(color: Colors.white70))),
+                child: Center(child: Text('Cover Art', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72)))),
               ),
               const SizedBox(height: 8),
-              Text('Estimated Rank: $_estimatedRank', style: const TextStyle(color: Colors.white70)),
+              Text('Estimated Rank: $_estimatedRank', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72))),
               const SizedBox(height: 8),
-              Text('Viral Factor: ${currentViralFactor.toStringAsFixed(1)}', style: const TextStyle(color: Colors.white70)),
+              Text('Viral Factor: ${currentViralFactor.toStringAsFixed(1)}', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72))),
               const SizedBox(height: 8),
-              Text('Popularity Factor: ${popularityFactor.toStringAsFixed(1)}', style: const TextStyle(color: Colors.white70)),
+              Text('Popularity Factor: ${popularityFactor.toStringAsFixed(1)}', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72))),
               const SizedBox(height: 8),
-              Text('Sales Potential: ${salesPotential.toStringAsFixed(1)}', style: const TextStyle(color: Colors.white70)),
+              Text('Sales Potential: ${salesPotential.toStringAsFixed(1)}', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72))),
               const SizedBox(height: 8),
-              Text('Song Length: ${_songLengthMinutes.toStringAsFixed(1)} minutes', style: const TextStyle(color: Colors.white70)),
+              Text('Song Length: ${_songLengthMinutes.toStringAsFixed(1)} minutes', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72))),
               const SizedBox(height: 8),
-              Text('Genre: $_selectedGenre', style: const TextStyle(color: Colors.white70)),
+              Text('Genre: $_selectedGenre', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72))),
               const SizedBox(height: 8),
-              Text('Studio: ${_studioFinish.displayName}', style: const TextStyle(color: Colors.white70)),
+              Text('Studio: ${_studioFinish.displayName}', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72))),
               if (_hireGhostwriter) ...[
                 const SizedBox(height: 8),
                 Text(
                   'Ghostwriter \$${gameState.ghostwriterFee().toStringAsFixed(0)} · leak risk',
-                  style: const TextStyle(color: Color(0xFFFFB74D)),
+                  style: TextStyle(color: Color(0xFFFFB74D)),
                 ),
               ],
               if (_useSample) ...[
@@ -256,13 +255,13 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
                 ),
               ],
               const SizedBox(height: 8),
-              Text('Release Cost: \$${releaseCost.toStringAsFixed(0)}', style: const TextStyle(color: Colors.white70)),
+              Text('Release Cost: \$${releaseCost.toStringAsFixed(0)}', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72))),
             ],
           ),
         ),
         actions: [
           TextButton(
-            child: const Text('Cancel', style: TextStyle(color: Color(0xFFe94560))),
+            child: Text('Cancel', style: TextStyle(color: Theme.of(context).colorScheme.primary)),
             onPressed: () {
               Navigator.of(context).pop();
             },
@@ -270,7 +269,7 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF4CAF50),
-              foregroundColor: Colors.white,
+              foregroundColor: Theme.of(context).colorScheme.onPrimary,
             ),
             onPressed: () {
               Navigator.of(context).pop(); // Close the dialog
@@ -308,12 +307,11 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
                   context: context,
                   barrierDismissible: false,
                   builder: (partyCtx) => AlertDialog(
-                    backgroundColor: const Color(0xFF16213e),
-                    title: const Text('Listening Party',
-                        style: TextStyle(color: Colors.white)),
+                                        title: Text('Listening Party',
+                        style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
                     content: Text(
                       'Host a room for "${song.title}" this week?',
-                      style: const TextStyle(color: Colors.white70),
+                      style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72)),
                     ),
                     actions: [
                       for (final pick in [
@@ -342,13 +340,12 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
                               showDialog<void>(
                                 context: context,
                                 builder: (ctx) => AlertDialog(
-                                  backgroundColor: const Color(0xFF16213e),
-                                  title: const Text('Ghostwriter Leak',
-                                      style: TextStyle(color: Colors.white)),
+                                                                    title: Text('Ghostwriter Leak',
+                                      style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
                                   content: Text(
                                     'A writer for "${song.title}" talked. How do you spin it?',
-                                    style: const TextStyle(
-                                        color: Colors.white70),
+                                    style: TextStyle(
+                                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72)),
                                   ),
                                   actions: [
                                     for (final spin in [
@@ -377,7 +374,7 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
                 );
               }
             },
-            child: const Text('Confirm Release'),
+            child: Text('Confirm Release'),
           ),
         ],
       );
@@ -398,21 +395,20 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Create Song'),
-            backgroundColor: const Color(0xFF16213e),
-          ),
+            title: Text('Create Song'),
+                      ),
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Song Title
-                const Text(
+                Text(
                   'Song Title',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -421,12 +417,13 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
                     Expanded(
                       child: TextField(
                         controller: _titleController,
-                        style: const TextStyle(color: Colors.white, fontSize: 16),
+                        style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface, fontSize: 16),
                         decoration: InputDecoration(
                           hintText: 'Enter song title (e.g., "Summer Jam")',
-                          hintStyle: const TextStyle(color: Colors.white38),
+                          hintStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.38)),
                           filled: true,
-                          fillColor: const Color(0xFF2a2a3e),
+                          fillColor: Theme.of(context).colorScheme.surface,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide.none,
@@ -440,26 +437,26 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
                       child: ElevatedButton(
                         onPressed: _generateRandomTitle,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFe94560),
-                          foregroundColor: Colors.white,
+                          backgroundColor: Theme.of(context).colorScheme.primary,
+                          foregroundColor: Theme.of(context).colorScheme.onPrimary,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                         ),
-                        child: const Icon(Icons.casino, size: 28),
+                        child: Icon(Icons.casino, size: 28),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 24),
 
-                const Text(
+                Text(
                   'Genre',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -471,7 +468,7 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
                       children: [
                         Text(
                           'Trending now: $trending (heat ${game.genreHeatFor(trending).toStringAsFixed(0)})',
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: Color(0xFFFFD700),
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
@@ -495,10 +492,10 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
                                   _calculateEstimatedRank();
                                 });
                               },
-                              backgroundColor: const Color(0xFF2a2a3e),
+                              backgroundColor: Theme.of(context).colorScheme.surface,
                               selectedColor: genre == trending
                                   ? const Color(0xFFFFD700)
-                                  : const Color(0xFFe94560),
+                                  : Theme.of(context).colorScheme.primary,
                               labelStyle: TextStyle(
                                 color: selected && genre == trending
                                     ? Colors.black
@@ -539,22 +536,22 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF2a2a3e),
+                    color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         'Estimated Debut Rank',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontSize: 16,
                         ),
                       ),
                       Text(
                         _estimatedRank,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Color(0xFF4CAF50),
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -565,10 +562,10 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                const Text(
+                Text(
                   'STUDIO FINISH',
                   style: TextStyle(
-                    color: Colors.white54,
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54),
                     fontSize: 12,
                     letterSpacing: 2,
                     fontWeight: FontWeight.bold,
@@ -590,11 +587,11 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
                         width: double.infinity,
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF2a2a3e),
+                          color: Theme.of(context).colorScheme.surface,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
                             color: selected
-                                ? const Color(0xFFe94560)
+                                ? Theme.of(context).colorScheme.primary
                                 : Colors.white24,
                             width: selected ? 2 : 1,
                           ),
@@ -604,15 +601,15 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
                           children: [
                             Text(
                               finish.displayName,
-                              style: const TextStyle(
-                                color: Colors.white,
+                              style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                             Text(
                               finish.pitch,
-                              style: const TextStyle(
-                                color: Colors.white54,
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54),
                                 fontSize: 12,
                               ),
                             ),
@@ -627,7 +624,7 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF2a2a3e),
+                    color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
@@ -635,8 +632,8 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
                       Expanded(
                         child: Text(
                           'Hire ghostwriter (\$${gameState.ghostwriterFee().toStringAsFixed(0)}) — better writing, leak risk',
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
                             fontSize: 15,
                           ),
                         ),
@@ -659,16 +656,16 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF2a2a3e),
+                    color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
                     children: [
-                      const Expanded(
+                      Expanded(
                         child: Text(
                           'Use a sample hook — extra viral, clearance optional',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: Theme.of(context).colorScheme.onSurface,
                             fontSize: 15,
                           ),
                         ),
@@ -693,7 +690,7 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF2a2a3e),
+                      color: Theme.of(context).colorScheme.surface,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: _clearSampleNow
@@ -708,8 +705,8 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
                             _clearSampleNow
                                 ? 'Clear sample now (\$${gameState.sampleClearanceFee().toStringAsFixed(0)})'
                                 : 'Uncleared — hotter hook, takedown risk',
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
                               fontSize: 15,
                             ),
                           ),
@@ -732,16 +729,16 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF2a2a3e),
+                    color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         'Spend extra \$500 on marketing',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontSize: 16,
                         ),
                       ),
@@ -754,7 +751,7 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
                           });
                         },
                         // ignore: deprecated_member_use
-                        activeColor: const Color(0xFFe94560),
+                        activeColor: Theme.of(context).colorScheme.primary,
                       ),
                     ],
                   ),
@@ -762,12 +759,12 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
                 const SizedBox(height: 24),
 
                 // Song Length Slider
-                const Text(
+                Text(
                   'Song Length',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -782,7 +779,7 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
                       _songLengthMinutes = value;
                     });
                   },
-                  activeColor: const Color(0xFFe94560),
+                  activeColor: Theme.of(context).colorScheme.primary,
                   inactiveColor: Colors.white38,
                 ),
                 const SizedBox(height: 24),
@@ -791,16 +788,16 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF2a2a3e),
+                    color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         'Release Cost',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.onSurface,
                           fontSize: 16,
                         ),
                       ),
@@ -827,7 +824,7 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
 
                 // Stamina Warning
                 if ((gameState.player?.attributes['stamina'] ?? 0) < 10) ...[
-                  const Text(
+                  Text(
                     'Warning: Low stamina may reduce song performance!',
                     style: TextStyle(
                       color: Color(0xFFF44336),
@@ -853,14 +850,14 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
                         ? _releaseSong
                         : null,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFe94560),
-                      foregroundColor: Colors.white,
-                      disabledBackgroundColor: const Color(0xFF2a2a3e),
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                      disabledBackgroundColor: Theme.of(context).colorScheme.surface,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const Text(
+                    child: Text(
                       'RELEASE SONG',
                       style: TextStyle(
                         fontSize: 18,
@@ -927,7 +924,7 @@ class _MinigameCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF2a2a3e),
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: hasPlayed
@@ -942,10 +939,10 @@ class _MinigameCard extends StatelessWidget {
             width: 60,
             height: 60,
             decoration: BoxDecoration(
-              color: const Color(0xFFe94560),
+              color: Theme.of(context).colorScheme.primary,
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, color: Colors.white, size: 32),
+            child: Icon(icon, color: Theme.of(context).colorScheme.onSurface, size: 32),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -954,8 +951,8 @@ class _MinigameCard extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
@@ -963,8 +960,8 @@ class _MinigameCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   description,
-                  style: const TextStyle(
-                    color: Colors.white70,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72),
                     fontSize: 14,
                   ),
                 ),
@@ -972,7 +969,7 @@ class _MinigameCard extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                     'Score: $score',
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: Color(0xFF4CAF50),
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
@@ -985,8 +982,8 @@ class _MinigameCard extends StatelessWidget {
           ElevatedButton(
             onPressed: onPlay,
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFe94560),
-              foregroundColor: Colors.white,
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              foregroundColor: Theme.of(context).colorScheme.onPrimary,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),

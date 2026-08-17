@@ -28,9 +28,8 @@ class _LifestyleScreenState extends State<LifestyleScreen> {
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Lifestyle'),
-            backgroundColor: const Color(0xFF16213e),
-          ),
+            title: Text('Lifestyle'),
+                      ),
           body: Column(
             children: [
               Padding(
@@ -84,8 +83,8 @@ class _MoneyStrip extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF2a2a3e), Color(0xFF16213e)],
+        gradient: LinearGradient(
+          colors: [Theme.of(context).colorScheme.surface, Theme.of(context).colorScheme.surface],
         ),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: const Color(0xFFFFD700).withAlpha(80)),
@@ -95,8 +94,8 @@ class _MoneyStrip extends StatelessWidget {
         children: [
           Text(
             'Cash \$${game.playerMoney.toStringAsFixed(0)}',
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
               fontSize: 22,
               fontWeight: FontWeight.bold,
             ),
@@ -106,14 +105,14 @@ class _MoneyStrip extends StatelessWidget {
             'Net worth \$${game.lifestyleNetWorth.toStringAsFixed(0)} · '
             'Passive \$${game.projectedInvestmentYield().toStringAsFixed(0)}/wk · '
             'Bills \$${game.weeklyAssetUpkeep.toStringAsFixed(0)}/wk',
-            style: const TextStyle(color: Colors.white70, fontSize: 13),
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72), fontSize: 13),
           ),
           if (game.lastWeekPassive > 0 || game.lastWeekUpkeep > 0) ...[
             const SizedBox(height: 6),
             Text(
               'Last week: +\$${game.lastWeekPassive.toStringAsFixed(0)} '
               '− \$${game.lastWeekUpkeep.toStringAsFixed(0)}',
-              style: const TextStyle(color: Color(0xFFFFD700), fontSize: 12),
+              style: TextStyle(color: Color(0xFFFFD700), fontSize: 12),
             ),
           ],
         ],
@@ -136,7 +135,7 @@ class _TabChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: selected ? const Color(0xFFe94560) : const Color(0xFF2a2a3e),
+      color: selected ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.surface,
       borderRadius: BorderRadius.circular(10),
       child: InkWell(
         onTap: onTap,
@@ -168,10 +167,10 @@ class _AssetsList extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
       children: [
-        const Text(
+        Text(
           'Flex cash on jewelry, cars, houses, and toys. '
           'Each piece is unique. Upkeep hits every week. Wealth bump feeds merch.',
-          style: TextStyle(color: Colors.white54, fontSize: 13),
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54), fontSize: 13),
         ),
         const SizedBox(height: 12),
         ...LuxuryCategory.values.map((cat) {
@@ -184,8 +183,8 @@ class _AssetsList extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 8, bottom: 8),
                 child: Text(
                   cat.displayName.toUpperCase(),
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 2,
                     fontSize: 13,
@@ -224,7 +223,7 @@ class _AssetCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF2a2a3e),
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: owned
@@ -240,8 +239,8 @@ class _AssetCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   asset.name,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
                   ),
@@ -261,20 +260,20 @@ class _AssetCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             asset.blurb,
-            style: const TextStyle(color: Colors.white70, fontSize: 13),
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72), fontSize: 13),
           ),
           const SizedBox(height: 6),
           Text(
             'Upkeep \$${asset.weeklyUpkeep.toStringAsFixed(0)}/wk'
             '${_statLine(asset)}'
             '${gateText.isEmpty ? '' : ' · $gateText'}',
-            style: const TextStyle(color: Colors.white54, fontSize: 12),
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54), fontSize: 12),
           ),
           const SizedBox(height: 10),
           Align(
             alignment: Alignment.centerRight,
             child: owned
-                ? const Text(
+                ? Text(
                     'OWNED',
                     style: TextStyle(
                       color: Color(0xFFFFD700),
@@ -298,7 +297,7 @@ class _AssetCard extends StatelessWidget {
                       style: TextStyle(
                         color: gated
                             ? Colors.white38
-                            : const Color(0xFFe94560),
+                            : Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -338,10 +337,10 @@ class _InvestList extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
       children: [
-        const Text(
+        Text(
           'Park cash in funds and businesses. Yield hits every week. '
           'Cash out at 90% if you need the money back.',
-          style: TextStyle(color: Colors.white54, fontSize: 13),
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54), fontSize: 13),
         ),
         const SizedBox(height: 12),
         ...InvestmentVehicle.catalog.map(
@@ -373,7 +372,7 @@ class _InvestCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF2a2a3e),
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: owned != null
@@ -386,8 +385,8 @@ class _InvestCard extends StatelessWidget {
         children: [
           Text(
             vehicle.name,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
               fontSize: 16,
               fontWeight: FontWeight.w700,
             ),
@@ -395,7 +394,7 @@ class _InvestCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             vehicle.blurb,
-            style: const TextStyle(color: Colors.white70, fontSize: 13),
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72), fontSize: 13),
           ),
           const SizedBox(height: 6),
           Text(
@@ -406,7 +405,7 @@ class _InvestCard extends StatelessWidget {
                     ' · ~\$${projected.toStringAsFixed(0)}/wk at min'
                 : 'In \$${owned.principal.toStringAsFixed(0)} · '
                     '~\$${vehicle.weeklyYield(principal: owned.principal, fans: game.playerFanCount, royalties: game.lastWeekRoyalties).toStringAsFixed(0)}/wk',
-            style: const TextStyle(color: Color(0xFF4CAF50), fontSize: 12),
+            style: TextStyle(color: Color(0xFF4CAF50), fontSize: 12),
           ),
           const SizedBox(height: 10),
           Row(
@@ -422,9 +421,9 @@ class _InvestCard extends StatelessWidget {
                       ToastService().showSuccess('Cashed out ${vehicle.name}');
                     }
                   },
-                  child: const Text(
+                  child: Text(
                     'Cash out 90%',
-                    style: TextStyle(color: Colors.white54),
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54)),
                   ),
                 ),
               TextButton(
@@ -438,7 +437,7 @@ class _InvestCard extends StatelessWidget {
                           ? 'Invest'
                           : 'Add cash',
                   style: TextStyle(
-                    color: gated ? Colors.white38 : const Color(0xFFe94560),
+                    color: gated ? Colors.white38 : Theme.of(context).colorScheme.primary,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -465,10 +464,10 @@ class _InvestCard extends StatelessWidget {
           text: min.toStringAsFixed(0),
         );
         return AlertDialog(
-          backgroundColor: const Color(0xFF2a2a3e),
+          backgroundColor: Theme.of(context).colorScheme.surface,
           title: Text(
             toppingUp ? 'Add to ${vehicle.name}' : 'Open ${vehicle.name}',
-            style: const TextStyle(color: Colors.white),
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -476,18 +475,18 @@ class _InvestCard extends StatelessWidget {
             children: [
               Text(
                 'Cash \$${cash.toStringAsFixed(0)}. Min \$${min.toStringAsFixed(0)}.',
-                style: const TextStyle(color: Colors.white70, fontSize: 13),
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72), fontSize: 13),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: controller,
                 keyboardType: TextInputType.number,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                decoration: InputDecoration(
                   labelText: 'Amount',
-                  labelStyle: TextStyle(color: Colors.white54),
+                  labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54)),
                   enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white24),
+                    borderSide: BorderSide(color: Theme.of(context).dividerColor),
                   ),
                 ),
               ),
@@ -506,7 +505,7 @@ class _InvestCard extends StatelessWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel'),
+              child: Text('Cancel'),
             ),
             TextButton(
               onPressed: () {
@@ -521,9 +520,9 @@ class _InvestCard extends StatelessWidget {
                   );
                 }
               },
-              child: const Text(
+              child: Text(
                 'Confirm',
-                style: TextStyle(color: Color(0xFFe94560)),
+                style: TextStyle(color: Theme.of(context).colorScheme.primary),
               ),
             ),
           ],

@@ -29,9 +29,8 @@ class CareerScreen extends StatelessWidget {
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Career'),
-            backgroundColor: const Color(0xFF16213e),
-          ),
+            title: Text('Career'),
+                      ),
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -53,8 +52,8 @@ class CareerScreen extends StatelessWidget {
                     children: [
                       Text(
                         player.labelTier.displayName,
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
                         ),
@@ -64,8 +63,8 @@ class CareerScreen extends StatelessWidget {
                         const SizedBox(height: 4),
                         Text(
                           gameState.labelDisplayName(player),
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
                           ),
@@ -76,8 +75,8 @@ class CareerScreen extends StatelessWidget {
                         player.labelTier == LabelTier.unsigned
                             ? 'Weekly income \$${gameState.effectiveWeeklyStipend.toStringAsFixed(0)} · keep ${(gameState.effectiveRoyaltyKeep * 100).toStringAsFixed(0)}% of streams'
                             : '${gameState.labelDealStyle.displayName} deal · stipend \$${gameState.effectiveWeeklyStipend.toStringAsFixed(0)}/wk · keep ${(gameState.effectiveRoyaltyKeep * 100).toStringAsFixed(0)}%',
-                        style: const TextStyle(
-                          color: Colors.white70,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72),
                           fontSize: 16,
                         ),
                       ),
@@ -85,16 +84,16 @@ class CareerScreen extends StatelessWidget {
                       if (gameState.fanClubFounded)
                         Text(
                           'Fan club: ${gameState.fanClubMembers} members · \$${gameState.fanClubUpkeep.toStringAsFixed(0)}/wk',
-                          style: const TextStyle(
-                            color: Colors.white70,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72),
                             fontSize: 14,
                           ),
                         ),
                       const SizedBox(height: 6),
                       Text(
                         'Chapter: ${gameState.currentChapter}',
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                         ),
@@ -102,8 +101,8 @@ class CareerScreen extends StatelessWidget {
                       const SizedBox(height: 16),
                       Text(
                         '${(player.attributes['weeksSinceDebut'] ?? 0).toInt()} weeks in the industry',
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
                           fontSize: 14,
                         ),
                       ),
@@ -122,7 +121,7 @@ class CareerScreen extends StatelessWidget {
                         ),
                       );
                     },
-                    icon: const Icon(Icons.diamond_outlined),
+                    icon: Icon(Icons.diamond_outlined),
                     label: Text(
                       gameState.ownedAssetIds.isEmpty &&
                               gameState.investments.isEmpty
@@ -148,27 +147,27 @@ class CareerScreen extends StatelessWidget {
                         ),
                       );
                     },
-                    icon: const Icon(Icons.album_outlined),
+                    icon: Icon(Icons.album_outlined),
                     label: Text(
                       gameState.activeRoster.isEmpty
                           ? 'Record labels & your imprint'
                           : 'Imprint roster ${gameState.activeRoster.length}/5',
                     ),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      side: const BorderSide(color: Colors.white24),
+                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                      side: BorderSide(color: Theme.of(context).dividerColor),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
                   ),
                 ),
                 const SizedBox(height: 24),
 
-                const Text(
+                Text(
                   'STORYLINE',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.onSurface,
                     letterSpacing: 2,
                   ),
                 ),
@@ -207,12 +206,12 @@ class CareerScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
 
-                const Text(
+                Text(
                   'LABEL PROGRESSION',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.onSurface,
                     letterSpacing: 2,
                   ),
                 ),
@@ -259,12 +258,12 @@ class CareerScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
+                    Text(
                       'ACHIEVEMENTS',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.onSurface,
                         letterSpacing: 2,
                       ),
                     ),
@@ -277,8 +276,8 @@ class CareerScreen extends StatelessWidget {
                           ),
                         );
                       },
-                      icon: const Icon(Icons.emoji_events, color: Color(0xFFFFD700)),
-                      label: const Text('View All', style: TextStyle(color: Color(0xFFFFD700))),
+                      icon: Icon(Icons.emoji_events, color: Color(0xFFFFD700)),
+                      label: Text('View All', style: TextStyle(color: Color(0xFFFFD700))),
                     ),
                   ],
                 ),
@@ -303,7 +302,7 @@ class CareerScreen extends StatelessWidget {
                           margin: const EdgeInsets.only(bottom: 12),
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF2a2a3e),
+                            color: Theme.of(context).colorScheme.surface,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
                               color: const Color(0xFFFFD700),
@@ -314,7 +313,7 @@ class CareerScreen extends StatelessWidget {
                             children: [
                               Text(
                                 achievement.icon,
-                                style: const TextStyle(fontSize: 32),
+                                style: TextStyle(fontSize: 32),
                               ),
                               const SizedBox(width: 16),
                               Expanded(
@@ -323,16 +322,16 @@ class CareerScreen extends StatelessWidget {
                                   children: [
                                     Text(
                                       achievement.title,
-                                      style: const TextStyle(
-                                        color: Colors.white,
+                                      style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
                                     Text(
                                       achievement.description,
-                                      style: const TextStyle(
-                                        color: Colors.white70,
+                                      style: TextStyle(
+                                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72),
                                         fontSize: 12,
                                       ),
                                     ),
@@ -349,12 +348,12 @@ class CareerScreen extends StatelessWidget {
                 const SizedBox(height: 24),
 
                 // Awards
-                const Text(
+                Text(
                   'AWARDS',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.onSurface,
                     letterSpacing: 2,
                   ),
                 ),
@@ -373,7 +372,7 @@ class CareerScreen extends StatelessWidget {
                             margin: const EdgeInsets.only(bottom: 12),
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF2a2a3e),
+                              color: Theme.of(context).colorScheme.surface,
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
                                 color: const Color(0xFFFFD700),
@@ -382,7 +381,7 @@ class CareerScreen extends StatelessWidget {
                             ),
                             child: Row(
                               children: [
-                                const Icon(
+                                Icon(
                                   Icons.emoji_events,
                                   color: Color(0xFFFFD700),
                                   size: 32,
@@ -391,8 +390,8 @@ class CareerScreen extends StatelessWidget {
                                 Expanded(
                                   child: Text(
                                     award,
-                                    style: const TextStyle(
-                                      color: Colors.white,
+                                    style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -406,12 +405,12 @@ class CareerScreen extends StatelessWidget {
                 const SizedBox(height: 24),
 
                 // Career Stats
-                const Text(
+                Text(
                   'CAREER STATISTICS',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.onSurface,
                     letterSpacing: 2,
                   ),
                 ),
@@ -419,7 +418,7 @@ class CareerScreen extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF2a2a3e),
+                    color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Column(
@@ -429,25 +428,25 @@ class CareerScreen extends StatelessWidget {
                         value: '${gameState.worldSongs.where((s) => s.artistId == player.id).length}',
                         icon: Icons.music_note,
                       ),
-                      const Divider(color: Colors.white24),
+                      Divider(color: Theme.of(context).dividerColor),
                       _StatRow(
                         label: 'Total Albums',
                         value: '${gameState.playerAlbums.length}',
                         icon: Icons.album,
                       ),
-                      const Divider(color: Colors.white24),
+                      Divider(color: Theme.of(context).dividerColor),
                       _StatRow(
                         label: 'Total Fans',
                         value: '${gameState.playerFanCount}',
                         icon: Icons.people,
                       ),
-                      const Divider(color: Colors.white24),
+                      Divider(color: Theme.of(context).dividerColor),
                       _StatRow(
                         label: 'Career Earnings',
                         value: '\$${gameState.playerMoney.toStringAsFixed(0)}',
                         icon: Icons.attach_money,
                       ),
-                      const Divider(color: Colors.white24),
+                      Divider(color: Theme.of(context).dividerColor),
                       _StatRow(
                         label: 'Awards Won',
                         value: '${player.awardsWon.length}',
@@ -480,19 +479,19 @@ class CareerScreen extends StatelessWidget {
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF2a2a3e),
+        backgroundColor: Theme.of(context).colorScheme.surface,
         title: Text(
           'Sign ${tier.displayName}',
-          style: const TextStyle(color: Colors.white),
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
         ),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Pick the deal. This sets your stipend and stream cut until you sign up again.',
-                style: TextStyle(color: Colors.white70, fontSize: 13),
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72), fontSize: 13),
               ),
               const SizedBox(height: 12),
               ...LabelDealStyle.values.map(
@@ -520,7 +519,7 @@ class CareerScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
+            child: Text('Cancel'),
           ),
         ],
       ),
@@ -550,8 +549,8 @@ class _DealOption extends StatelessWidget {
       child: OutlinedButton(
         onPressed: onPick,
         style: OutlinedButton.styleFrom(
-          foregroundColor: Colors.white,
-          side: const BorderSide(color: Colors.white24),
+          foregroundColor: Theme.of(context).colorScheme.onPrimary,
+          side: BorderSide(color: Theme.of(context).dividerColor),
           padding: const EdgeInsets.all(12),
           alignment: Alignment.centerLeft,
         ),
@@ -560,19 +559,19 @@ class _DealOption extends StatelessWidget {
           children: [
             Text(
               deal.displayName,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
             ),
             const SizedBox(height: 4),
             Text(
               deal.pitch,
-              style: const TextStyle(color: Colors.white70, fontSize: 12),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72), fontSize: 12),
             ),
             const SizedBox(height: 4),
             Text(
               'Advance \$${advance.toStringAsFixed(0)} · '
               '\$${stipend.toStringAsFixed(0)}/wk · '
               'keep ${(keep * 100).toStringAsFixed(0)}%',
-              style: const TextStyle(color: Color(0xFFFFD700), fontSize: 12),
+              style: TextStyle(color: Color(0xFFFFD700), fontSize: 12),
             ),
           ],
         ),
@@ -593,7 +592,7 @@ class _StoryBeatRow extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFF2a2a3e),
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
           color: done ? const Color(0xFF4CAF50) : Colors.white24,
@@ -644,7 +643,7 @@ class _LabelTierCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF2a2a3e),
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: isCurrent ? color : Colors.white24,
@@ -677,7 +676,7 @@ class _LabelTierCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   requirements,
-                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72), fontSize: 12),
                 ),
                 Text(
                   '\$${tier.weeklyIncome.toStringAsFixed(0)}/week · ${(tier.royaltyKeep * 100).toStringAsFixed(0)}% streams',
@@ -688,9 +687,9 @@ class _LabelTierCard extends StatelessWidget {
           ),
           if (isCurrent)
             Chip(
-              label: const Text('Current'),
+              label: Text('Current'),
               backgroundColor: color.withAlpha(80),
-              labelStyle: const TextStyle(color: Colors.white),
+              labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface),
             )
           else if (onUpgrade != null)
             ElevatedButton(
@@ -699,7 +698,7 @@ class _LabelTierCard extends StatelessWidget {
                 backgroundColor: color,
                 foregroundColor: Colors.black,
               ),
-              child: const Text('Sign'),
+              child: Text('Sign'),
             ),
         ],
       ),
@@ -728,21 +727,21 @@ class _StatRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 12),
         child: Row(
           children: [
-            Icon(icon, color: const Color(0xFFe94560), size: 24),
+            Icon(icon, color: Theme.of(context).colorScheme.primary, size: 24),
             const SizedBox(width: 16),
             Expanded(
               child: Text(
                 label,
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
                   fontSize: 16,
                 ),
               ),
             ),
             Text(
               value,
-              style: const TextStyle(
-                color: Color(0xFFe94560),
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.primary,
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),

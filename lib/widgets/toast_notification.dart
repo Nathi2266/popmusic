@@ -82,8 +82,8 @@ class ToastNotification extends StatelessWidget {
             Flexible(
               child: Text(
                 toast.message,
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                 ),

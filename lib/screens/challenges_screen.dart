@@ -21,9 +21,8 @@ class ChallengesScreen extends StatelessWidget {
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Challenges'),
-            backgroundColor: const Color(0xFF16213e),
-          ),
+            title: Text('Challenges'),
+                      ),
           body: SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
@@ -31,12 +30,12 @@ class ChallengesScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Daily Challenges
-                  const Text(
+                  Text(
                     'DAILY CHALLENGES',
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.onSurface,
                       letterSpacing: 2,
                     ),
                   ),
@@ -45,7 +44,7 @@ class ChallengesScreen extends StatelessWidget {
                       .where((c) => c.frequency == ChallengeFrequency.daily)
                       .map((challenge) => _ChallengeCard(challenge: challenge)),
                   if (active.where((c) => c.frequency == ChallengeFrequency.daily).isEmpty)
-                    const GlassCard(
+                    GlassCard(
                       padding: EdgeInsets.all(24),
                       child: Center(
                         child: Column(
@@ -53,13 +52,13 @@ class ChallengesScreen extends StatelessWidget {
                             Icon(
                               Icons.event_busy,
                               size: 48,
-                              color: Colors.white38,
+                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.38),
                             ),
                             SizedBox(height: 16),
                             Text(
                               'No daily challenges available',
                               style: TextStyle(
-                                color: Colors.white70,
+                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72),
                                 fontSize: 16,
                               ),
                             ),
@@ -70,12 +69,12 @@ class ChallengesScreen extends StatelessWidget {
                   const SizedBox(height: 32),
 
                   // Weekly Challenges
-                  const Text(
+                  Text(
                     'WEEKLY CHALLENGES',
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.onSurface,
                       letterSpacing: 2,
                     ),
                   ),
@@ -84,7 +83,7 @@ class ChallengesScreen extends StatelessWidget {
                       .where((c) => c.frequency == ChallengeFrequency.weekly)
                       .map((challenge) => _ChallengeCard(challenge: challenge)),
                   if (active.where((c) => c.frequency == ChallengeFrequency.weekly).isEmpty)
-                    const GlassCard(
+                    GlassCard(
                       padding: EdgeInsets.all(24),
                       child: Center(
                         child: Column(
@@ -92,13 +91,13 @@ class ChallengesScreen extends StatelessWidget {
                             Icon(
                               Icons.calendar_today,
                               size: 48,
-                              color: Colors.white38,
+                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.38),
                             ),
                             SizedBox(height: 16),
                             Text(
                               'No weekly challenges available',
                               style: TextStyle(
-                                color: Colors.white70,
+                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72),
                                 fontSize: 16,
                               ),
                             ),
@@ -110,12 +109,12 @@ class ChallengesScreen extends StatelessWidget {
 
                   // Completed Challenges
                   if (completed.isNotEmpty) ...[
-                    const Text(
+                    Text(
                       'COMPLETED',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.onSurface,
                         letterSpacing: 2,
                       ),
                     ),
@@ -205,7 +204,7 @@ class _ChallengeCard extends StatelessWidget {
                   ),
                 ),
                 if (isCompleted)
-                  const Icon(
+                  Icon(
                     Icons.check_circle,
                     color: Color(0xFF4CAF50),
                     size: 24,
@@ -236,7 +235,7 @@ class _ChallengeCard extends StatelessWidget {
               const SizedBox(height: 12),
               LinearProgressIndicator(
                 value: challenge.progressPercentage,
-                backgroundColor: const Color(0xFF1a1a2e),
+                backgroundColor: Theme.of(context).scaffoldBackgroundColor,
                 valueColor: AlwaysStoppedAnimation<Color>(
                   challenge.frequency == ChallengeFrequency.weekly
                       ? const Color(0xFF9C27B0)
@@ -250,19 +249,19 @@ class _ChallengeCard extends StatelessWidget {
                 children: [
                   Text(
                     '${challenge.currentProgress} / ${challenge.targetValue}',
-                    style: const TextStyle(
-                      color: Colors.white70,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72),
                       fontSize: 12,
                     ),
                   ),
                   Row(
                     children: [
                       if (challenge.rewardXp > 0) ...[
-                        const Icon(Icons.star, color: Color(0xFFFFD700), size: 16),
+                        Icon(Icons.star, color: Color(0xFFFFD700), size: 16),
                         const SizedBox(width: 4),
                         Text(
                           '${challenge.rewardXp} XP',
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: Color(0xFFFFD700),
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
@@ -270,11 +269,11 @@ class _ChallengeCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 12),
                       ],
-                      const Icon(Icons.attach_money, color: Color(0xFF4CAF50), size: 16),
+                      Icon(Icons.attach_money, color: Color(0xFF4CAF50), size: 16),
                       const SizedBox(width: 4),
                       Text(
                         '\$${challenge.rewardMoney.toStringAsFixed(0)}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Color(0xFF4CAF50),
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
@@ -289,21 +288,21 @@ class _ChallengeCard extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  const Icon(Icons.star, color: Color(0xFFFFD700), size: 16),
+                  Icon(Icons.star, color: Color(0xFFFFD700), size: 16),
                   const SizedBox(width: 4),
                   Text(
                     '${challenge.rewardXp} XP',
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: Color(0xFFFFD700),
                       fontSize: 12,
                     ),
                   ),
                   const SizedBox(width: 12),
-                  const Icon(Icons.attach_money, color: Color(0xFF4CAF50), size: 16),
+                  Icon(Icons.attach_money, color: Color(0xFF4CAF50), size: 16),
                   const SizedBox(width: 4),
                   Text(
                     '\$${challenge.rewardMoney.toStringAsFixed(0)}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: Color(0xFF4CAF50),
                       fontSize: 12,
                     ),

@@ -5,6 +5,7 @@ import 'music_screen.dart';
 import 'career_screen.dart';
 import 'challenges_screen.dart';
 import 'performance_screen.dart';
+import '../theme/game_palette.dart';
 
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key});
@@ -27,6 +28,7 @@ class _GameScreenState extends State<GameScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final p = context.palette;
     return Scaffold(
       body: _screens[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
@@ -37,9 +39,9 @@ class _GameScreenState extends State<GameScreen> {
           });
         },
         type: BottomNavigationBarType.fixed,
-        backgroundColor: const Color(0xFF16213e),
-        selectedItemColor: const Color(0xFFe94560),
-        unselectedItemColor: Colors.white54,
+        backgroundColor: p.navBar,
+        selectedItemColor: p.primary,
+        unselectedItemColor: p.textFaint,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.dashboard),

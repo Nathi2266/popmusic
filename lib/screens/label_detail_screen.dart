@@ -21,7 +21,7 @@ class LabelDetailScreen extends StatelessWidget {
         final label = game.labelById(labelId);
         if (label == null) {
           return Scaffold(
-            appBar: AppBar(title: const Text('Label')),
+            appBar: AppBar(title: Text('Label')),
             body: const Center(child: Text('Label not found')),
           );
         }
@@ -34,8 +34,7 @@ class LabelDetailScreen extends StatelessWidget {
         return Scaffold(
           appBar: AppBar(
             title: Text(label.name),
-            backgroundColor: const Color(0xFF16213e),
-          ),
+                      ),
           body: ListView(
             padding: const EdgeInsets.all(16),
             children: [
@@ -55,8 +54,8 @@ class LabelDetailScreen extends StatelessWidget {
                   children: [
                     Text(
                       label.name,
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
                       ),
@@ -64,19 +63,20 @@ class LabelDetailScreen extends StatelessWidget {
                     const SizedBox(height: 6),
                     Text(
                       '${label.displayTier} · ${label.city}',
-                      style: const TextStyle(color: Colors.white, fontSize: 16),
+                      style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface, fontSize: 16),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       label.blurb,
-                      style: const TextStyle(color: Colors.white70),
+                      style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72)),
                     ),
                     if (isImprint) ...[
                       const SizedBox(height: 10),
                       Text(
                         'Roster ${game.activeRoster.length}/${RecordLabels.maxRosterSize}',
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -93,15 +93,15 @@ class LabelDetailScreen extends StatelessWidget {
                     onPressed: cool > 0
                         ? null
                         : () => _pitchSong(context, game, label),
-                    icon: const Icon(Icons.upload_file),
+                    icon: Icon(Icons.upload_file),
                     label: Text(
                       cool > 0
                           ? 'A&R cooling ($cool w)'
                           : 'Submit a track (\$${label.pitchCost})',
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFe94560),
-                      foregroundColor: Colors.white,
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
                     ),
                   ),
                 ),
@@ -109,8 +109,8 @@ class LabelDetailScreen extends StatelessWidget {
               const SizedBox(height: 24),
               Text(
                 isImprint ? 'YOUR ARTISTS' : 'ROSTER',
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1.4,
@@ -122,34 +122,34 @@ class LabelDetailScreen extends StatelessWidget {
                   isImprint
                       ? 'Sign artists from the Artists tab. Max ${RecordLabels.maxRosterSize}.'
                       : 'Quiet roster this season.',
-                  style: const TextStyle(color: Colors.white54),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54)),
                 )
               else
                 ...roster.map((artist) {
                   final signing = game.rosterFor(artist.id);
                   return Card(
-                    color: const Color(0xFF2a2a3e),
+                    color: Theme.of(context).colorScheme.surface,
                     margin: const EdgeInsets.only(bottom: 10),
                     child: ListTile(
                       leading: CircleAvatar(
                         backgroundColor: Color(label.colorValue),
                         child: Text(
                           artist.name[0],
-                          style: const TextStyle(color: Colors.black87),
+                          style: TextStyle(color: Colors.black87),
                         ),
                       ),
                       title: Text(
                         artist.name,
-                        style: const TextStyle(color: Colors.white),
+                        style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                       ),
                       subtitle: Text(
                         [
                           'Pop ${(artist.attributes['popularity'] ?? 0).toStringAsFixed(0)}%',
                           if (signing != null) signing.deal.displayName,
                         ].join(' · '),
-                        style: const TextStyle(color: Colors.white70),
+                        style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72)),
                       ),
-                      trailing: const Icon(Icons.chevron_right, color: Colors.white38),
+                      trailing: Icon(Icons.chevron_right, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.38)),
                       onTap: () {
                         Navigator.push(
                           context,
@@ -180,8 +180,7 @@ class LabelDetailScreen extends StatelessWidget {
     }
     showModalBottomSheet<void>(
       context: context,
-      backgroundColor: const Color(0xFF16213e),
-      builder: (ctx) {
+            builder: (ctx) {
         return SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -191,16 +190,16 @@ class LabelDetailScreen extends StatelessWidget {
               children: [
                 Text(
                   'Pitch to ${label.name}',
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
+                Text(
                   'If they bite and they outrank your current deal, you pick a contract.',
-                  style: TextStyle(color: Colors.white70, fontSize: 13),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72), fontSize: 13),
                 ),
                 const SizedBox(height: 12),
                 ConstrainedBox(
@@ -212,10 +211,10 @@ class LabelDetailScreen extends StatelessWidget {
                       final song = songs[index];
                       return ListTile(
                         title: Text(song.title,
-                            style: const TextStyle(color: Colors.white)),
+                            style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
                         subtitle: Text(
                           'Streams ${song.totalStreams.toStringAsFixed(0)}',
-                          style: const TextStyle(color: Colors.white54),
+                          style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54)),
                         ),
                         onTap: () {
                           Navigator.pop(ctx);
@@ -254,10 +253,10 @@ class LabelDetailScreen extends StatelessWidget {
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF2a2a3e),
+        backgroundColor: Theme.of(context).colorScheme.surface,
         title: Text(
           'Contract with ${label.name}',
-          style: const TextStyle(color: Colors.white),
+          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
         ),
         content: SingleChildScrollView(
           child: Column(
@@ -282,8 +281,8 @@ class LabelDetailScreen extends StatelessWidget {
                     }
                   },
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    side: const BorderSide(color: Colors.white24),
+                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                    side: BorderSide(color: Theme.of(context).dividerColor),
                   ),
                   child: Align(
                     alignment: Alignment.centerLeft,
@@ -291,7 +290,7 @@ class LabelDetailScreen extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       child: Text(
                         '${deal.displayName}\n${deal.pitch}',
-                        style: const TextStyle(height: 1.3),
+                        style: TextStyle(height: 1.3),
                       ),
                     ),
                   ),
@@ -303,7 +302,7 @@ class LabelDetailScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
+            child: Text('Cancel'),
           ),
         ],
       ),

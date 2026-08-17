@@ -11,6 +11,7 @@ import 'services/challenge_service.dart';
 import 'widgets/toast_notification.dart';
 import 'widgets/error_boundary.dart';
 import 'theme/app_theme.dart';
+import 'theme/game_palette.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -97,16 +98,36 @@ class PopMusicGame extends StatelessWidget {
           },
         ),
       ],
-      child: MaterialApp(
-        title: 'PopMusic',
-        theme: AppTheme.getDarkTheme(),
-        builder: (context, child) {
-          return ErrorBoundary(
-            child: ToastContainer(child: child!),
+      child: Consumer<SettingsService>(
+        builder: (context, settings, _) {
+          final theme = AppTheme.fromId(settings.themeId);
+          return MaterialApp(
+            title: 'PopMusic',
+            theme: theme,
+            builder: (context, child) {
+              final p = context.palette;
+              return MediaQuery(
+                data: MediaQuery.of(context).copyWith(
+                  textScaler: TextScaler.linear(settings.fontSize),
+                ),
+                child: ErrorBoundary(
+                  child: DefaultTextStyle(
+                    style: TextStyle(
+                      color: p.text,
+                      fontFamily: AppTheme.fontFamily,
+                    ),
+                    child: IconTheme(
+                      data: IconThemeData(color: p.text),
+                      child: ToastContainer(child: child!),
+                    ),
+                  ),
+                ),
+              );
+            },
+            home: const MainMenuScreen(),
+            debugShowCheckedModeBanner: false,
           );
         },
-        home: const MainMenuScreen(),
-        debugShowCheckedModeBanner: false,
       ),
     );
   }

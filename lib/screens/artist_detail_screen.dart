@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../services/game_state_service.dart';
-import '../models/label_tier.dart';
-import '../models/record_label.dart';
 import '../data/record_labels.dart';
 import '../utils/toast_service.dart';
+import '../widgets/artist_character_avatar.dart';
+import 'sign_contract_screen.dart';
+import 'roster_artist_style_screen.dart';
 
 class ArtistDetailScreen extends StatelessWidget {
   final String artistId;
@@ -20,7 +21,7 @@ class ArtistDetailScreen extends StatelessWidget {
 
         if (artist == null) {
           return Scaffold(
-            appBar: AppBar(title: const Text('Artist Not Found')),
+            appBar: AppBar(title: Text('Artist Not Found')),
             body: const Center(child: Text('Artist not found.')),
           );
         }
@@ -35,22 +36,29 @@ class ArtistDetailScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Popularity: ${artist.attributes['popularity']?.toStringAsFixed(0)}%', style: const TextStyle(fontSize: 18)),
-                Text('Label: ${game.labelDisplayName(artist)}', style: const TextStyle(fontSize: 18)),
-                Text('Total Streams: ${cumulativeStreams.toStringAsFixed(0)}', style: const TextStyle(fontSize: 18)),
+                Center(
+                  child: ArtistCharacterAvatar(
+                    appearance: artist.appearance,
+                    size: 140,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text('Popularity: ${artist.attributes['popularity']?.toStringAsFixed(0)}%', style: TextStyle(fontSize: 18)),
+                Text('Label: ${game.labelDisplayName(artist)}', style: TextStyle(fontSize: 18)),
+                Text('Total Streams: ${cumulativeStreams.toStringAsFixed(0)}', style: TextStyle(fontSize: 18)),
                 if (game.isOnRoster(artistId))
                   Padding(
                     padding: const EdgeInsets.only(top: 8),
                     child: Text(
-                      'On your roster · ${game.rosterFor(artistId)?.deal.displayName ?? 'Signed'} · ${game.activeRoster.length}/${RecordLabels.maxRosterSize}',
-                      style: const TextStyle(color: Color(0xFFFFD700)),
+                      'On your roster · they keep ${((game.rosterFor(artistId)?.artistKeep ?? 0) * 100).round()}% · ${game.activeRoster.length}/${RecordLabels.maxRosterSize}',
+                      style: TextStyle(color: Color(0xFFFFD700)),
                     ),
                   ),
                 if (game.isRival(artistId))
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.only(top: 8),
                     child: Text('This artist is your chart rival.',
-                        style: TextStyle(color: Color(0xFFe94560))),
+                        style: TextStyle(color: Theme.of(context).colorScheme.primary)),
                   ),
                 const SizedBox(height: 16),
                 if (artistId != game.player?.id)
@@ -63,22 +71,48 @@ class ArtistDetailScreen extends StatelessWidget {
                         ToastService().showSuccess('Collab recorded!');
                       }
                     },
-                    icon: const Icon(Icons.handshake),
-                    label: const Text('Request Collab (\$400)'),
+                    icon: Icon(Icons.handshake),
+                    label: Text('Request Collab (\$400)'),
                   ),
                 if (artistId != game.player?.id && !game.isOnRoster(artistId)) ...[
                   const SizedBox(height: 8),
                   ElevatedButton.icon(
-                    onPressed: () => _offerContract(context, game, artistId),
-                    icon: const Icon(Icons.assignment),
+                    onPressed: game.activeRoster.length >= RecordLabels.maxRosterSize
+                        ? null
+                        : () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => SignContractScreen(
+                                  artistId: artistId,
+                                ),
+                              ),
+                            );
+                          },
+                    icon: Icon(Icons.assignment),
                     label: Text(
                       game.activeRoster.length >= RecordLabels.maxRosterSize
                           ? 'Roster full (${RecordLabels.maxRosterSize})'
-                          : 'Offer contract (sign to your label)',
+                          : 'Open signing contract',
                     ),
                   ),
                 ],
                 if (game.isOnRoster(artistId)) ...[
+                  const SizedBox(height: 8),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => RosterArtistStyleScreen(
+                            artistId: artistId,
+                          ),
+                        ),
+                      );
+                    },
+                    icon: Icon(Icons.checkroom),
+                    label: Text('Edit name & outfit'),
+                  ),
                   const SizedBox(height: 8),
                   ElevatedButton.icon(
                     onPressed: () {
@@ -89,14 +123,14 @@ class ArtistDetailScreen extends StatelessWidget {
                         ToastService().showSuccess('Demo cut — release it on Music');
                       }
                     },
-                    icon: const Icon(Icons.mic),
-                    label: const Text('Send to studio (\$400 demo)'),
+                    icon: Icon(Icons.mic),
+                    label: Text('Send to studio (\$400 demo)'),
                   ),
                   const SizedBox(height: 8),
                   ElevatedButton.icon(
                     onPressed: () => _pickTeamCollab(context, game, artistId),
-                    icon: const Icon(Icons.group_add),
-                    label: const Text('Collab (player / team / outside)'),
+                    icon: Icon(Icons.group_add),
+                    label: Text('Collab (player / team / outside)'),
                   ),
                 ],
                 if (game.isRival(artistId) && artistId != game.player?.id) ...[
@@ -111,9 +145,9 @@ class ArtistDetailScreen extends StatelessWidget {
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFe94560),
+                      backgroundColor: Theme.of(context).colorScheme.primary,
                     ),
-                    icon: const Icon(Icons.whatshot),
+                    icon: Icon(Icons.whatshot),
                     label: Text(
                       game.dissCooldownWeeks > 0
                           ? 'Diss cooling (${game.dissCooldownWeeks}w)'
@@ -122,7 +156,7 @@ class ArtistDetailScreen extends StatelessWidget {
                   ),
                 ],
                 const SizedBox(height: 16),
-                const Text('Attributes:', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                Text('Attributes:', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
@@ -130,10 +164,10 @@ class ArtistDetailScreen extends StatelessWidget {
                   children: artist.attributes.entries.map((e) => Chip(label: Text('${e.key}: ${e.value.toStringAsFixed(0)}%'))).toList(),
                 ),
                 const SizedBox(height: 16),
-                const Text('Songs:', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                Text('Songs:', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 if (artistSongs.isEmpty)
-                  const Text('No songs released yet.')
+                  Text('No songs released yet.')
                 else
                   ...artistSongs.map((song) => ListTile(
                     title: Text(
@@ -148,87 +182,6 @@ class ArtistDetailScreen extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-
-  void _offerContract(
-    BuildContext context,
-    GameStateService game,
-    String artistId,
-  ) {
-    final artist = game.getArtistById(artistId);
-    if (artist == null) return;
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF2a2a3e),
-        title: Text(
-          'Contract for ${artist.name}',
-          style: const TextStyle(color: Colors.white),
-        ),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'They have to sign the paper. Max 5 artists on your imprint.',
-                style: TextStyle(color: Colors.white70, fontSize: 13),
-              ),
-              const SizedBox(height: 12),
-              ...LabelDealStyle.values.map((deal) {
-                final cost = RosterSigning.signingCost(
-                  artist.attributes['popularity'] ?? 10,
-                  deal,
-                );
-                final signing = RosterSigning(
-                  artistId: artistId,
-                  deal: deal,
-                  signedYear: game.year,
-                  signedMonth: game.month,
-                  signedWeek: game.weekOfMonth,
-                );
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: OutlinedButton(
-                    onPressed: () {
-                      Navigator.pop(ctx);
-                      final err = game.signArtist(artistId, deal);
-                      if (err != null) {
-                        ToastService().showError(err);
-                      } else {
-                        ToastService().showSuccess(
-                          '${artist.name} signed · ${deal.displayName}',
-                        );
-                      }
-                    },
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      side: const BorderSide(color: Colors.white24),
-                    ),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: Text(
-                          '${deal.displayName} · \$${cost.toStringAsFixed(0)}\n'
-                          'You keep ${(signing.playerCut * 100).toStringAsFixed(0)}% of their streams. ${deal.pitch}',
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              }),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-        ],
-      ),
     );
   }
 
@@ -261,18 +214,17 @@ class ArtistDetailScreen extends StatelessWidget {
     }
     showModalBottomSheet<void>(
       context: context,
-      backgroundColor: const Color(0xFF16213e),
-      builder: (ctx) {
+            builder: (ctx) {
         return SafeArea(
           child: ListView(
             shrinkWrap: true,
             children: [
-              const Padding(
+              Padding(
                 padding: EdgeInsets.all(16),
                 child: Text(
                   'Who should they collab with?',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.onSurface,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
@@ -280,7 +232,7 @@ class ArtistDetailScreen extends StatelessWidget {
               ),
               ...options.map(
                 (pick) => ListTile(
-                  title: Text(pick.name, style: const TextStyle(color: Colors.white)),
+                  title: Text(pick.name, style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
                   onTap: () {
                     Navigator.pop(ctx);
                     final err = game.commissionRosterDemo(

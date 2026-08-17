@@ -25,9 +25,8 @@ class MusicScreen extends StatelessWidget {
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Music'),
-            backgroundColor: const Color(0xFF16213e),
-          ),
+            title: Text('Music'),
+                      ),
           body: Column(
             children: [
               // Create Music Button
@@ -45,8 +44,8 @@ class MusicScreen extends StatelessWidget {
                         ),
                       );
                     },
-                    icon: const Icon(Icons.add, size: 28),
-                    label: const Text(
+                    icon: Icon(Icons.add, size: 28),
+                    label: Text(
                       'CREATE NEW SONG',
                       style: TextStyle(
                         fontSize: 18,
@@ -55,8 +54,8 @@ class MusicScreen extends StatelessWidget {
                       ),
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFe94560),
-                      foregroundColor: Colors.white,
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -72,12 +71,12 @@ class MusicScreen extends StatelessWidget {
                   height: 48,
                   child: OutlinedButton.icon(
                     onPressed: () => _showAlbumDialog(context, gameState),
-                    icon: const Icon(Icons.album),
+                    icon: Icon(Icons.album),
                     label: Text(
                       'COMPILE ALBUM (${gameState.playerAlbums.length})',
                     ),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white,
+                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
                       side: const BorderSide(color: Color(0xFFFFD700)),
                     ),
                   ),
@@ -147,9 +146,8 @@ void _showAlbumDialog(BuildContext context, GameStateService game) {
       return StatefulBuilder(
         builder: (ctx, setLocal) {
           return AlertDialog(
-            backgroundColor: const Color(0xFF16213e),
-            title: const Text('Compile Album',
-                style: TextStyle(color: Colors.white)),
+                        title: Text('Compile Album',
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
             content: SizedBox(
               width: 360,
               child: Column(
@@ -157,16 +155,16 @@ void _showAlbumDialog(BuildContext context, GameStateService game) {
                 children: [
                   TextField(
                     controller: titleController,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: const InputDecoration(
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                    decoration: InputDecoration(
                       hintText: 'Album title',
-                      hintStyle: TextStyle(color: Colors.white38),
+                      hintStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.38)),
                     ),
                   ),
                   const SizedBox(height: 12),
-                  const Text(
+                  Text(
                     'Pick 3–8 tracks (\$1500)',
-                    style: TextStyle(color: Colors.white70, fontSize: 12),
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72), fontSize: 12),
                   ),
                   Flexible(
                     child: ListView(
@@ -188,7 +186,7 @@ void _showAlbumDialog(BuildContext context, GameStateService game) {
                                 },
                           title: Text(
                             onAlbum ? '${s.title} (on album)' : s.title,
-                            style: const TextStyle(color: Colors.white),
+                            style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                           ),
                         );
                       }).toList(),
@@ -200,7 +198,7 @@ void _showAlbumDialog(BuildContext context, GameStateService game) {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('Cancel'),
+                child: Text('Cancel'),
               ),
               ElevatedButton(
                 onPressed: () {
@@ -215,7 +213,7 @@ void _showAlbumDialog(BuildContext context, GameStateService game) {
                     ToastService().showSuccess('Album released!');
                   }
                 },
-                child: const Text('Release'),
+                child: Text('Release'),
               ),
             ],
           );
@@ -247,15 +245,15 @@ class _CatalogSection extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           title.toUpperCase(),
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
             fontSize: 16,
             fontWeight: FontWeight.bold,
             letterSpacing: 1.2,
           ),
         ),
         const SizedBox(height: 2),
-        Text(subtitle, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+        Text(subtitle, style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54), fontSize: 12)),
         if (artistId != null) ...[
           const SizedBox(height: 8),
           SizedBox(
@@ -269,22 +267,22 @@ class _CatalogSection extends StatelessWidget {
                   ToastService().showSuccess('Demo ready to release');
                 }
               },
-              icon: const Icon(Icons.mic_none),
-              label: const Text('Write a demo (\$400)'),
+              icon: Icon(Icons.mic_none),
+              label: Text('Write a demo (\$400)'),
               style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.white,
-                side: const BorderSide(color: Colors.white24),
+                foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                side: BorderSide(color: Theme.of(context).dividerColor),
               ),
             ),
           ),
         ],
         const SizedBox(height: 8),
         if (songs.isEmpty)
-          const Padding(
+          Padding(
             padding: EdgeInsets.only(bottom: 16),
             child: Text(
               'No tracks in this catalog yet.',
-              style: TextStyle(color: Colors.white38),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.38)),
             ),
           )
         else
@@ -319,12 +317,12 @@ class _SongCard extends StatelessWidget {
                   width: 60,
                   height: 60,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFe94560),
+                    color: Theme.of(context).colorScheme.primary,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.music_note,
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.onSurface,
                     size: 32,
                   ),
                 ),
@@ -335,8 +333,8 @@ class _SongCard extends StatelessWidget {
                     children: [
                       Text(
                         song.title,
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
@@ -364,7 +362,7 @@ class _SongCard extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.show_chart,
                           size: 16,
                           color: Colors.lightGreenAccent,
@@ -372,7 +370,7 @@ class _SongCard extends StatelessWidget {
                         const SizedBox(width: 4),
                         Text(
                           '${song.popularityFactor.toStringAsFixed(0)}%',
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: Colors.lightGreenAccent,
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -383,8 +381,8 @@ class _SongCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       'Total Streams: ${song.totalStreams.toStringAsFixed(0)}',
-                      style: const TextStyle(
-                        color: Colors.white54,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54),
                         fontSize: 12,
                       ),
                     ),
@@ -395,16 +393,16 @@ class _SongCard extends StatelessWidget {
             const SizedBox(height: 12),
             LinearProgressIndicator(
               value: (song.viralFactor.clamp(0.0, 100.0) / 100), // Use viralFactor
-              backgroundColor: const Color(0xFF1a1a2e),
-              valueColor: const AlwaysStoppedAnimation<Color>(
-                Color(0xFFe94560),
+              backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+              valueColor: AlwaysStoppedAnimation<Color>(
+                Theme.of(context).colorScheme.primary,
               ),
             ),
             const SizedBox(height: 4),
             Text(
               'Viral Factor: ${song.viralFactor.toStringAsFixed(1)}%',
-              style: const TextStyle(
-                color: Colors.white54,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54),
                 fontSize: 12,
               ),
             ),
@@ -419,8 +417,7 @@ void _showSongSheet(BuildContext context, Song song) {
   final game = Provider.of<GameStateService>(context, listen: false);
   showModalBottomSheet(
     context: context,
-    backgroundColor: const Color(0xFF16213e),
-    builder: (_) => SafeArea(
+        builder: (_) => SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -428,29 +425,29 @@ void _showSongSheet(BuildContext context, Song song) {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(song.title,
-                style: const TextStyle(
-                    color: Colors.white,
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
                     fontSize: 22,
                     fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             Text(
               game.songCredit(song),
-              style: const TextStyle(color: Color(0xFFFFD700)),
+              style: TextStyle(color: Color(0xFFFFD700)),
             ),
             const SizedBox(height: 8),
             Text(
               song.released
                   ? '${song.genre} · ${song.lengthMinutes.toStringAsFixed(1)} min'
                   : 'Unreleased demo · ${song.genre}',
-              style: const TextStyle(color: Colors.white70),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72)),
             ),
             Text(
               'Weekly ${song.weeklyListeners.toStringAsFixed(0)} · Total ${song.totalStreams.toStringAsFixed(0)}',
-              style: const TextStyle(color: Colors.white70),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72)),
             ),
             Text(
               'Quality ${song.popularityFactor.toStringAsFixed(0)} · Viral ${song.viralFactor.toStringAsFixed(0)} · ${StudioFinishX.fromName(song.studioFinish).displayName}${song.ghostwritten ? ' · Ghostwritten' : ''}',
-              style: const TextStyle(color: Colors.white70),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72)),
             ),
             if (game.inDebutWindow(song))
               const Padding(
@@ -471,7 +468,7 @@ void _showSongSheet(BuildContext context, Song song) {
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(
                   'Video boosting · ${song.videoWeeksRemaining}w left',
-                  style: const TextStyle(color: Color(0xFF26C6DA)),
+                  style: TextStyle(color: Color(0xFF26C6DA)),
                 ),
               ),
             if (song.playlistWeeksRemaining > 0)
@@ -479,7 +476,7 @@ void _showSongSheet(BuildContext context, Song song) {
                 padding: const EdgeInsets.only(top: 8),
                 child: Text(
                   'On playlist · ${song.playlistWeeksRemaining}w left',
-                  style: const TextStyle(color: Color(0xFFFFD54F)),
+                  style: TextStyle(color: Color(0xFFFFD54F)),
                 ),
               ),
             if (song.listeningPartyWeeks > 0)
@@ -489,7 +486,7 @@ void _showSongSheet(BuildContext context, Song song) {
                   song.listeningParty == 'fans'
                       ? 'Fan party heat · ${song.listeningPartyWeeks}w'
                       : 'Press party heat · ${song.listeningPartyWeeks}w',
-                  style: const TextStyle(color: Color(0xFFFF8A65)),
+                  style: TextStyle(color: Color(0xFFFF8A65)),
                 ),
               )
             else if (song.listeningParty == 'pending')
@@ -534,8 +531,8 @@ void _showSongSheet(BuildContext context, Song song) {
                       ToastService().showSuccess('Released "${song.title}"');
                     }
                   },
-                  icon: const Icon(Icons.publish),
-                  label: const Text('Release this demo (\$350)'),
+                  icon: Icon(Icons.publish),
+                  label: Text('Release this demo (\$350)'),
                 ),
               ),
               const SizedBox(height: 8),
@@ -553,8 +550,8 @@ void _showSongSheet(BuildContext context, Song song) {
                       ),
                     );
                   },
-                  icon: const Icon(Icons.business),
-                  label: const Text('Submit to a record label'),
+                  icon: Icon(Icons.business),
+                  label: Text('Submit to a record label'),
                 ),
               ),
               const SizedBox(height: 8),
@@ -568,12 +565,11 @@ void _showSongSheet(BuildContext context, Song song) {
                       context: context,
                       barrierDismissible: false,
                       builder: (ctx) => AlertDialog(
-                        backgroundColor: const Color(0xFF16213e),
-                        title: const Text('Listening Party',
-                            style: TextStyle(color: Colors.white)),
+                                                title: Text('Listening Party',
+                            style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
                         content: Text(
                           'Host a room for "${song.title}"?',
-                          style: const TextStyle(color: Colors.white70),
+                          style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72)),
                         ),
                         actions: [
                           for (final pick in [
@@ -599,8 +595,8 @@ void _showSongSheet(BuildContext context, Song song) {
                       ),
                     );
                   },
-                  icon: const Icon(Icons.celebration),
-                  label: const Text('Throw listening party'),
+                  icon: Icon(Icons.celebration),
+                  label: Text('Throw listening party'),
                 ),
               ),
               const SizedBox(height: 8),
@@ -621,7 +617,7 @@ void _showSongSheet(BuildContext context, Song song) {
                           );
                         }
                       },
-                icon: const Icon(Icons.videocam),
+                icon: Icon(Icons.videocam),
                 label: Text(
                   song.videoWeeksRemaining > 0
                       ? 'Video already circulating'
@@ -662,7 +658,7 @@ void _showSongSheet(BuildContext context, Song song) {
                         );
                       }
                     },
-                    icon: const Icon(Icons.album),
+                    icon: Icon(Icons.album),
                     label: Text(
                       'Deluxe reissue (\$${game.deluxeReissueCost().toStringAsFixed(0)})',
                     ),
@@ -684,7 +680,7 @@ void _showSongSheet(BuildContext context, Song song) {
                         );
                       }
                     },
-                    icon: const Icon(Icons.replay),
+                    icon: Icon(Icons.replay),
                     label: Text(
                       'Drop remix (\$${game.remixDropCost().toStringAsFixed(0)})',
                     ),
@@ -708,7 +704,7 @@ void _showSongSheet(BuildContext context, Song song) {
                       ToastService().showSuccess('Sample cleared.');
                     }
                   },
-                  icon: const Icon(Icons.gavel),
+                  icon: Icon(Icons.gavel),
                   label: Text(
                     'Clear sample (\$${game.sampleClearanceFee().toStringAsFixed(0)})',
                   ),
@@ -728,7 +724,7 @@ void _showSongSheet(BuildContext context, Song song) {
                     ToastService().showSuccess('Retired "${song.title}"');
                   }
                 },
-                child: const Text('Retire from rotation'),
+                child: Text('Retire from rotation'),
               ),
             ),
           ],

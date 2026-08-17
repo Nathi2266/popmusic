@@ -51,9 +51,8 @@ class _ArtistsScreenState extends State<ArtistsScreen> {
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Artists'),
-            backgroundColor: const Color(0xFF16213e),
-            bottom: PreferredSize(
+            title: Text('Artists'),
+                        bottom: PreferredSize(
               preferredSize: const Size.fromHeight(60), // Adjusted height due to removed filters
               child: Column(
                 children: [
@@ -66,13 +65,13 @@ class _ArtistsScreenState extends State<ArtistsScreen> {
                           _searchQuery = value;
                         });
                       },
-                      style: const TextStyle(color: Colors.white),
+                      style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                       decoration: InputDecoration(
                         hintText: 'Search artists...',
-                        hintStyle: const TextStyle(color: Colors.white38),
-                        prefixIcon: const Icon(Icons.search, color: Colors.white54),
+                        hintStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.38)),
+                        prefixIcon: Icon(Icons.search, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54)),
                         filled: true,
-                        fillColor: const Color(0xFF2a2a3e),
+                        fillColor: Theme.of(context).colorScheme.surface,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                           borderSide: BorderSide.none,
@@ -130,7 +129,7 @@ class _ArtistsScreenState extends State<ArtistsScreen> {
                       subtitle: _searchQuery.isNotEmpty
                           ? 'Try adjusting your search query'
                           : 'No artists in the world yet',
-                      iconColor: Colors.white38,
+                      iconColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.38),
                     )
                   : ListView.builder(
                       padding: const EdgeInsets.all(12),
@@ -188,7 +187,7 @@ class _ArtistCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: const Color(0xFF2a2a3e),
+      color: Theme.of(context).colorScheme.surface,
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
@@ -206,10 +205,10 @@ class _ArtistCard extends StatelessWidget {
                 backgroundColor: Colors.blueAccent, // Generic color
                 child: Text(
                   artist.name[0],
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
               ),
@@ -224,32 +223,32 @@ class _ArtistCard extends StatelessWidget {
                         Expanded(
                           child: Text(
                             artist.name,
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
                         if (isRival)
-                          const Padding(
+                          Padding(
                             padding: EdgeInsets.only(left: 6),
                             child: Chip(
                               label: Text('RIVAL'),
-                              backgroundColor: Color(0xFFe94560),
+                              backgroundColor: Theme.of(context).colorScheme.primary,
                               labelStyle: TextStyle(
-                                  color: Colors.white, fontSize: 10),
+                                  color: Theme.of(context).colorScheme.onSurface, fontSize: 10),
                               visualDensity: VisualDensity.compact,
                             ),
                           ),
                         if (isPlayer)
-                          const Padding(
+                          Padding(
                             padding: EdgeInsets.only(left: 6),
                             child: Chip(
                               label: Text('YOU'),
                               backgroundColor: Color(0xFF4CAF50),
                               labelStyle: TextStyle(
-                                  color: Colors.white, fontSize: 10),
+                                  color: Theme.of(context).colorScheme.onSurface, fontSize: 10),
                               visualDensity: VisualDensity.compact,
                             ),
                           ),
@@ -278,7 +277,7 @@ class _ArtistCard extends StatelessWidget {
                     const SizedBox(height: 8),
                     Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.star,
                           size: 16,
                           color: Colors.amber,
@@ -286,14 +285,14 @@ class _ArtistCard extends StatelessWidget {
                         const SizedBox(width: 4),
                         Text(
                           '${(artist.attributes['popularity'] ?? 0).toInt()}',
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: Colors.amber,
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         const SizedBox(width: 16),
-                        const Icon(
+                        Icon(
                           Icons.people,
                           size: 16,
                           color: Colors.blue,
@@ -301,7 +300,7 @@ class _ArtistCard extends StatelessWidget {
                         const SizedBox(width: 4),
                         Text(
                           '${(artist.attributes['fan_connection'] ?? 0 * 100).toInt()}',
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: Colors.blue,
                             fontSize: 14,
                           ),
@@ -323,8 +322,8 @@ class _ArtistCard extends StatelessWidget {
               //   ),
               //   child: Text(
               //     _getLabelName(artist.labelTier),
-              //     style: const TextStyle(
-              //       color: Colors.white,
+              //     style: TextStyle(
+              //       color: Theme.of(context).colorScheme.onSurface,
               //       fontSize: 12,
               //       fontWeight: FontWeight.bold,
               //     ),

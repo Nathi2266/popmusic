@@ -55,17 +55,16 @@ class _NewGameScreenState extends State<NewGameScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Create Your Artist'),
-        backgroundColor: const Color(0xFF16213e),
-      ),
+        title: Text('Create Your Artist'),
+              ),
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFF1a1a2e),
-              Color(0xFF16213e),
+              Theme.of(context).scaffoldBackgroundColor,
+              Theme.of(context).colorScheme.surface,
             ],
           ),
         ),
@@ -80,19 +79,20 @@ class _NewGameScreenState extends State<NewGameScreen> {
                     children: [
                       _CharacterPreviewCard(appearance: _appearance),
                       const SizedBox(height: 24),
-                      const Text(
+                      Text(
                         'Artist Name',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.onSurface,
                           letterSpacing: 1.2,
                         ),
                       ),
                       const SizedBox(height: 10),
                       TextField(
                         controller: _nameController,
-                        style: const TextStyle(color: Colors.white, fontSize: 18),
+                        style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface, fontSize: 18),
                         textCapitalization: TextCapitalization.words,
                         decoration: InputDecoration(
                           hintText: 'Enter your stage name',
@@ -100,7 +100,7 @@ class _NewGameScreenState extends State<NewGameScreen> {
                             color: Colors.white.withValues(alpha: 0.35),
                           ),
                           filled: true,
-                          fillColor: const Color(0xFF2a2a3e),
+                          fillColor: Theme.of(context).colorScheme.surface,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(14),
                             borderSide: BorderSide.none,
@@ -112,12 +112,12 @@ class _NewGameScreenState extends State<NewGameScreen> {
                         ),
                       ),
                       const SizedBox(height: 28),
-                      const Text(
+                      Text(
                         'Home Genre',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.onSurface,
                           letterSpacing: 1.2,
                         ),
                       ),
@@ -138,21 +138,21 @@ class _NewGameScreenState extends State<NewGameScreen> {
                             label: Text(g),
                             selected: selected,
                             onSelected: (_) => setState(() => _homeGenre = g),
-                            selectedColor: const Color(0xFFe94560),
+                            selectedColor: Theme.of(context).colorScheme.primary,
                             labelStyle: TextStyle(
                               color: selected ? Colors.white : Colors.white70,
                             ),
-                            backgroundColor: const Color(0xFF2a2a3e),
+                            backgroundColor: Theme.of(context).colorScheme.surface,
                           );
                         }).toList(),
                       ),
                       const SizedBox(height: 18),
-                      const Text(
+                      Text(
                         'World Heat',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.onSurface,
                           letterSpacing: 1.2,
                         ),
                       ),
@@ -267,14 +267,14 @@ class _NewGameScreenState extends State<NewGameScreen> {
                   child: ElevatedButton(
                     onPressed: _startGame,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFe94560),
-                      foregroundColor: Colors.white,
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
                       elevation: 8,
                     ),
-                    child: const Text(
+                    child: Text(
                       'START CAREER',
                       style: TextStyle(
                         fontSize: 16,
@@ -315,7 +315,7 @@ class _CharacterPreviewCard extends StatelessWidget {
         border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFe94560).withValues(alpha: 0.12),
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
             blurRadius: 24,
             offset: const Offset(0, 10),
           ),
@@ -455,7 +455,7 @@ class _DiffChip extends StatelessWidget {
       onSelected: (_) => onTap(),
       selectedColor: const Color(0xFFFFB347),
       labelStyle: TextStyle(color: selected ? Colors.black : Colors.white70),
-      backgroundColor: const Color(0xFF2a2a3e),
+      backgroundColor: Theme.of(context).colorScheme.surface,
     );
   }
 }

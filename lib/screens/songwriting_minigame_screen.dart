@@ -178,16 +178,15 @@ class _SongwritingMinigameScreenState extends State<SongwritingMinigameScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Songwriting'),
-        backgroundColor: const Color(0xFF16213e),
-        automaticallyImplyLeading: false,
+        title: Text('Songwriting'),
+                automaticallyImplyLeading: false,
       ),
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFF1a1a2e), Color(0xFF16213e)],
+            colors: [Theme.of(context).scaffoldBackgroundColor, Theme.of(context).colorScheme.surface],
           ),
         ),
         child: Padding(
@@ -206,14 +205,14 @@ class _SongwritingMinigameScreenState extends State<SongwritingMinigameScreen>
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
+                              Text(
                                 'Difficulty',
-                                style: TextStyle(color: Colors.white70, fontSize: 12),
+                                style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72), fontSize: 12),
                               ),
                               Text(
                                 _difficulty == 1 ? 'Easy' : _difficulty == 2 ? 'Medium' : 'Hard',
-                                style: const TextStyle(
-                                  color: Colors.white,
+                                style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -223,8 +222,8 @@ class _SongwritingMinigameScreenState extends State<SongwritingMinigameScreen>
                           if (_timeLeft == (_difficulty == 1 ? 45 : _difficulty == 2 ? 30 : 20))
                             DropdownButton<int>(
                               value: _difficulty,
-                              dropdownColor: const Color(0xFF2a2a3e),
-                              style: const TextStyle(color: Colors.white),
+                              dropdownColor: Theme.of(context).colorScheme.surface,
+                              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                               items: const [
                                 DropdownMenuItem(value: 1, child: Text('Easy')),
                                 DropdownMenuItem(value: 2, child: Text('Medium')),
@@ -248,12 +247,12 @@ class _SongwritingMinigameScreenState extends State<SongwritingMinigameScreen>
                       padding: const EdgeInsets.all(12),
                       child: Row(
                         children: [
-                          const Icon(Icons.timer, color: Colors.white, size: 20),
+                          Icon(Icons.timer, color: Theme.of(context).colorScheme.onSurface, size: 20),
                           const SizedBox(width: 8),
                           Text(
                             '$_timeLeft s',
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
@@ -268,8 +267,8 @@ class _SongwritingMinigameScreenState extends State<SongwritingMinigameScreen>
                       padding: const EdgeInsets.all(12),
                       child: Text(
                         'Score: $_score',
-                        style: const TextStyle(
-                          color: Color(0xFFe94560),
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.primary,
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
@@ -295,7 +294,7 @@ class _SongwritingMinigameScreenState extends State<SongwritingMinigameScreen>
                     borderWidth: 2,
                     child: Text(
                       'COMBO x$_combo!',
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Color(0xFF4CAF50),
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -321,8 +320,8 @@ class _SongwritingMinigameScreenState extends State<SongwritingMinigameScreen>
                       const SizedBox(width: 12),
                       Text(
                         'Category: ${_getCategoryName(_currentCategory!)}',
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
@@ -338,10 +337,10 @@ class _SongwritingMinigameScreenState extends State<SongwritingMinigameScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Your Lyrics',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.onSurface,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -350,10 +349,10 @@ class _SongwritingMinigameScreenState extends State<SongwritingMinigameScreen>
                     SizedBox(
                       height: 100,
                       child: _selectedWords.isEmpty
-                          ? const Center(
+                          ? Center(
                               child: Text(
                                 'Select words to build your lyrics',
-                                style: TextStyle(color: Colors.white38),
+                                style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.38)),
                               ),
                             )
                           : Wrap(
@@ -363,12 +362,12 @@ class _SongwritingMinigameScreenState extends State<SongwritingMinigameScreen>
                                 return AppAnimations.scaleIn(
                                   child: Chip(
                                     label: Text(entry.value),
-                                    backgroundColor: const Color(0xFFe94560),
-                                    labelStyle: const TextStyle(color: Colors.white),
-                                    deleteIcon: const Icon(
+                                    backgroundColor: Theme.of(context).colorScheme.primary,
+                                    labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                                    deleteIcon: Icon(
                                       Icons.close,
                                       size: 18,
-                                      color: Colors.white,
+                                      color: Theme.of(context).colorScheme.onSurface,
                                     ),
                                     onDeleted: () => _removeWord(entry.key),
                                   ),
@@ -404,8 +403,8 @@ class _SongwritingMinigameScreenState extends State<SongwritingMinigameScreen>
                               ? Colors.white24
                               : onTheme
                                   ? const Color(0xFF4A148C)
-                                  : const Color(0xFF2a2a3e),
-                          foregroundColor: Colors.white,
+                                  : Theme.of(context).colorScheme.surface,
+                          foregroundColor: Theme.of(context).colorScheme.onPrimary,
                           disabledBackgroundColor: Colors.white24,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -433,12 +432,12 @@ class _SongwritingMinigameScreenState extends State<SongwritingMinigameScreen>
                   onPressed: _endGame,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF4CAF50),
-                    foregroundColor: Colors.white,
+                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Text(
+                  child: Text(
                     'FINISH',
                     style: TextStyle(
                       fontSize: 18,

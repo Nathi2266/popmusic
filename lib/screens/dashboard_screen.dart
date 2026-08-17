@@ -11,6 +11,8 @@ import 'weekly_events_and_proceed_button.dart';
 import 'charts_screen.dart';
 import 'lifestyle_screen.dart';
 import 'labels_screen.dart';
+import 'settings_screen.dart';
+import '../theme/game_palette.dart';
 import '../widgets/error_widget.dart';
 import '../widgets/xp_bar.dart';
 import '../utils/toast_service.dart';
@@ -35,13 +37,12 @@ class DashboardScreen extends StatelessWidget {
         }
 
         return Scaffold(
-          appBar: AppBar(
+            appBar: AppBar(
             title: Text(player.name),
-            backgroundColor: const Color(0xFF16213e),
             leading: Builder(
               builder: (BuildContext context) {
                 return IconButton(
-                  icon: const Icon(Icons.menu),
+                  icon: Icon(Icons.menu),
                   onPressed: () {
                     Scaffold.of(context).openDrawer();
                   },
@@ -55,7 +56,7 @@ class DashboardScreen extends StatelessWidget {
                 child: Center(
                   child: Text(
                     'W${gameState.weekOfMonth} M${gameState.month} ${gameState.year}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                     ),
@@ -66,28 +67,27 @@ class DashboardScreen extends StatelessWidget {
             ],
           ),
           drawer: Drawer(
-            backgroundColor: const Color(0xFF1a1a2e), // Set a consistent background color
+            backgroundColor: context.palette.scaffold,
             child: Column(
               children: <Widget>[
                 Container(
-                  height: MediaQuery.of(context).padding.top + kToolbarHeight, // Status bar + AppBar height
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF16213e),
+                  height: MediaQuery.of(context).padding.top + kToolbarHeight,
+                  decoration: BoxDecoration(
+                    color: context.palette.appBar,
                   ),
-                  child: const SizedBox.shrink(), // Empty child
+                  child: const SizedBox.shrink(),
                 ),
-                // Other drawer items can go here
                 ListTile(
-                  leading: const Icon(Icons.show_chart, color: Colors.white70),
-                  title: const Text('Charts', style: TextStyle(color: Colors.white)),
+                  leading: Icon(Icons.show_chart, color: context.palette.textMuted),
+                  title: Text('Charts', style: TextStyle(color: context.palette.text)),
                   onTap: () {
                     Navigator.pop(context); // Close the drawer
                     Navigator.push(context, MaterialPageRoute(builder: (context) => const ChartsScreen()));
                   },
                 ),
                 ListTile(
-                  leading: const Icon(Icons.diamond_outlined, color: Colors.white70),
-                  title: const Text('Lifestyle', style: TextStyle(color: Colors.white)),
+                  leading: Icon(Icons.diamond_outlined, color: context.palette.textMuted),
+                  title: Text('Lifestyle', style: TextStyle(color: context.palette.text)),
                   onTap: () {
                     Navigator.pop(context);
                     Navigator.push(
@@ -99,8 +99,8 @@ class DashboardScreen extends StatelessWidget {
                   },
                 ),
                 ListTile(
-                  leading: const Icon(Icons.album_outlined, color: Colors.white70),
-                  title: const Text('Record Labels', style: TextStyle(color: Colors.white)),
+                  leading: Icon(Icons.album_outlined, color: context.palette.textMuted),
+                  title: Text('Record Labels', style: TextStyle(color: context.palette.text)),
                   onTap: () {
                     Navigator.pop(context);
                     Navigator.push(
@@ -111,12 +111,25 @@ class DashboardScreen extends StatelessWidget {
                     );
                   },
                 ),
+                ListTile(
+                  leading: Icon(Icons.settings, color: context.palette.textMuted),
+                  title: Text('Settings', style: TextStyle(color: context.palette.text)),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const SettingsScreen(),
+                      ),
+                    );
+                  },
+                ),
                 const Spacer(), // Pushes the exit button to the bottom
                 Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: ElevatedButton.icon(
-                    icon: const Icon(Icons.exit_to_app),
-                    label: const Text('Exit Game'),
+                    icon: Icon(Icons.exit_to_app),
+                    label: Text('Exit Game'),
                     onPressed: () {
                       // Implement exit game logic here
                       // For example, navigate to main menu or close the app
@@ -125,7 +138,7 @@ class DashboardScreen extends StatelessWidget {
                     style: ElevatedButton.styleFrom(
                       minimumSize: const Size.fromHeight(50), // Make button full width
                       backgroundColor: Colors.red.shade700,
-                      foregroundColor: Colors.white,
+                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
                     ),
                   ),
                 ),
@@ -142,7 +155,7 @@ class DashboardScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF2a2a3e),
+                      color: Theme.of(context).colorScheme.surface,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: const Color(0xFFFFD700).withValues(alpha: 0.3),
@@ -160,7 +173,7 @@ class DashboardScreen extends StatelessWidget {
                     width: double.infinity,
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF2a2a3e),
+                      color: Theme.of(context).colorScheme.surface,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: const Color(0xFF2196F3).withAlpha(80),
@@ -168,7 +181,8 @@ class DashboardScreen extends StatelessWidget {
                     ),
                     child: Text(
                       'This week: ${gameState.weeklyGoalHint}',
-                      style: const TextStyle(color: Colors.white, fontSize: 14),
+                      style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface, fontSize: 14),
                     ),
                   ),
                   if (gameState.fanClubFounded ||
@@ -191,7 +205,8 @@ class DashboardScreen extends StatelessWidget {
                           if (gameState.streetTeamWeeksRemaining > 0)
                             'Street team converting fans → streams (${gameState.streetTeamWeeksRemaining}w)',
                         ].join(' · '),
-                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                        style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface, fontSize: 13),
                       ),
                     ),
                   ],
@@ -209,7 +224,8 @@ class DashboardScreen extends StatelessWidget {
                       ),
                       child: Text(
                         gameState.afterpartyBanner,
-                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                        style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface, fontSize: 13),
                       ),
                     ),
                   ],
@@ -227,7 +243,8 @@ class DashboardScreen extends StatelessWidget {
                       ),
                       child: Text(
                         gameState.radioLiveBanner,
-                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                        style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface, fontSize: 13),
                       ),
                     ),
                   ],
@@ -245,7 +262,8 @@ class DashboardScreen extends StatelessWidget {
                       ),
                       child: Text(
                         gameState.demoLeakBanner,
-                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                        style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface, fontSize: 13),
                       ),
                     ),
                   ],
@@ -263,7 +281,8 @@ class DashboardScreen extends StatelessWidget {
                       ),
                       child: Text(
                         gameState.producerBeefBanner,
-                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                        style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface, fontSize: 13),
                       ),
                     ),
                   ],
@@ -281,7 +300,8 @@ class DashboardScreen extends StatelessWidget {
                       ),
                       child: Text(
                         gameState.mentorCosignBanner,
-                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                        style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface, fontSize: 13),
                       ),
                     ),
                   ],
@@ -299,7 +319,8 @@ class DashboardScreen extends StatelessWidget {
                       ),
                       child: Text(
                         gameState.meetGreetBanner,
-                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                        style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface, fontSize: 13),
                       ),
                     ),
                   ],
@@ -317,7 +338,8 @@ class DashboardScreen extends StatelessWidget {
                       ),
                       child: Text(
                         gameState.danceChallengeBanner,
-                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                        style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface, fontSize: 13),
                       ),
                     ),
                   ],
@@ -335,7 +357,8 @@ class DashboardScreen extends StatelessWidget {
                       ),
                       child: Text(
                         gameState.brandDealBanner,
-                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                        style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface, fontSize: 13),
                       ),
                     ),
                   ],
@@ -353,7 +376,8 @@ class DashboardScreen extends StatelessWidget {
                       ),
                       child: Text(
                         gameState.chartWagerBanner,
-                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                        style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface, fontSize: 13),
                       ),
                     ),
                   ],
@@ -371,7 +395,8 @@ class DashboardScreen extends StatelessWidget {
                       ),
                       child: Text(
                         gameState.rivalTruceBanner,
-                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                        style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface, fontSize: 13),
                       ),
                     ),
                   ],
@@ -389,7 +414,8 @@ class DashboardScreen extends StatelessWidget {
                       ),
                       child: Text(
                         gameState.documentaryBanner,
-                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                        style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface, fontSize: 13),
                       ),
                     ),
                   ],
@@ -407,7 +433,8 @@ class DashboardScreen extends StatelessWidget {
                       ),
                       child: Text(
                         gameState.therapyPodcastBanner,
-                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                        style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface, fontSize: 13),
                       ),
                     ),
                   ],
@@ -425,7 +452,8 @@ class DashboardScreen extends StatelessWidget {
                       ),
                       child: Text(
                         gameState.collabDmBanner,
-                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                        style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface, fontSize: 13),
                       ),
                     ),
                   ],
@@ -444,7 +472,8 @@ class DashboardScreen extends StatelessWidget {
                       ),
                       child: Text(
                         gameState.stalkerFanBanner,
-                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                        style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface, fontSize: 13),
                       ),
                     ),
                   ],
@@ -462,7 +491,8 @@ class DashboardScreen extends StatelessWidget {
                       ),
                       child: Text(
                         gameState.merchDropBanner,
-                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                        style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface, fontSize: 13),
                       ),
                     ),
                   ],
@@ -480,7 +510,8 @@ class DashboardScreen extends StatelessWidget {
                       ),
                       child: Text(
                         gameState.tourBusBanner,
-                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                        style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface, fontSize: 13),
                       ),
                     ),
                   ],
@@ -498,7 +529,8 @@ class DashboardScreen extends StatelessWidget {
                       ),
                       child: Text(
                         gameState.awardsCampBanner,
-                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                        style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface, fontSize: 13),
                       ),
                     ),
                   ],
@@ -516,7 +548,8 @@ class DashboardScreen extends StatelessWidget {
                       ),
                       child: Text(
                         gameState.genrePivotBanner,
-                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                        style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface, fontSize: 13),
                       ),
                     ),
                   ],
@@ -534,7 +567,8 @@ class DashboardScreen extends StatelessWidget {
                       ),
                       child: Text(
                         gameState.arenaSlotBanner,
-                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                        style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface, fontSize: 13),
                       ),
                     ),
                   ],
@@ -552,7 +586,8 @@ class DashboardScreen extends StatelessWidget {
                       ),
                       child: Text(
                         gameState.fanTheoryBanner,
-                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                        style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface, fontSize: 13),
                       ),
                     ),
                   ],
@@ -570,7 +605,8 @@ class DashboardScreen extends StatelessWidget {
                       ),
                       child: Text(
                         gameState.blacklistBanner,
-                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                        style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface, fontSize: 13),
                       ),
                     ),
                   ],
@@ -588,7 +624,8 @@ class DashboardScreen extends StatelessWidget {
                       ),
                       child: Text(
                         gameState.comebackBanner,
-                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                        style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface, fontSize: 13),
                       ),
                     ),
                   ],
@@ -606,7 +643,8 @@ class DashboardScreen extends StatelessWidget {
                       ),
                       child: Text(
                         gameState.charityBanner,
-                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                        style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface, fontSize: 13),
                       ),
                     ),
                   ],
@@ -624,7 +662,8 @@ class DashboardScreen extends StatelessWidget {
                       ),
                       child: Text(
                         '${gameState.pressMagazine} cover heat — +12% streams (${gameState.pressCoverWeeksRemaining}w left)',
-                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                        style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface, fontSize: 13),
                       ),
                     ),
                   ],
@@ -644,7 +683,8 @@ class DashboardScreen extends StatelessWidget {
                         gameState.canPlayFestival
                             ? 'Summer festival is open (Jun–Aug). One exclusive slot this year.'
                             : 'You already played this summer\'s festival slot.',
-                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                        style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface, fontSize: 13),
                       ),
                     ),
                   ],
@@ -662,7 +702,8 @@ class DashboardScreen extends StatelessWidget {
                       ),
                       child: Text(
                         'On tour: ${gameState.activeTour!.name} · next ${gameState.activeTour!.currentCity} · ${gameState.activeTour!.weeksRemaining}w left',
-                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                        style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface, fontSize: 13),
                       ),
                     ),
                   ],
@@ -678,9 +719,9 @@ class DashboardScreen extends StatelessWidget {
                           color: const Color(0xFFE94560).withAlpha(140),
                         ),
                       ),
-                      child: const Text(
+                      child: Text(
                         'Burned out — this week\'s streams are dipping. Sleep it off in Events.',
-                        style: TextStyle(color: Colors.white, fontSize: 13),
+                        style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 13),
                       ),
                     ),
                   ],
@@ -691,21 +732,21 @@ class DashboardScreen extends StatelessWidget {
                       margin: const EdgeInsets.only(bottom: 16),
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF2a2a3e),
+                        color: Theme.of(context).colorScheme.surface,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
                         gameState.lastWeekRecap,
-                        style: const TextStyle(color: Colors.white70, fontSize: 13),
+                        style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72), fontSize: 13),
                       ),
                     ),
                   if (gameState.weeklyHeadlines.isNotEmpty) ...[
-                    const Text(
+                    Text(
                       'THE FEED',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.onSurface,
                         letterSpacing: 2,
                       ),
                     ),
@@ -716,13 +757,13 @@ class DashboardScreen extends StatelessWidget {
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text('• ',
-                                    style: TextStyle(color: Color(0xFFe94560))),
+                                Text('• ',
+                                    style: TextStyle(color: Theme.of(context).colorScheme.primary)),
                                 Expanded(
                                   child: Text(
                                     h,
-                                    style: const TextStyle(
-                                        color: Colors.white70, fontSize: 13),
+                                    style: TextStyle(
+                                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72), fontSize: 13),
                                   ),
                                 ),
                               ],
@@ -747,7 +788,7 @@ class DashboardScreen extends StatelessWidget {
                           title: 'Fans',
                           value: '${gameState.playerFanCount}',
                           icon: Icons.people,
-                          color: const Color(0xFFe94560),
+                          color: Theme.of(context).colorScheme.primary,
                         ),
                       ),
                     ],
@@ -828,17 +869,17 @@ class DashboardScreen extends StatelessWidget {
                     width: double.infinity,
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF16213e),
+                      color: Theme.of(context).colorScheme.surface,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFFe94560).withAlpha(140)),
+                      border: Border.all(color: Theme.of(context).colorScheme.primary.withAlpha(140)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'STORY',
                           style: TextStyle(
-                            color: Colors.white54,
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54),
                             fontSize: 11,
                             letterSpacing: 2,
                             fontWeight: FontWeight.bold,
@@ -847,15 +888,15 @@ class DashboardScreen extends StatelessWidget {
                         const SizedBox(height: 4),
                         Text(
                           gameState.currentChapter,
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         Text(
                           '${gameState.completedStoryBeats.length} career beats unlocked',
-                          style: const TextStyle(color: Colors.white70, fontSize: 12),
+                          style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72), fontSize: 12),
                         ),
                       ],
                     ),
@@ -870,7 +911,7 @@ class DashboardScreen extends StatelessWidget {
                       gradient: LinearGradient(
                         colors: [
                           const Color(0xFFFFD700).withAlpha(40),
-                          const Color(0xFF2a2a3e),
+                          Theme.of(context).colorScheme.surface,
                         ],
                       ),
                       borderRadius: BorderRadius.circular(12),
@@ -878,13 +919,13 @@ class DashboardScreen extends StatelessWidget {
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.trending_up, color: Color(0xFFFFD700)),
+                        Icon(Icons.trending_up, color: Color(0xFFFFD700)),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
                             'Trending: ${gameState.trendingGenre} · your lane: ${gameState.playerDominantGenre}',
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -895,20 +936,20 @@ class DashboardScreen extends StatelessWidget {
 
                   const SizedBox(height: 24),
 
-                  const Text(
+                  Text(
                     'CHART RIVALS',
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.onSurface,
                       letterSpacing: 2,
                     ),
                   ),
                   const SizedBox(height: 12),
                   if (gameState.rivals.isEmpty)
-                    const Text(
+                    Text(
                       'No rivals assigned yet.',
-                      style: TextStyle(color: Colors.white54),
+                      style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54)),
                     )
                   else
                     ...gameState.rivals.map((rival) {
@@ -932,15 +973,15 @@ class DashboardScreen extends StatelessWidget {
                         margin: const EdgeInsets.only(bottom: 10),
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF2a2a3e),
+                          color: Theme.of(context).colorScheme.surface,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: const Color(0xFFe94560).withAlpha(120),
+                            color: Theme.of(context).colorScheme.primary.withAlpha(120),
                           ),
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.sports_mma, color: Color(0xFFe94560)),
+                            Icon(Icons.sports_mma, color: Theme.of(context).colorScheme.primary),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Column(
@@ -948,23 +989,23 @@ class DashboardScreen extends StatelessWidget {
                                 children: [
                                   Text(
                                     rival.name,
-                                    style: const TextStyle(
-                                      color: Colors.white,
+                                    style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface,
                                       fontWeight: FontWeight.bold,
                                       fontSize: 16,
                                     ),
                                   ),
                                   Text(
                                     '${rival.labelTier.displayName} · Pop ${rival.attributes['popularity']?.toStringAsFixed(0) ?? '0'}%',
-                                    style: const TextStyle(
-                                      color: Colors.white70,
+                                    style: TextStyle(
+                                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72),
                                       fontSize: 12,
                                     ),
                                   ),
                                   Text(
                                     pressure,
-                                    style: const TextStyle(
-                                      color: Color(0xFFe94560),
+                                    style: TextStyle(
+                                      color: Theme.of(context).colorScheme.primary,
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -990,8 +1031,8 @@ class DashboardScreen extends StatelessWidget {
                                 gameState.dissCooldownWeeks > 0
                                     ? 'Cooling'
                                     : 'Diss',
-                                style: const TextStyle(
-                                  color: Color(0xFFe94560),
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.primary,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -1004,12 +1045,12 @@ class DashboardScreen extends StatelessWidget {
                   const SizedBox(height: 24),
 
                   // Display Top 3 Songs
-                  const Text(
+                  Text(
                     'TOP 3 SONGS',
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.onSurface,
                       letterSpacing: 2,
                     ),
                   ),
@@ -1021,12 +1062,12 @@ class DashboardScreen extends StatelessWidget {
 
                   const SizedBox(height: 24),
 
-                  const Text(
+                  Text(
                     'ATTRIBUTES',
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.onSurface,
                       letterSpacing: 2,
                     ),
                   ),
@@ -1035,7 +1076,7 @@ class DashboardScreen extends StatelessWidget {
                   AttributeBar(
                     label: 'Popularity',
                     value: player.attributes['popularity'] ?? 0,
-                    color: const Color(0xFFe94560),
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                   AttributeBar(
                     label: 'Reputation',
@@ -1109,12 +1150,12 @@ class DashboardScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
 
-                  const Text(
+                  Text(
                     'QUICK ACTIONS',
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.onSurface,
                       letterSpacing: 2,
                     ),
                   ),
@@ -1390,9 +1431,9 @@ class DashboardScreen extends StatelessWidget {
 
   Widget _buildTopSongsList(List<Song> songs, BuildContext context) {
     if (songs.isEmpty) {
-      return const Text(
+      return Text(
         'No songs on the charts yet.',
-        style: TextStyle(color: Colors.white70),
+        style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72)),
       );
     }
     return ListView.builder(
@@ -1404,10 +1445,10 @@ class DashboardScreen extends StatelessWidget {
         final artist = Provider.of<GameStateService>(context, listen: false).getArtistById(song.artistId);
         return ListTile(
           leading: CircleAvatar(child: Text('#${index + 1}')),
-          title: Text(song.title, style: const TextStyle(color: Colors.white)),
+          title: Text(song.title, style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
           subtitle: Text('${artist?.name ?? 'Unknown Artist'} - ${song.weeklyListeners.toStringAsFixed(0)} listeners',
-              style: const TextStyle(color: Colors.white70)),
-          trailing: Text('${song.totalStreams.toStringAsFixed(0)} streams', style: const TextStyle(color: Colors.white70)),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72))),
+          trailing: Text('${song.totalStreams.toStringAsFixed(0)} streams', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72))),
         );
       },
     );
@@ -1438,21 +1479,20 @@ void _showTrainSheet(BuildContext context, GameStateService game) {
   };
   showModalBottomSheet(
     context: context,
-    backgroundColor: const Color(0xFF16213e),
-    builder: (_) => SafeArea(
+        builder: (_) => SafeArea(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Padding(
+          Padding(
             padding: EdgeInsets.all(16),
             child: Text(
               'Train a skill (\$80, -14 stamina)',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold),
             ),
           ),
           ...skills.entries.map(
             (e) => ListTile(
-              title: Text(e.value, style: const TextStyle(color: Colors.white)),
+              title: Text(e.value, style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
               onTap: () {
                 Navigator.pop(context);
                 final err = game.trainSkill(e.key);
@@ -1474,38 +1514,37 @@ void _showPitchSheet(BuildContext context, GameStateService game) {
   final songs = game.playerSongs;
   showModalBottomSheet(
     context: context,
-    backgroundColor: const Color(0xFF16213e),
-    builder: (_) => SafeArea(
+        builder: (_) => SafeArea(
       child: songs.isEmpty
-          ? const Padding(
+          ? Padding(
               padding: EdgeInsets.all(24),
               child: Text(
                 'Release a song first.',
-                style: TextStyle(color: Colors.white70),
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72)),
               ),
             )
           : ListView(
               shrinkWrap: true,
               children: [
-                const Padding(
+                Padding(
                   padding: EdgeInsets.all(16),
                   child: Text(
                     'Pitch radio / playlist (debut week stacks extra time)',
                     style: TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.bold),
+                        color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold),
                   ),
                 ),
                 ...songs.map(
                   (s) => ListTile(
                     title: Text(s.title,
-                        style: const TextStyle(color: Colors.white)),
+                        style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
                     subtitle: Text(
                       s.playlistWeeksRemaining > 0
                           ? 'On playlist · ${s.playlistWeeksRemaining}w left'
                           : game.inDebutWindow(s)
                               ? 'DEBUT WINDOW · pitch now for a stacked add'
                               : '${s.genre} · viral ${s.viralFactor.toStringAsFixed(0)}',
-                      style: const TextStyle(color: Colors.white54),
+                      style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54)),
                     ),
                     enabled: s.playlistWeeksRemaining == 0,
                     onTap: s.playlistWeeksRemaining > 0
@@ -1537,14 +1576,13 @@ void _showVideoSheet(BuildContext context, GameStateService game) {
   final weeks = game.musicVideoWeeks();
   showModalBottomSheet(
     context: context,
-    backgroundColor: const Color(0xFF16213e),
-    builder: (_) => SafeArea(
+        builder: (_) => SafeArea(
       child: songs.isEmpty
-          ? const Padding(
+          ? Padding(
               padding: EdgeInsets.all(24),
               child: Text(
                 'Release a song first.',
-                style: TextStyle(color: Colors.white70),
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72)),
               ),
             )
           : ListView(
@@ -1554,19 +1592,19 @@ void _showVideoSheet(BuildContext context, GameStateService game) {
                   padding: const EdgeInsets.all(16),
                   child: Text(
                     'Shoot a video (\$${cost.toStringAsFixed(0)}, ${weeks}w boost)',
-                    style: const TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold),
                   ),
                 ),
                 ...songs.map(
                   (s) => ListTile(
                     title: Text(s.title,
-                        style: const TextStyle(color: Colors.white)),
+                        style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
                     subtitle: Text(
                       s.videoWeeksRemaining > 0
                           ? 'Already boosting · ${s.videoWeeksRemaining}w left'
                           : '${s.genre} · weekly ${s.weeklyListeners.toStringAsFixed(0)}',
-                      style: const TextStyle(color: Colors.white54),
+                      style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54)),
                     ),
                     enabled: s.videoWeeksRemaining == 0,
                     onTap: s.videoWeeksRemaining > 0
@@ -1596,8 +1634,7 @@ void _showReissueSheet(BuildContext context, GameStateService game) {
       .toList();
   showModalBottomSheet(
     context: context,
-    backgroundColor: const Color(0xFF16213e),
-    builder: (_) => SafeArea(
+        builder: (_) => SafeArea(
       child: songs.isEmpty
           ? Padding(
               padding: const EdgeInsets.all(24),
@@ -1605,39 +1642,38 @@ void _showReissueSheet(BuildContext context, GameStateService game) {
                 game.reissueCooldownWeeks > 0
                     ? 'Studio cooldown: ${game.reissueCooldownWeeks}w left.'
                     : 'Need a catalog original (5+ weeks) without a deluxe/remix yet.',
-                style: const TextStyle(color: Colors.white70),
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72)),
               ),
             )
           : ListView(
               shrinkWrap: true,
               children: [
-                const Padding(
+                Padding(
                   padding: EdgeInsets.all(16),
                   child: Text(
                     'Reissue catalog — deluxe resets recency, remix is a new debut',
                     style: TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.bold),
+                        color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold),
                   ),
                 ),
                 ...songs.map(
                   (s) => ListTile(
                     title: Text(s.title,
-                        style: const TextStyle(color: Colors.white)),
+                        style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
                     subtitle: Text(
                       '${s.genre} · ${s.weeksSinceRelease}w old',
-                      style: const TextStyle(color: Colors.white54),
+                      style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54)),
                     ),
                     onTap: () {
                       Navigator.pop(context);
                       showDialog(
                         context: context,
                         builder: (ctx) => AlertDialog(
-                          backgroundColor: const Color(0xFF16213e),
-                          title: Text(s.title,
-                              style: const TextStyle(color: Colors.white)),
-                          content: const Text(
+                                                    title: Text(s.title,
+                              style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
+                          content: Text(
                             'Deluxe puts the original back in the debut window. Remix adds a new chart entry.',
-                            style: TextStyle(color: Colors.white70),
+                            style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72)),
                           ),
                           actions: [
                             if (game.canDeluxeReissue(s))
@@ -1676,7 +1712,7 @@ void _showReissueSheet(BuildContext context, GameStateService game) {
                               ),
                             TextButton(
                               onPressed: () => Navigator.pop(ctx),
-                              child: const Text('Cancel'),
+                              child: Text('Cancel'),
                             ),
                           ],
                         ),
@@ -1699,8 +1735,7 @@ void _showRivalTruceSheet(BuildContext context, GameStateService game) {
   };
   showModalBottomSheet(
     context: context,
-    backgroundColor: const Color(0xFF16213e),
-    builder: (_) => SafeArea(
+        builder: (_) => SafeArea(
       child: ListView(
         shrinkWrap: true,
         children: [
@@ -1708,15 +1743,15 @@ void _showRivalTruceSheet(BuildContext context, GameStateService game) {
             padding: const EdgeInsets.all(16),
             child: Text(
               'Truce offer${rival != null ? ': ${rival.name}' : ''}',
-              style: const TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold),
             ),
           ),
           ...stances.entries.map(
             (e) => ListTile(
-              title: Text(e.key, style: const TextStyle(color: Colors.white)),
+              title: Text(e.key, style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
               subtitle: Text(e.value,
-                  style: const TextStyle(color: Colors.white54)),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54))),
               onTap: () {
                 Navigator.pop(context);
                 final err = game.resolveRivalTruce(
@@ -1748,8 +1783,7 @@ void _showDocumentarySheet(BuildContext context, GameStateService game) {
   };
   showModalBottomSheet(
     context: context,
-    backgroundColor: const Color(0xFF16213e),
-    builder: (_) => SafeArea(
+        builder: (_) => SafeArea(
       child: ListView(
         shrinkWrap: true,
         children: [
@@ -1757,15 +1791,15 @@ void _showDocumentarySheet(BuildContext context, GameStateService game) {
             padding: const EdgeInsets.all(16),
             child: Text(
               '$crew wants access',
-              style: const TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold),
             ),
           ),
           ...stances.entries.map(
             (e) => ListTile(
-              title: Text(e.key, style: const TextStyle(color: Colors.white)),
+              title: Text(e.key, style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
               subtitle: Text(e.value,
-                  style: const TextStyle(color: Colors.white54)),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54))),
               onTap: () {
                 Navigator.pop(context);
                 final err = game.resolveDocumentaryCrew(e.key);
@@ -1794,8 +1828,7 @@ void _showTherapyPodcastSheet(BuildContext context, GameStateService game) {
   };
   showModalBottomSheet(
     context: context,
-    backgroundColor: const Color(0xFF16213e),
-    builder: (_) => SafeArea(
+        builder: (_) => SafeArea(
       child: ListView(
         shrinkWrap: true,
         children: [
@@ -1803,15 +1836,15 @@ void _showTherapyPodcastSheet(BuildContext context, GameStateService game) {
             padding: const EdgeInsets.all(16),
             child: Text(
               '$show invite',
-              style: const TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold),
             ),
           ),
           ...stances.entries.map(
             (e) => ListTile(
-              title: Text(e.key, style: const TextStyle(color: Colors.white)),
+              title: Text(e.key, style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
               subtitle: Text(e.value,
-                  style: const TextStyle(color: Colors.white54)),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54))),
               onTap: () {
                 Navigator.pop(context);
                 final err = game.resolveTherapyPodcast(e.key);
@@ -1843,8 +1876,7 @@ void _showCollabDmSheet(BuildContext context, GameStateService game) {
   };
   showModalBottomSheet(
     context: context,
-    backgroundColor: const Color(0xFF16213e),
-    builder: (_) => SafeArea(
+        builder: (_) => SafeArea(
       child: ListView(
         shrinkWrap: true,
         children: [
@@ -1852,15 +1884,15 @@ void _showCollabDmSheet(BuildContext context, GameStateService game) {
             padding: const EdgeInsets.all(16),
             child: Text(
               'Collab DM${pick != null ? ': ${pick.name}' : ''}',
-              style: const TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold),
             ),
           ),
           ...stances.entries.map(
             (e) => ListTile(
-              title: Text(e.key, style: const TextStyle(color: Colors.white)),
+              title: Text(e.key, style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
               subtitle: Text(e.value,
-                  style: const TextStyle(color: Colors.white54)),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54))),
               onTap: () {
                 Navigator.pop(context);
                 final err = game.resolveCollabDm(
@@ -1890,24 +1922,23 @@ void _showStalkerFanSheet(BuildContext context, GameStateService game) {
   };
   showModalBottomSheet(
     context: context,
-    backgroundColor: const Color(0xFF16213e),
-    builder: (_) => SafeArea(
+        builder: (_) => SafeArea(
       child: ListView(
         shrinkWrap: true,
         children: [
-          const Padding(
+          Padding(
             padding: EdgeInsets.all(16),
             child: Text(
               'Fan Safety',
               style: TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.bold),
+                  color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold),
             ),
           ),
           ...stances.entries.map(
             (e) => ListTile(
-              title: Text(e.key, style: const TextStyle(color: Colors.white)),
+              title: Text(e.key, style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
               subtitle: Text(e.value,
-                  style: const TextStyle(color: Colors.white54)),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54))),
               onTap: () {
                 Navigator.pop(context);
                 final err = game.resolveStalkerFan(e.key);
@@ -1933,24 +1964,23 @@ void _showMerchDropSheet(BuildContext context, GameStateService game) {
   };
   showModalBottomSheet(
     context: context,
-    backgroundColor: const Color(0xFF16213e),
-    builder: (_) => SafeArea(
+        builder: (_) => SafeArea(
       child: ListView(
         shrinkWrap: true,
         children: [
-          const Padding(
+          Padding(
             padding: EdgeInsets.all(16),
             child: Text(
               'Merch Drop',
               style: TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.bold),
+                  color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold),
             ),
           ),
           ...stances.entries.map(
             (e) => ListTile(
-              title: Text(e.key, style: const TextStyle(color: Colors.white)),
+              title: Text(e.key, style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
               subtitle: Text(e.value,
-                  style: const TextStyle(color: Colors.white54)),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54))),
               onTap: () {
                 Navigator.pop(context);
                 final err = game.resolveMerchDrop(e.key);
@@ -1976,24 +2006,23 @@ void _showTourBusSheet(BuildContext context, GameStateService game) {
   };
   showModalBottomSheet(
     context: context,
-    backgroundColor: const Color(0xFF16213e),
-    builder: (_) => SafeArea(
+        builder: (_) => SafeArea(
       child: ListView(
         shrinkWrap: true,
         children: [
-          const Padding(
+          Padding(
             padding: EdgeInsets.all(16),
             child: Text(
               'Tour Bus',
               style: TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.bold),
+                  color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold),
             ),
           ),
           ...stances.entries.map(
             (e) => ListTile(
-              title: Text(e.key, style: const TextStyle(color: Colors.white)),
+              title: Text(e.key, style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
               subtitle: Text(e.value,
-                  style: const TextStyle(color: Colors.white54)),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54))),
               onTap: () {
                 Navigator.pop(context);
                 final err = game.resolveTourBus(e.key);
@@ -2019,24 +2048,23 @@ void _showAwardsCampSheet(BuildContext context, GameStateService game) {
   };
   showModalBottomSheet(
     context: context,
-    backgroundColor: const Color(0xFF16213e),
-    builder: (_) => SafeArea(
+        builder: (_) => SafeArea(
       child: ListView(
         shrinkWrap: true,
         children: [
-          const Padding(
+          Padding(
             padding: EdgeInsets.all(16),
             child: Text(
               'Awards Night',
               style: TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.bold),
+                  color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold),
             ),
           ),
           ...stances.entries.map(
             (e) => ListTile(
-              title: Text(e.key, style: const TextStyle(color: Colors.white)),
+              title: Text(e.key, style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
               subtitle: Text(e.value,
-                  style: const TextStyle(color: Colors.white54)),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54))),
               onTap: () {
                 Navigator.pop(context);
                 final err = game.resolveAwardsCamp(e.key);
@@ -2062,24 +2090,23 @@ void _showGenrePivotSheet(BuildContext context, GameStateService game) {
   };
   showModalBottomSheet(
     context: context,
-    backgroundColor: const Color(0xFF16213e),
-    builder: (_) => SafeArea(
+        builder: (_) => SafeArea(
       child: ListView(
         shrinkWrap: true,
         children: [
-          const Padding(
+          Padding(
             padding: EdgeInsets.all(16),
             child: Text(
               'Genre Rumor',
               style: TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.bold),
+                  color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold),
             ),
           ),
           ...stances.entries.map(
             (e) => ListTile(
-              title: Text(e.key, style: const TextStyle(color: Colors.white)),
+              title: Text(e.key, style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
               subtitle: Text(e.value,
-                  style: const TextStyle(color: Colors.white54)),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54))),
               onTap: () {
                 Navigator.pop(context);
                 final err = game.resolveGenrePivot(e.key);
@@ -2105,24 +2132,23 @@ void _showArenaSlotSheet(BuildContext context, GameStateService game) {
   };
   showModalBottomSheet(
     context: context,
-    backgroundColor: const Color(0xFF16213e),
-    builder: (_) => SafeArea(
+        builder: (_) => SafeArea(
       child: ListView(
         shrinkWrap: true,
         children: [
-          const Padding(
+          Padding(
             padding: EdgeInsets.all(16),
             child: Text(
               'Arena Slot',
               style: TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.bold),
+                  color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold),
             ),
           ),
           ...stances.entries.map(
             (e) => ListTile(
-              title: Text(e.key, style: const TextStyle(color: Colors.white)),
+              title: Text(e.key, style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
               subtitle: Text(e.value,
-                  style: const TextStyle(color: Colors.white54)),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54))),
               onTap: () {
                 Navigator.pop(context);
                 final err = game.resolveArenaSlot(e.key);
@@ -2148,24 +2174,23 @@ void _showFanTheorySheet(BuildContext context, GameStateService game) {
   };
   showModalBottomSheet(
     context: context,
-    backgroundColor: const Color(0xFF16213e),
-    builder: (_) => SafeArea(
+        builder: (_) => SafeArea(
       child: ListView(
         shrinkWrap: true,
         children: [
-          const Padding(
+          Padding(
             padding: EdgeInsets.all(16),
             child: Text(
               'Fan Theory',
               style: TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.bold),
+                  color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold),
             ),
           ),
           ...stances.entries.map(
             (e) => ListTile(
-              title: Text(e.key, style: const TextStyle(color: Colors.white)),
+              title: Text(e.key, style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
               subtitle: Text(e.value,
-                  style: const TextStyle(color: Colors.white54)),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54))),
               onTap: () {
                 Navigator.pop(context);
                 final err = game.resolveFanTheory(e.key);
@@ -2191,24 +2216,23 @@ void _showBlacklistSheet(BuildContext context, GameStateService game) {
   };
   showModalBottomSheet(
     context: context,
-    backgroundColor: const Color(0xFF16213e),
-    builder: (_) => SafeArea(
+        builder: (_) => SafeArea(
       child: ListView(
         shrinkWrap: true,
         children: [
-          const Padding(
+          Padding(
             padding: EdgeInsets.all(16),
             child: Text(
               'Blacklist',
               style: TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.bold),
+                  color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold),
             ),
           ),
           ...stances.entries.map(
             (e) => ListTile(
-              title: Text(e.key, style: const TextStyle(color: Colors.white)),
+              title: Text(e.key, style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
               subtitle: Text(e.value,
-                  style: const TextStyle(color: Colors.white54)),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54))),
               onTap: () {
                 Navigator.pop(context);
                 final err = game.resolveBlacklistRumor(e.key);
@@ -2234,24 +2258,23 @@ void _showComebackSheet(BuildContext context, GameStateService game) {
   };
   showModalBottomSheet(
     context: context,
-    backgroundColor: const Color(0xFF16213e),
-    builder: (_) => SafeArea(
+        builder: (_) => SafeArea(
       child: ListView(
         shrinkWrap: true,
         children: [
-          const Padding(
+          Padding(
             padding: EdgeInsets.all(16),
             child: Text(
               'Comeback',
               style: TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.bold),
+                  color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold),
             ),
           ),
           ...stances.entries.map(
             (e) => ListTile(
-              title: Text(e.key, style: const TextStyle(color: Colors.white)),
+              title: Text(e.key, style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
               subtitle: Text(e.value,
-                  style: const TextStyle(color: Colors.white54)),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54))),
               onTap: () {
                 Navigator.pop(context);
                 final err = game.resolveComebackConcept(e.key);
@@ -2277,24 +2300,23 @@ void _showCharitySheet(BuildContext context, GameStateService game) {
   };
   showModalBottomSheet(
     context: context,
-    backgroundColor: const Color(0xFF16213e),
-    builder: (_) => SafeArea(
+        builder: (_) => SafeArea(
       child: ListView(
         shrinkWrap: true,
         children: [
-          const Padding(
+          Padding(
             padding: EdgeInsets.all(16),
             child: Text(
               'Charity',
               style: TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.bold),
+                  color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold),
             ),
           ),
           ...stances.entries.map(
             (e) => ListTile(
-              title: Text(e.key, style: const TextStyle(color: Colors.white)),
+              title: Text(e.key, style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
               subtitle: Text(e.value,
-                  style: const TextStyle(color: Colors.white54)),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54))),
               onTap: () {
                 Navigator.pop(context);
                 final err = game.resolveCharitySingle(e.key);
@@ -2328,8 +2350,7 @@ void _showChartWagerSheet(BuildContext context, GameStateService game) {
   };
   showModalBottomSheet(
     context: context,
-    backgroundColor: const Color(0xFF16213e),
-    builder: (_) => SafeArea(
+        builder: (_) => SafeArea(
       child: ListView(
         shrinkWrap: true,
         children: [
@@ -2337,15 +2358,15 @@ void _showChartWagerSheet(BuildContext context, GameStateService game) {
             padding: const EdgeInsets.all(16),
             child: Text(
               'Chart streak wager${rank != null ? ' · #$rank' : ''}',
-              style: const TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold),
             ),
           ),
           ...stances.entries.map(
             (e) => ListTile(
-              title: Text(e.key, style: const TextStyle(color: Colors.white)),
+              title: Text(e.key, style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
               subtitle: Text(e.value,
-                  style: const TextStyle(color: Colors.white54)),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54))),
               onTap: () {
                 Navigator.pop(context);
                 final err = game.resolveChartWager(e.key);
@@ -2377,8 +2398,7 @@ void _showBrandDealSheet(BuildContext context, GameStateService game) {
   };
   showModalBottomSheet(
     context: context,
-    backgroundColor: const Color(0xFF16213e),
-    builder: (_) => SafeArea(
+        builder: (_) => SafeArea(
       child: ListView(
         shrinkWrap: true,
         children: [
@@ -2386,15 +2406,15 @@ void _showBrandDealSheet(BuildContext context, GameStateService game) {
             padding: const EdgeInsets.all(16),
             child: Text(
               '$brand sponsorship pitch',
-              style: const TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold),
             ),
           ),
           ...stances.entries.map(
             (e) => ListTile(
-              title: Text(e.key, style: const TextStyle(color: Colors.white)),
+              title: Text(e.key, style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
               subtitle: Text(e.value,
-                  style: const TextStyle(color: Colors.white54)),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54))),
               onTap: () {
                 Navigator.pop(context);
                 final err = game.resolveBrandSponsorship(e.key);
@@ -2427,24 +2447,23 @@ void _showDanceChallengeSheet(BuildContext context, GameStateService game) {
   };
   showModalBottomSheet(
     context: context,
-    backgroundColor: const Color(0xFF16213e),
-    builder: (_) => SafeArea(
+        builder: (_) => SafeArea(
       child: ListView(
         shrinkWrap: true,
         children: [
-          const Padding(
+          Padding(
             padding: EdgeInsets.all(16),
             child: Text(
               'Viral dance challenge',
               style: TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.bold),
+                  color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold),
             ),
           ),
           ...stances.entries.map(
             (e) => ListTile(
-              title: Text(e.key, style: const TextStyle(color: Colors.white)),
+              title: Text(e.key, style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
               subtitle: Text(e.value,
-                  style: const TextStyle(color: Colors.white54)),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54))),
               onTap: () {
                 Navigator.pop(context);
                 final err = game.resolveDanceChallenge(e.key);
@@ -2472,24 +2491,23 @@ void _showMeetGreetSheet(BuildContext context, GameStateService game) {
   };
   showModalBottomSheet(
     context: context,
-    backgroundColor: const Color(0xFF16213e),
-    builder: (_) => SafeArea(
+        builder: (_) => SafeArea(
       child: ListView(
         shrinkWrap: true,
         children: [
-          const Padding(
+          Padding(
             padding: EdgeInsets.all(16),
             child: Text(
               'Superfan meet & greet',
               style: TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.bold),
+                  color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold),
             ),
           ),
           ...stances.entries.map(
             (e) => ListTile(
-              title: Text(e.key, style: const TextStyle(color: Colors.white)),
+              title: Text(e.key, style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
               subtitle: Text(e.value,
-                  style: const TextStyle(color: Colors.white54)),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54))),
               onTap: () {
                 Navigator.pop(context);
                 final err = game.resolveMeetGreet(e.key);
@@ -2518,8 +2536,7 @@ void _showRadioLiveSheet(BuildContext context, GameStateService game) {
   };
   showModalBottomSheet(
     context: context,
-    backgroundColor: const Color(0xFF16213e),
-    builder: (_) => SafeArea(
+        builder: (_) => SafeArea(
       child: ListView(
         shrinkWrap: true,
         children: [
@@ -2527,15 +2544,15 @@ void _showRadioLiveSheet(BuildContext context, GameStateService game) {
             padding: const EdgeInsets.all(16),
             child: Text(
               '${game.radioStation} wants you live',
-              style: const TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold),
             ),
           ),
           ...stances.entries.map(
             (e) => ListTile(
-              title: Text(e.key, style: const TextStyle(color: Colors.white)),
+              title: Text(e.key, style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
               subtitle: Text(e.value,
-                  style: const TextStyle(color: Colors.white54)),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54))),
               onTap: () {
                 Navigator.pop(context);
                 final err = game.runRadioInterview(e.key);
@@ -2561,8 +2578,7 @@ void _showPressSheet(BuildContext context, GameStateService game) {
   };
   showModalBottomSheet(
     context: context,
-    backgroundColor: const Color(0xFF16213e),
-    builder: (_) => SafeArea(
+        builder: (_) => SafeArea(
       child: ListView(
         shrinkWrap: true,
         children: [
@@ -2570,15 +2586,15 @@ void _showPressSheet(BuildContext context, GameStateService game) {
             padding: const EdgeInsets.all(16),
             child: Text(
               '${game.pressMagazine} wants a cover story',
-              style: const TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold),
             ),
           ),
           ...stances.entries.map(
             (e) => ListTile(
-              title: Text(e.key, style: const TextStyle(color: Colors.white)),
+              title: Text(e.key, style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
               subtitle: Text(e.value,
-                  style: const TextStyle(color: Colors.white54)),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54))),
               onTap: () {
                 Navigator.pop(context);
                 final err = game.runPressInterview(e.key);
@@ -2612,8 +2628,8 @@ class _ActionButton extends StatelessWidget {
     return ElevatedButton(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF2a2a3e),
-        foregroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),

@@ -5,7 +5,7 @@ import 'label_tier.dart';
 
 class Artist {
   final String id;
-  final String name;
+  String name;
   Map<String, double> attributes;
   List<String> awardsWon;
   ArtistAppearance appearance;

@@ -1,29 +1,27 @@
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import '../theme/game_palette.dart';
 
 class SettingsService extends ChangeNotifier {
   static const String _settingsBoxName = 'settings';
   static Box? _settingsBox;
 
-  // Settings keys
   static const String _soundEnabledKey = 'sound_enabled';
   static const String _musicVolumeKey = 'music_volume';
   static const String _themeKey = 'theme';
   static const String _fontSizeKey = 'font_size';
 
-  // Default values
   bool _soundEnabled = true;
   double _musicVolume = 0.7;
-  String _theme = 'dark';
+  AppThemeId _themeId = AppThemeId.dark;
   double _fontSize = 1.0;
 
-  // Getters
   bool get soundEnabled => _soundEnabled;
   double get musicVolume => _musicVolume;
-  String get theme => _theme;
+  AppThemeId get themeId => _themeId;
+  String get theme => _themeId.storageName;
   double get fontSize => _fontSize;
 
-  // Initialize settings
   static Future<void> init() async {
     _settingsBox = await Hive.openBox(_settingsBoxName);
   }
@@ -35,10 +33,16 @@ class SettingsService extends ChangeNotifier {
   void _loadSettings() {
     if (_settingsBox == null) return;
 
-    _soundEnabled = _settingsBox!.get(_soundEnabledKey, defaultValue: true) as bool;
-    _musicVolume = _settingsBox!.get(_musicVolumeKey, defaultValue: 0.7) as double;
-    _theme = _settingsBox!.get(_themeKey, defaultValue: 'dark') as String;
-    _fontSize = _settingsBox!.get(_fontSizeKey, defaultValue: 1.0) as double;
+    _soundEnabled =
+        _settingsBox!.get(_soundEnabledKey, defaultValue: true) as bool;
+    _musicVolume =
+        (_settingsBox!.get(_musicVolumeKey, defaultValue: 0.7) as num)
+            .toDouble();
+    _themeId = AppThemeId.fromName(
+      _settingsBox!.get(_themeKey, defaultValue: 'dark') as String?,
+    );
+    _fontSize =
+        (_settingsBox!.get(_fontSizeKey, defaultValue: 1.0) as num).toDouble();
     notifyListeners();
   }
 
@@ -55,8 +59,12 @@ class SettingsService extends ChangeNotifier {
   }
 
   Future<void> setTheme(String value) async {
-    _theme = value;
-    await _settingsBox?.put(_themeKey, value);
+    await setThemeId(AppThemeId.fromName(value));
+  }
+
+  Future<void> setThemeId(AppThemeId value) async {
+    _themeId = value;
+    await _settingsBox?.put(_themeKey, value.storageName);
     notifyListeners();
   }
 
@@ -69,10 +77,9 @@ class SettingsService extends ChangeNotifier {
   Future<void> resetToDefaults() async {
     _soundEnabled = true;
     _musicVolume = 0.7;
-    _theme = 'dark';
+    _themeId = AppThemeId.dark;
     _fontSize = 1.0;
     await _settingsBox?.clear();
     notifyListeners();
   }
 }
-
