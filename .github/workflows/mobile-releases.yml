@@ -29,8 +29,10 @@ on:
   workflow_dispatch:
 
 concurrency:
+  # Do not cancel an in-flight APK/IPA build when another push lands.
+  # Release builds are long; cancel-in-progress caused "operation was canceled".
   group: mobile-releases-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -40,6 +42,8 @@ jobs:
     name: Android release APK
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    env:
+      GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dkotlin.compiler.execution.strategy=in-process"
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -49,6 +53,7 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
+          cache: gradle
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
