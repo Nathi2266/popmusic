@@ -24,10 +24,7 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.popmusic"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
+        applicationId = "com.nkosinathiradebe.popmusic"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
@@ -35,6 +32,13 @@ android {
     }
 
     signingConfigs {
+        // Dedicated sideload key so Play Protect is not blocking a debug-signed APK.
+        create("sideload") {
+            keyAlias = "popmusic"
+            keyPassword = "PopMusicSideload2026"
+            storeFile = file("sideload.jks")
+            storePassword = "PopMusicSideload2026"
+        }
         if (keystorePropertiesFile.exists()) {
             create("release") {
                 keyAlias = keystoreProperties["keyAlias"] as String
@@ -47,11 +51,12 @@ android {
 
     buildTypes {
         release {
-            signingConfig = if (keystorePropertiesFile.exists()) {
-                signingConfigs.getByName("release")
-            } else {
-                // Local / CI without a keystore: debug signing (sideload OK, not Play Store).
-                signingConfigs.getByName("debug")
+            isMinifyEnabled = false
+            isShrinkResources = false
+            signingConfig = when {
+                keystorePropertiesFile.exists() -> signingConfigs.getByName("release")
+                file("sideload.jks").exists() -> signingConfigs.getByName("sideload")
+                else -> signingConfigs.getByName("debug")
             }
         }
     }

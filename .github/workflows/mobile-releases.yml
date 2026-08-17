@@ -87,7 +87,7 @@ jobs:
       - name: Apply app icon
         run: dart run flutter_launcher_icons
 
-      - name: Decode Android keystore (optional)
+      - name: Decode Android Play Store keystore (optional)
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
@@ -95,7 +95,7 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           if [ -z "$ANDROID_KEYSTORE_BASE64" ]; then
-            echo "No ANDROID_KEYSTORE_BASE64 secret — release APK will use debug signing."
+            echo "No Play Store keystore secret — APK will use the sideload release key (installable on devices)."
             exit 0
           fi
           echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/upload-keystore.jks
