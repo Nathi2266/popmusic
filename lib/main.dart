@@ -8,6 +8,7 @@ import 'services/game_state_service.dart';
 import 'services/settings_service.dart';
 import 'services/achievement_service.dart';
 import 'services/challenge_service.dart';
+import 'services/theme_music_service.dart';
 import 'widgets/toast_notification.dart';
 import 'widgets/error_boundary.dart';
 import 'theme/app_theme.dart';
@@ -80,6 +81,20 @@ class PopMusicGame extends StatelessWidget {
           create: (_) => GameStateService(),
         ),
         ChangeNotifierProvider(create: (_) => SettingsService()),
+        ProxyProvider<SettingsService, ThemeMusicService>(
+          lazy: false,
+          update: (_, settings, previous) {
+            if (previous != null) return previous;
+            final music = ThemeMusicService(settings);
+            // ignore: discarded_futures
+            music.start();
+            return music;
+          },
+          dispose: (_, music) {
+            // ignore: discarded_futures
+            music.dispose();
+          },
+        ),
         ChangeNotifierProxyProvider<GameStateService, AchievementService>(
           create: (_) => AchievementService(),
           update: (_, game, achievements) {

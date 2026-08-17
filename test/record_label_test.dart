@@ -3,6 +3,7 @@ import 'package:popmusic/data/record_labels.dart';
 import 'package:popmusic/models/artist.dart';
 import 'package:popmusic/models/artist_appearance.dart';
 import 'package:popmusic/models/label_tier.dart';
+import 'package:popmusic/models/record_label.dart';
 import 'package:popmusic/models/song.dart';
 import 'package:popmusic/services/game_state_service.dart';
 
@@ -28,11 +29,29 @@ void main() {
 
   test('world labels exist and NPCs are assigned', () {
     expect(RecordLabels.catalog.length, 8);
+    expect(RecordLabels.catalog.every((l) => l.ceoName.isNotEmpty), isTrue);
+    final npcs = game.worldArtists.where((a) => a.id.startsWith('npc_'));
+    expect(npcs.length, 150);
     final signedNpcs = game.worldArtists.where(
       (a) => a.id != 'player' && a.labelTier != LabelTier.unsigned,
     );
     expect(signedNpcs.every((a) => a.labelId.isNotEmpty), isTrue);
     expect(game.visibleLabels().length, RecordLabels.catalog.length + 1);
+  });
+
+  test('label CEO can book a gig for the signed player', () {
+    final label = RecordLabels.catalog.firstWhere((l) => l.tier == LabelTier.indie);
+    game.playerLabelId = label.id;
+    game.player!.labelId = label.id;
+    game.player!.labelTier = LabelTier.indie;
+    final before = game.playerMoney;
+    final msg = game.requestLabelManagement(
+      labelId: label.id,
+      action: LabelMgmtAction.bookGig,
+    );
+    expect(msg.toLowerCase(), contains('booked'));
+    expect(game.playerMoney, greaterThan(before));
+    expect(game.labelMgmtCooldown(label.id, LabelMgmtAction.bookGig), greaterThan(0));
   });
 
   test('cannot sign yourself or exceed five artists', () {

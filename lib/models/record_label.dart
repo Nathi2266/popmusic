@@ -7,6 +7,9 @@ class RecordLabel {
   final String city;
   final String blurb;
   final int colorValue;
+  final String ceoName;
+  final String ceoTitle;
+  final String ceoFocus;
 
   const RecordLabel({
     required this.id,
@@ -15,9 +18,14 @@ class RecordLabel {
     required this.city,
     required this.blurb,
     required this.colorValue,
+    required this.ceoName,
+    required this.ceoTitle,
+    required this.ceoFocus,
   });
 
   String get displayTier => tier.displayName;
+
+  String get ceoLine => '$ceoTitle · $ceoName';
 
   int get pitchCost {
     switch (tier) {
@@ -31,6 +39,31 @@ class RecordLabel {
         return 2800;
     }
   }
+}
+
+enum LabelMgmtAction {
+  bookGig,
+  playlistPush,
+  pressDay,
+  studioBlock;
+
+  String get displayName => switch (this) {
+        LabelMgmtAction.bookGig => 'Book a gig',
+        LabelMgmtAction.playlistPush => 'Playlist push',
+        LabelMgmtAction.pressDay => 'Press day',
+        LabelMgmtAction.studioBlock => 'Studio block',
+      };
+
+  String get blurb => switch (this) {
+        LabelMgmtAction.bookGig =>
+          'CEO books a performance that fits the artist\'s heat.',
+        LabelMgmtAction.playlistPush =>
+          'Editorial playlist bump for recent releases.',
+        LabelMgmtAction.pressDay =>
+          'Interviews and coverage to lift reputation.',
+        LabelMgmtAction.studioBlock =>
+          'Paid studio time to sharpen craft for the next release.',
+      };
 }
 
 class RosterSigning {

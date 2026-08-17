@@ -37,21 +37,8 @@ class ToastService extends ChangeNotifier {
     Duration duration = const Duration(seconds: 3),
     IconData? icon,
   }) {
-    final toast = ToastMessage(
-      id: DateTime.now().millisecondsSinceEpoch,
-      message: message,
-      type: type,
-      duration: duration,
-      icon: icon,
-    );
-
-    _toasts.add(toast);
-    notifyListeners();
-
-    // Auto-remove after duration
-    Future.delayed(duration, () {
-      remove(toast.id);
-    });
+    // Top-right toasts disabled — gameplay feedback stays in-screen.
+    return;
   }
 
   void showSuccess(String message, {Duration? duration, IconData? icon}) {

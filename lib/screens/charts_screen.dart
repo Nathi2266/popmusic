@@ -43,51 +43,82 @@ class ChartsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Top 30 — Charts'),
+        title: const Text('Top 30 — Charts'),
         centerTitle: true,
-        actions: [
-              // Toggle between songs and artists view
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: SegmentedButton<String>(
+      ),
+      body: Column(
+        children: [
+          Material(
+            color: Theme.of(context).appBarTheme.backgroundColor ??
+                Theme.of(context).colorScheme.surface,
+            elevation: 1,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'Week ${game.weekOfMonth} • ${game.month}/${game.year}',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  SegmentedButton<String>(
                     segments: const [
-                      ButtonSegment<String>(value: 'songs', label: Text('Songs')),
-                      ButtonSegment<String>(value: 'artists', label: Text('Artists')),
+                      ButtonSegment<String>(
+                        value: 'songs',
+                        label: Text('Songs'),
+                      ),
+                      ButtonSegment<String>(
+                        value: 'artists',
+                        label: Text('Artists'),
+                      ),
                     ],
                     selected: <String>{game.chartViewMode},
                     onSelectionChanged: (Set<String> newSelection) {
                       game.chartViewMode = newSelection.first;
                     },
                   ),
-                ),
+                  const SizedBox(height: 10),
+                  InputDecorator(
+                    decoration: InputDecoration(
+                      labelText: 'Genre filter',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 4,
+                      ),
+                      isDense: true,
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        isExpanded: true,
+                        value: game.currentGenreFilter,
+                        hint: const Text('All genres'),
+                        onChanged: (String? newValue) {
+                          game.currentGenreFilter = newValue;
+                        },
+                        items: ['All', 'New Releases', ...game.availableGenres]
+                            .map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value == 'All' ? null : value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              Expanded(
-                child: DropdownButton<String>(
-                  value: game.currentGenreFilter,
-                  hint: Text('Filter by Genre', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72))),
-                  dropdownColor: Theme.of(context).primaryColorDark,
-                  icon: Icon(Icons.filter_list, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72)),
-                  onChanged: (String? newValue) {
-                    game.currentGenreFilter = newValue;
-                  },
-                  items: ['All', 'New Releases', ...game.availableGenres].map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value == 'All' ? null : value,
-                      child: Text(value, style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
-                    );
-                  }).toList(),
-                ),
-              ),
-              Expanded(
-                child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Center(child: Text('Week ${game.weekOfMonth} • ${game.month}/${game.year}')),
-                ),
+            ),
           ),
-        ],
-      ),
-          body: Builder(
+          Expanded(
+            child: Builder(
             builder: (BuildContext context) {
               Widget content;
               if (game.chartViewMode == 'songs') {
@@ -278,7 +309,10 @@ class ChartsScreen extends StatelessWidget {
               return content;
             },
           ),
-        );
+          ),
+        ],
+      ),
+    );
       },
     );
   }

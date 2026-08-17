@@ -7,16 +7,19 @@ class SettingsService extends ChangeNotifier {
   static Box? _settingsBox;
 
   static const String _soundEnabledKey = 'sound_enabled';
+  static const String _musicEnabledKey = 'music_enabled';
   static const String _musicVolumeKey = 'music_volume';
   static const String _themeKey = 'theme';
   static const String _fontSizeKey = 'font_size';
 
   bool _soundEnabled = true;
+  bool _musicEnabled = true;
   double _musicVolume = 0.7;
   AppThemeId _themeId = AppThemeId.dark;
   double _fontSize = 1.0;
 
   bool get soundEnabled => _soundEnabled;
+  bool get musicEnabled => _musicEnabled;
   double get musicVolume => _musicVolume;
   AppThemeId get themeId => _themeId;
   String get theme => _themeId.storageName;
@@ -35,6 +38,8 @@ class SettingsService extends ChangeNotifier {
 
     _soundEnabled =
         _settingsBox!.get(_soundEnabledKey, defaultValue: true) as bool;
+    _musicEnabled =
+        _settingsBox!.get(_musicEnabledKey, defaultValue: true) as bool;
     _musicVolume =
         (_settingsBox!.get(_musicVolumeKey, defaultValue: 0.7) as num)
             .toDouble();
@@ -49,6 +54,12 @@ class SettingsService extends ChangeNotifier {
   Future<void> setSoundEnabled(bool value) async {
     _soundEnabled = value;
     await _settingsBox?.put(_soundEnabledKey, value);
+    notifyListeners();
+  }
+
+  Future<void> setMusicEnabled(bool value) async {
+    _musicEnabled = value;
+    await _settingsBox?.put(_musicEnabledKey, value);
     notifyListeners();
   }
 
@@ -76,6 +87,7 @@ class SettingsService extends ChangeNotifier {
 
   Future<void> resetToDefaults() async {
     _soundEnabled = true;
+    _musicEnabled = true;
     _musicVolume = 0.7;
     _themeId = AppThemeId.dark;
     _fontSize = 1.0;

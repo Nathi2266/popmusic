@@ -27,17 +27,31 @@ class MainMenuScreen extends StatelessWidget {
 
     return Scaffold(
       body: Stack(
+        fit: StackFit.expand,
         children: [
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  p.scaffold,
-                  p.appBar,
-                  p.surface,
-                ],
+          // App logo fills every screen size (cover + center crop).
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/app_icon.png',
+              fit: BoxFit.cover,
+              alignment: Alignment.center,
+              filterQuality: FilterQuality.high,
+              errorBuilder: (_, __, ___) => Container(color: p.scaffold),
+            ),
+          ),
+          // Scrim so menu text/buttons stay readable on any device.
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    p.scaffold.withValues(alpha: 0.55),
+                    p.scaffold.withValues(alpha: 0.72),
+                    p.appBar.withValues(alpha: 0.88),
+                  ],
+                ),
               ),
             ),
           ),

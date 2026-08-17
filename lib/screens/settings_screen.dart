@@ -29,15 +29,21 @@ class SettingsScreen extends StatelessWidget {
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                     child: Text(
                       'Applies to every screen. Pick light, dark, or a custom look.',
+                      textAlign: TextAlign.center,
                       style: TextStyle(color: p.textMuted, fontSize: 13),
                     ),
                   ),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
-                    child: Wrap(
-                      spacing: 10,
-                      runSpacing: 10,
-                      children: AppThemeId.values.map((id) {
+                    child: Align(
+                      alignment: Alignment.center,
+                      child: Wrap(
+                        alignment: WrapAlignment.center,
+                        runAlignment: WrapAlignment.center,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 10,
+                        runSpacing: 10,
+                        children: AppThemeId.values.map((id) {
                         final selected = settings.themeId == id;
                         final swatch = GamePalette.forId(id);
                         return SizedBox(
@@ -115,6 +121,7 @@ class SettingsScreen extends StatelessWidget {
                         );
                       }).toList(),
                     ),
+                    ),
                   ),
                 ],
               ),
@@ -124,15 +131,13 @@ class SettingsScreen extends StatelessWidget {
                 icon: Icons.volume_up,
                 children: [
                   SwitchListTile(
-                    title: Text('Sound Effects'),
-                    subtitle: Text('Enable sound effects for game actions'),
-                    value: settings.soundEnabled,
+                    title: Text('Music'),
+                    subtitle: Text('Play the main theme in the background'),
+                    value: settings.musicEnabled,
                     onChanged: (value) {
-                      settings.setSoundEnabled(value);
+                      settings.setMusicEnabled(value);
                       ToastService().showInfo(
-                        value
-                            ? 'Sound effects enabled'
-                            : 'Sound effects disabled',
+                        value ? 'Music on' : 'Music off',
                       );
                     },
                   ),
@@ -145,10 +150,26 @@ class SettingsScreen extends StatelessWidget {
                         Text('${(settings.musicVolume * 100).toInt()}%'),
                         Slider(
                           value: settings.musicVolume,
-                          onChanged: settings.setMusicVolume,
+                          onChanged: settings.musicEnabled
+                              ? settings.setMusicVolume
+                              : null,
                         ),
                       ],
                     ),
+                  ),
+                  const Divider(),
+                  SwitchListTile(
+                    title: Text('Sound Effects'),
+                    subtitle: Text('Enable sound effects for game actions'),
+                    value: settings.soundEnabled,
+                    onChanged: (value) {
+                      settings.setSoundEnabled(value);
+                      ToastService().showInfo(
+                        value
+                            ? 'Sound effects enabled'
+                            : 'Sound effects disabled',
+                      );
+                    },
                   ),
                 ],
               ),

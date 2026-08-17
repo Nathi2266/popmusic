@@ -15,6 +15,7 @@ import '../models/player_level.dart';
 import '../models/challenge.dart';
 import '../models/album.dart';
 import '../models/tour.dart';
+import '../models/venue.dart';
 import '../models/lifestyle.dart';
 import '../models/studio_finish.dart';
 import 'achievement_service.dart';
@@ -92,6 +93,8 @@ class GameStateService extends ChangeNotifier {
   final List<RosterSigning> rosterSignings = [];
   final Map<String, int> labelPitchCooldowns = {};
   final Map<String, int> signOfferCooldowns = {};
+  /// Keys: `$labelId:${action.name}` — weeks until CEO can run that action again.
+  final Map<String, int> labelMgmtCooldowns = {};
   final Set<String> ownedAssetIds = {};
   final List<OwnedInvestment> investments = [];
   double lastWeekPassive = 0;
@@ -1084,6 +1087,8 @@ class GameStateService extends ChangeNotifier {
     if (charityCooldownWeeks > 0) charityCooldownWeeks--;
     _tickCooldownMap(labelPitchCooldowns);
     _tickCooldownMap(signOfferCooldowns);
+    _tickCooldownMap(labelMgmtCooldowns);
+    _tickLabelCeoWeeklyOps();
 
     // New week: drop last week's cards, then build this week's.
     lastWeekEvents.clear();
@@ -6724,6 +6729,7 @@ class GameStateService extends ChangeNotifier {
     playerLabelId = '';
     rosterSignings.clear();
     labelPitchCooldowns.clear();
+    labelMgmtCooldowns.clear();
     signOfferCooldowns.clear();
     dissCooldownWeeks = 0;
     lastFestivalYearPlayed = 0;
@@ -6846,6 +6852,7 @@ class GameStateService extends ChangeNotifier {
     worldArtists.add(_player!); // Add player to worldArtists
     worldArtists.addAll(NPCArtists.generateNPCs()); // Add NPC artists to worldArtists
     _ensureNamedLabels();
+    _ensureNpcPool();
     playerMoney = 5000;
     playerFanCount = 100;
     playerXp = 0;
@@ -6966,6 +6973,173 @@ class GameStateService extends ChangeNotifier {
         playerLabelId.isEmpty &&
         _player!.labelTier != LabelTier.unsigned) {
       _assignPlayerToNamedLabel(_player!.labelTier);
+    }
+  }
+
+  void _ensureNpcPool() {
+    final extras = NPCArtists.missingToReachTarget(
+      worldArtists.map((a) => a.id),
+    );
+    if (extras.isEmpty) return;
+    worldArtists.addAll(extras);
+    _ensureNamedLabels();
+  }
+
+  bool playerIsOnLabel(String labelId) {
+    if (labelId == RecordLabels.playerImprintId) return true;
+    return playerLabelId == labelId || _player?.labelId == labelId;
+  }
+
+  int labelMgmtCooldown(String labelId, LabelMgmtAction action) =>
+      labelMgmtCooldowns['$labelId:${action.name}'] ?? 0;
+
+  /// CEO-arranged management for the player (signed label) or a roster artist (imprint).
+  String requestLabelManagement({
+    required String labelId,
+    required LabelMgmtAction action,
+    String? rosterArtistId,
+  }) {
+    if (_player == null) return 'No active career.';
+    final label = labelById(labelId);
+    if (label == null) return 'Label not found.';
+
+    final isImprint = labelId == RecordLabels.playerImprintId;
+    if (!isImprint && !playerIsOnLabel(labelId)) {
+      return 'Only ${label.ceoName}\'s signed artists can use this office.';
+    }
+
+    Artist target;
+    if (isImprint) {
+      final id = rosterArtistId;
+      if (id == null || !isOnRoster(id)) {
+        return 'Pick a signed roster artist for ${label.ceoName} to manage.';
+      }
+      final artist = getArtistById(id);
+      if (artist == null) return 'Artist not found.';
+      target = artist;
+    } else {
+      target = _player!;
+    }
+
+    final coolKey = '$labelId:${action.name}';
+    final cool = labelMgmtCooldowns[coolKey] ?? 0;
+    if (cool > 0) {
+      return '${label.ceoName} is busy ($cool w). Try another desk.';
+    }
+
+    final pop = target.attributes['popularity'] ?? 0;
+    final venue = VenueData.venues.lastWhere(
+      (v) =>
+          v.popularityRequired <= pop &&
+          v.minLabel.index <= target.labelTier.index,
+      orElse: () => VenueData.venues.first,
+    );
+
+    late String message;
+    switch (action) {
+      case LabelMgmtAction.bookGig:
+        final pay = venue.basePay * (isImprint ? 0.55 : 0.85);
+        if (!isImprint) {
+          playerMoney += pay;
+          playerFanCount += (venue.capacity * 0.08).round().clamp(8, 2500);
+        }
+        updateArtistAttribute(target.id, 'performance', 3.5);
+        updateArtistAttribute(
+          target.id,
+          'popularity',
+          1.8 + label.tier.index * 0.4,
+        );
+        updateArtistAttribute(target.id, 'stamina', -8);
+        if (isImprint) {
+          playerMoney += pay * 0.35;
+        }
+        message =
+            '${label.ceoName} booked ${target.name} at ${venue.name} '
+            '(+\$${pay.toStringAsFixed(0)}).';
+        break;
+      case LabelMgmtAction.playlistPush:
+        final songs = catalogSongsFor(target.id)
+            .where((s) => s.released)
+            .toList()
+          ..sort((a, b) => a.weeksSinceRelease.compareTo(b.weeksSinceRelease));
+        if (songs.isEmpty) {
+          return '${target.name} needs a released track first.';
+        }
+        final song = songs.first;
+        song.playlistWeeksRemaining =
+            (song.playlistWeeksRemaining + 2 + label.tier.index).clamp(0, 8);
+        message =
+            '${label.ceoName} landed a playlist lane for "${song.title}" '
+            '(${song.playlistWeeksRemaining}w).';
+        break;
+      case LabelMgmtAction.pressDay:
+        updateArtistAttribute(target.id, 'reputation', 4.0);
+        updateArtistAttribute(target.id, 'popularity', 1.2);
+        updateArtistAttribute(target.id, 'marketing', 2.0);
+        message =
+            '${label.ceoName} ran a press day for ${target.name}. Coverage is live.';
+        break;
+      case LabelMgmtAction.studioBlock:
+        updateArtistAttribute(target.id, 'songwriting', 3.0);
+        updateArtistAttribute(target.id, 'production', 2.5);
+        updateArtistAttribute(target.id, 'creativity', 2.0);
+        message =
+            '${label.ceoName} locked a studio block for ${target.name}. Craft up.';
+        break;
+    }
+
+    labelMgmtCooldowns[coolKey] = RecordLabels.managementCooldownWeeks;
+    weeklyHeadlines.insert(
+      0,
+      '${label.name}: ${label.ceoName} — ${action.displayName} for ${target.name}',
+    );
+    if (weeklyHeadlines.length > 12) {
+      weeklyHeadlines.removeRange(12, weeklyHeadlines.length);
+    }
+    saveGame();
+    notifyListeners();
+    return message;
+  }
+
+  void _tickLabelCeoWeeklyOps() {
+    final rng = Random(year * 1000 + month * 40 + weekOfMonth);
+    for (final label in RecordLabels.catalog) {
+      final roster = artistsOnLabel(label.id);
+      if (roster.isEmpty) continue;
+      if (rng.nextDouble() > 0.45) continue;
+      final artist = roster[rng.nextInt(roster.length)];
+      final action = LabelMgmtAction
+          .values[rng.nextInt(LabelMgmtAction.values.length)];
+      switch (action) {
+        case LabelMgmtAction.bookGig:
+          updateArtistAttribute(artist.id, 'performance', 1.2);
+          updateArtistAttribute(artist.id, 'popularity', 0.6);
+          break;
+        case LabelMgmtAction.playlistPush:
+          final songs = catalogSongsFor(artist.id)
+              .where((s) => s.released)
+              .toList();
+          if (songs.isNotEmpty) {
+            final song = songs[rng.nextInt(songs.length)];
+            if (song.playlistWeeksRemaining < 2) {
+              song.playlistWeeksRemaining = 2;
+            }
+          } else {
+            updateArtistAttribute(artist.id, 'marketing', 0.8);
+          }
+          break;
+        case LabelMgmtAction.pressDay:
+          updateArtistAttribute(artist.id, 'reputation', 1.0);
+          break;
+        case LabelMgmtAction.studioBlock:
+          updateArtistAttribute(artist.id, 'songwriting', 0.9);
+          break;
+      }
+      if (rng.nextDouble() < 0.35) {
+        weeklyHeadlines.add(
+          '${label.ceoName} (${label.name}) lined up ${action.displayName.toLowerCase()} for ${artist.name}.',
+        );
+      }
     }
   }
 
@@ -7746,6 +7920,7 @@ class GameStateService extends ChangeNotifier {
       'playerLabelId': playerLabelId,
       'rosterSignings': rosterSignings.map((s) => s.toMap()).toList(),
       'labelPitchCooldowns': labelPitchCooldowns,
+      'labelMgmtCooldowns': labelMgmtCooldowns,
       'signOfferCooldowns': signOfferCooldowns,
       'worldArtists': worldArtists.map((a) => a.toMap()).toList(),
       'worldSongs': worldSongs.map((s) => s.toMap()).toList(),
@@ -7911,6 +8086,9 @@ class GameStateService extends ChangeNotifier {
       labelPitchCooldowns
         ..clear()
         ..addAll(_stringIntMap(data['labelPitchCooldowns']));
+      labelMgmtCooldowns
+        ..clear()
+        ..addAll(_stringIntMap(data['labelMgmtCooldowns']));
       signOfferCooldowns
         ..clear()
         ..addAll(_stringIntMap(data['signOfferCooldowns']));
@@ -7952,6 +8130,7 @@ class GameStateService extends ChangeNotifier {
       if (_player == null) return false;
 
       _ensureNamedLabels();
+      _ensureNpcPool();
 
       lastWeekEvents.clear();
       notifyListeners();
@@ -8024,6 +8203,7 @@ class GameStateService extends ChangeNotifier {
     playerLabelId = '';
     rosterSignings.clear();
     labelPitchCooldowns.clear();
+    labelMgmtCooldowns.clear();
     signOfferCooldowns.clear();
     dissCooldownWeeks = 0;
     lastFestivalYearPlayed = 0;
