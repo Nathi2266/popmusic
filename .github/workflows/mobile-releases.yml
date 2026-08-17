@@ -59,6 +59,14 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Prepare app icon from logo
+        run: |
+          python3 -m pip install --quiet Pillow
+          python3 tool/prepare_app_icon.py
+
+      - name: Apply app icon
+        run: dart run flutter_launcher_icons
+
       - name: Decode Android keystore (optional)
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
@@ -115,6 +123,14 @@ jobs:
 
       - name: Install dependencies
         run: flutter pub get
+
+      - name: Prepare app icon from logo
+        run: |
+          python3 -m pip install --quiet Pillow
+          python3 tool/prepare_app_icon.py
+
+      - name: Apply app icon
+        run: dart run flutter_launcher_icons
 
       - name: Download iOS engine artifacts
         run: flutter precache --ios
