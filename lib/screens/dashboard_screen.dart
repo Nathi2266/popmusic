@@ -8,11 +8,8 @@ import 'create_song_screen.dart';
 import '../models/song.dart';
 import '../models/label_tier.dart';
 import 'weekly_events_and_proceed_button.dart';
-import 'charts_screen.dart';
 import 'lifestyle_screen.dart';
-import 'labels_screen.dart';
-import 'settings_screen.dart';
-import '../theme/game_palette.dart';
+import '../widgets/game_shell.dart';
 import '../widgets/error_widget.dart';
 import '../widgets/xp_bar.dart';
 import '../utils/toast_service.dart';
@@ -39,17 +36,7 @@ class DashboardScreen extends StatelessWidget {
         return Scaffold(
             appBar: AppBar(
             title: Text(player.name),
-            leading: Builder(
-              builder: (BuildContext context) {
-                return IconButton(
-                  icon: Icon(Icons.menu),
-                  onPressed: () {
-                    Scaffold.of(context).openDrawer();
-                  },
-                  tooltip: MaterialLocalizations.of(context).openAppDrawerTooltip,
-                );
-              },
-            ),
+            leading: const GameDrawerButton(),
             actions: [
               Padding(
                 padding: const EdgeInsets.only(right: 8),
@@ -65,85 +52,6 @@ class DashboardScreen extends StatelessWidget {
               ),
               const ProceedWeekButton(),
             ],
-          ),
-          drawer: Drawer(
-            backgroundColor: context.palette.scaffold,
-            child: Column(
-              children: <Widget>[
-                Container(
-                  height: MediaQuery.of(context).padding.top + kToolbarHeight,
-                  decoration: BoxDecoration(
-                    color: context.palette.appBar,
-                  ),
-                  child: const SizedBox.shrink(),
-                ),
-                ListTile(
-                  leading: Icon(Icons.show_chart, color: context.palette.textMuted),
-                  title: Text('Charts', style: TextStyle(color: context.palette.text)),
-                  onTap: () {
-                    Navigator.pop(context); // Close the drawer
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const ChartsScreen()));
-                  },
-                ),
-                ListTile(
-                  leading: Icon(Icons.diamond_outlined, color: context.palette.textMuted),
-                  title: Text('Lifestyle', style: TextStyle(color: context.palette.text)),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const LifestyleScreen(),
-                      ),
-                    );
-                  },
-                ),
-                ListTile(
-                  leading: Icon(Icons.album_outlined, color: context.palette.textMuted),
-                  title: Text('Record Labels', style: TextStyle(color: context.palette.text)),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const LabelsScreen(),
-                      ),
-                    );
-                  },
-                ),
-                ListTile(
-                  leading: Icon(Icons.settings, color: context.palette.textMuted),
-                  title: Text('Settings', style: TextStyle(color: context.palette.text)),
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const SettingsScreen(),
-                      ),
-                    );
-                  },
-                ),
-                const Spacer(), // Pushes the exit button to the bottom
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: ElevatedButton.icon(
-                    icon: Icon(Icons.exit_to_app),
-                    label: Text('Exit Game'),
-                    onPressed: () {
-                      // Implement exit game logic here
-                      // For example, navigate to main menu or close the app
-                      Navigator.of(context).popUntil((route) => route.isFirst); // Example: Pop all routes to main menu
-                    },
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size.fromHeight(50), // Make button full width
-                      backgroundColor: Colors.red.shade700,
-                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                    ),
-                  ),
-                ),
-              ],
-            ),
           ),
           body: SingleChildScrollView(
             child: Padding(

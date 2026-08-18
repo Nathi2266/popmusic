@@ -351,7 +351,7 @@ class _MixerControl extends StatelessWidget {
     
     return GlassCard(
       padding: const EdgeInsets.all(16),
-      borderColor: isClose ? color : Colors.white24,
+      borderColor: isClose ? color : Theme.of(context).dividerColor,
       borderWidth: isClose ? 2 : 1,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -381,7 +381,12 @@ class _MixerControl extends StatelessWidget {
                   Text(
                     'Accuracy: ${accuracy.toInt()}%',
                     style: TextStyle(
-                      color: isClose ? const Color(0xFF4CAF50) : Colors.white70,
+                      color: isClose
+                          ? const Color(0xFF4CAF50)
+                          : Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.72),
                       fontSize: 12,
                     ),
                   ),

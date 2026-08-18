@@ -29,7 +29,7 @@ class AchievementBadge extends StatelessWidget {
             border: Border.all(
               color: achievement.isUnlocked
                   ? achievement.color
-                  : Colors.white24,
+                  : Theme.of(context).dividerColor,
               width: achievement.isUnlocked ? 2 : 1,
             ),
           ),
@@ -42,7 +42,7 @@ class AchievementBadge extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: achievement.isUnlocked
                       ? achievement.color.withValues(alpha: 0.3)
-                      : Colors.white24,
+                      : Theme.of(context).dividerColor,
                   shape: BoxShape.circle,
                 ),
                 child: Center(
@@ -65,8 +65,11 @@ class AchievementBadge extends StatelessWidget {
                             achievement.title,
                             style: TextStyle(
                               color: achievement.isUnlocked
-                                  ? Colors.white
-                                  : Colors.white70,
+                                  ? Theme.of(context).colorScheme.onSurface
+                                  : Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      .withValues(alpha: 0.72),
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
@@ -85,8 +88,14 @@ class AchievementBadge extends StatelessWidget {
                       achievement.description,
                       style: TextStyle(
                         color: achievement.isUnlocked
-                            ? Colors.white70
-                            : Colors.white38,
+                            ? Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withValues(alpha: 0.72)
+                            : Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withValues(alpha: 0.38),
                         fontSize: 12,
                       ),
                     ),

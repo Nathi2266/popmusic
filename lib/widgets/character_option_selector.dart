@@ -49,12 +49,18 @@ class CharacterOptionSelector extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: isSelected
                         ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.18)
-                        : Colors.white.withValues(alpha: 0.05),
+                        : Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
                       color: isSelected
                           ? Theme.of(context).colorScheme.primary
-                          : Colors.white.withValues(alpha: 0.1),
+                          : Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.12),
                       width: isSelected ? 1.5 : 1,
                     ),
                   ),
@@ -69,7 +75,10 @@ class CharacterOptionSelector extends StatelessWidget {
                             color: previewColor,
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.35),
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: 0.35),
                             ),
                           ),
                         )
@@ -77,14 +86,24 @@ class CharacterOptionSelector extends StatelessWidget {
                         Icon(
                           option.icon,
                           size: 18,
-                          color: isSelected ? Colors.white : Colors.white70,
+                          color: isSelected
+                              ? Theme.of(context).colorScheme.onSurface
+                              : Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: 0.72),
                         ),
                       if (previewColor != null || option.icon != null)
                         const SizedBox(width: 8),
                       Text(
                         option.label,
                         style: TextStyle(
-                          color: isSelected ? Colors.white : Colors.white70,
+                          color: isSelected
+                              ? Theme.of(context).colorScheme.onSurface
+                              : Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: 0.72),
                           fontWeight:
                               isSelected ? FontWeight.w700 : FontWeight.w500,
                           fontSize: 13,

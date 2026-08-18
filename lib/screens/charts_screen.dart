@@ -65,6 +65,15 @@ class ChartsScreen extends StatelessWidget {
                       color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Live snapshot — ranks update from quality, promo, and when the week proceeds.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.62),
+                    ),
+                  ),
                   const SizedBox(height: 10),
                   SegmentedButton<String>(
                     segments: const [
@@ -96,16 +105,16 @@ class ChartsScreen extends StatelessWidget {
                       isDense: true,
                     ),
                     child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
+                      child: DropdownButton<String?>(
                         isExpanded: true,
                         value: game.currentGenreFilter,
                         hint: const Text('All genres'),
                         onChanged: (String? newValue) {
-                          game.currentGenreFilter = newValue;
+                          game.setGenreFilter(newValue);
                         },
                         items: ['All', 'New Releases', ...game.availableGenres]
-                            .map<DropdownMenuItem<String>>((String value) {
-                          return DropdownMenuItem<String>(
+                            .map<DropdownMenuItem<String?>>((String value) {
+                          return DropdownMenuItem<String?>(
                             value: value == 'All' ? null : value,
                             child: Text(value),
                           );
@@ -120,17 +129,12 @@ class ChartsScreen extends StatelessWidget {
           Expanded(
             child: Builder(
             builder: (BuildContext context) {
-              Widget content;
+              Widget content = const SizedBox.shrink();
               if (game.chartViewMode == 'songs') {
                 if (topSongs.isEmpty) {
                   content = const Center(child: Text('No songs on the chart yet. Release a track to populate charts.'));
                 } else {
-                  content = RefreshIndicator(
-              onRefresh: () async {
-                game.recalculateCharts();
-                return;
-              },
-                    child: Column(
+                  content = Column(
                       children: [
                         if (game.playerChartPeak != null)
                           Padding(
@@ -168,141 +172,156 @@ class ChartsScreen extends StatelessWidget {
                             ),
                           ),
                         Expanded(
-              child: ListView.builder(
-                itemCount: topSongs.length,
-                itemBuilder: (context, idx) {
-                  final entry = topSongs[idx];
-                  final rank = idx + 1;
-                  final delta = entry.weeklyListeners - (entry.lastWeekListeners ?? 0);
-                  final deltaText = delta >= 0 ? '+${delta.toInt()}' : '${delta.toInt()}';
-                  final artist = game.getArtistById(entry.artistId);
+                          child: ListView.builder(
+                            itemCount: topSongs.length,
+                            itemBuilder: (context, idx) {
+                              final entry = topSongs[idx];
+                              final rank = idx + 1;
+                              final delta = entry.weeklyListeners - (entry.lastWeekListeners ?? 0);
+                              final deltaText = delta >= 0 ? '+${delta.toInt()}' : '${delta.toInt()}';
+                              final artist = game.getArtistById(entry.artistId);
 
-                  return Card(
-                    margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                color: entry.artistId == game.player?.id ? Colors.blue.shade900 : null, // Highlight player songs
-                    child: ListTile(
-                      isThreeLine: true, // Added to provide more vertical space
-                      leading: CircleAvatar(
-                        radius: 22,
+                              return Card(
+                                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                color: entry.artistId == game.player?.id
+                                    ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.12)
+                                    : null,
+                                child: ListTile(
+                                  isThreeLine: true,
+                                  leading: CircleAvatar(
+                                    radius: 22,
                                     child: Text('#$rank'),
                                   ),
                                   title: Text(
                                     entry.title,
-                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                                   ),
-                                  subtitle: Column( // Removed SizedBox wrapper
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                                    mainAxisSize: MainAxisSize.min, // Ensure it takes minimum space
-                        children: [
-                                      Text('Artist: ${artist?.name ?? 'Unknown'}', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72))), // Display artist separately
-                                      Text('Pop: ${artist?.attributes['popularity']?.toStringAsFixed(0)}%', style: TextStyle(fontSize: 11)),
-                                      const SizedBox(height: 1), // Reduced height
+                                  subtitle: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        'Artist: ${artist?.name ?? 'Unknown'}',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72),
+                                        ),
+                                      ),
+                                      Text(
+                                        'Pop: ${artist?.attributes['popularity']?.toStringAsFixed(0)}%',
+                                        style: const TextStyle(fontSize: 11),
+                                      ),
+                                      const SizedBox(height: 1),
                                       Text(
                                         'Streams: ${entry.totalStreams.toStringAsFixed(0)} • Weekly: ${entry.weeklyListeners.toStringAsFixed(0)} (${_getWeeklyListenerChangePercentage(entry)}) ',
-                                        style: TextStyle(fontSize: 11), // Reduced font size
+                                        style: const TextStyle(fontSize: 11),
                                       ),
-                                      const SizedBox(height: 1), // Reduced height
+                                      const SizedBox(height: 1),
                                       Text(
                                         'Total Artist Streams: ${game.getArtistCumulativeStreams(entry.artistId).toStringAsFixed(0)} • Label: ${_getArtistLabel(game, artist)}',
-                                        style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54)), // Reduced font size
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54),
+                                        ),
                                       ),
-                                      const SizedBox(height: 2), // Reduced height
+                                      const SizedBox(height: 2),
                                       SizedBox(
-                                        height: 25, // Reduced sparkline height
-                                        child: SparklineChart(data: entry.listenerHistory), // Sparkline chart
+                                        height: 25,
+                                        child: SparklineChart(data: entry.listenerHistory),
                                       ),
-                          const SizedBox(height: 2), // Reduced height
-                          LinearProgressIndicator(
-                            value: (entry.viralFactor.clamp(0.0, 100.0) / 100),
-                                        minHeight: 5, // Reduced minHeight
-                            backgroundColor: Colors.grey[300],
-                          ),
-                        ],
-                      ),
-                                  trailing: FittedBox( // Wrap with FittedBox
-                                    fit: BoxFit.scaleDown, // Scale down if necessary
-                                    alignment: Alignment.centerRight, // Align to right
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                                      const SizedBox(height: 2),
+                                      LinearProgressIndicator(
+                                        value: (entry.viralFactor.clamp(0.0, 100.0) / 100),
+                                        minHeight: 5,
+                                        backgroundColor: Colors.grey[300],
+                                      ),
+                                    ],
+                                  ),
+                                  trailing: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    alignment: Alignment.centerRight,
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
                                       mainAxisSize: MainAxisSize.min,
-                          children: [
-                                        Text(deltaText, style: TextStyle(color: delta >= 0 ? Colors.green : Colors.red, fontWeight: FontWeight.bold, fontSize: 10)), // Re-added text, smaller font
-                                        const SizedBox(height: 2), // Small separator
-                                        TextButton(
-                              onPressed: () {
-                                // Open a small detail modal for this track
-                                showDialog(
-                                  context: context,
-                                  builder: (_) => SongDetailDialog(song: entry, artist: artist, game: game),
-                                );
-                              },
-                                          style: TextButton.styleFrom(
-                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0), // Minimal padding
-                                            minimumSize: const Size(0, 20), // Very small minimum height
-                                            tapTargetSize: MaterialTapTargetSize.shrinkWrap, // Shrink tap target
+                                      children: [
+                                        Text(
+                                          deltaText,
+                                          style: TextStyle(
+                                            color: delta >= 0 ? Colors.green : Colors.red,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 10,
                                           ),
-                                          child: Text('Details', style: TextStyle(fontSize: 10)), // Smaller text for button
-                            )
-                          ],
+                                        ),
+                                        const SizedBox(height: 2),
+                                        TextButton(
+                                          onPressed: () {
+                                            showDialog(
+                                              context: context,
+                                              builder: (_) => SongDetailDialog(song: entry, artist: artist, game: game),
+                                            );
+                                          },
+                                          style: TextButton.styleFrom(
+                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+                                            minimumSize: const Size(0, 20),
+                                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                          ),
+                                          child: const Text('Details', style: TextStyle(fontSize: 10)),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
                         ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
                       ],
-                    ),
-                  );
+                    );
                 }
-              } else { // chartViewMode == 'artists'
+              } else {
                 if (game.worldArtists.isEmpty) {
                   content = const Center(child: Text('No artists yet.'));
                 } else {
-                  content = RefreshIndicator(
-                    onRefresh: () async {
-                      game.recalculateCharts(); // Recalculate will also update artist data
-                      return;
-                    },
-                    child: ListView.builder(
-                      itemCount: game.getTopArtists(30).length, // Show top 30 artists
-                      itemBuilder: (context, idx) {
-                        final artist = game.getTopArtists(30)[idx];
-                        final cumulativeStreams = game.getArtistCumulativeStreams(artist.id);
-                        final label = _getArtistLabel(game, artist);
+                  final topArtists = game.getTopArtists(30);
+                  content = ListView.builder(
+                    itemCount: topArtists.length,
+                    itemBuilder: (context, idx) {
+                      final artist = topArtists[idx];
+                      final cumulativeStreams = game.getArtistCumulativeStreams(artist.id);
+                      final label = _getArtistLabel(game, artist);
 
-                        return Card(
-                          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          child: ListTile(
-                            leading: CircleAvatar(
-                              radius: 22,
-                              child: Text('#${idx + 1}'),
-                            ),
-                            title: Text(artist.name, style: TextStyle(fontWeight: FontWeight.bold)),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Cumulative Streams: ${cumulativeStreams.toStringAsFixed(0)}'),
-                                Text('Popularity: ${artist.attributes['popularity']?.toStringAsFixed(0)}% • Label: $label'),
-                              ],
-                            ),
-                            trailing: ElevatedButton(
-                              onPressed: () {
-                                // Open Artist Detail Screen (to be implemented later)
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => ArtistDetailScreen(artistId: artist.id),
-                                  ),
-                                );
-                              },
-                              style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2)),
-                              child: Text('View Artist'),
-                            ),
+                      return Card(
+                        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            radius: 22,
+                            child: Text('#${idx + 1}'),
                           ),
-                        );
-                      },
-                    ),
+                          title: Text(artist.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Cumulative Streams: ${cumulativeStreams.toStringAsFixed(0)}'),
+                              Text('Popularity: ${artist.attributes['popularity']?.toStringAsFixed(0)}% • Label: $label'),
+                            ],
+                          ),
+                          trailing: ElevatedButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ArtistDetailScreen(artistId: artist.id),
+                                ),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+                            ),
+                            child: const Text('View Artist'),
+                          ),
+                        ),
+                      );
+                    },
                   );
                 }
               }

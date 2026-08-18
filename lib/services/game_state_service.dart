@@ -73,7 +73,19 @@ class GameStateService extends ChangeNotifier {
 
   double genreHeatFor(String genre) => genreHeat[genre] ?? 40.0;
 
-  String chartViewMode = 'songs'; // 'songs' or 'artists'
+  String _chartViewMode = 'songs';
+  String get chartViewMode => _chartViewMode;
+  set chartViewMode(String value) {
+    if (_chartViewMode == value) return;
+    _chartViewMode = value;
+    notifyListeners();
+  }
+
+  void setGenreFilter(String? value) {
+    if (currentGenreFilter == value) return;
+    currentGenreFilter = value;
+    notifyListeners();
+  }
 
   List<Album> playerAlbums = [];
   List<String> weeklyHeadlines = [];
@@ -1181,6 +1193,7 @@ class GameStateService extends ChangeNotifier {
     _settleLifestyle();
     _buildWeeklyRecap();
     saveGame();
+    notifyListeners();
   }
 
   /// Streaming payouts: weekly listeners convert to money; label takes a cut.
@@ -1460,7 +1473,7 @@ class GameStateService extends ChangeNotifier {
       '${_player!.name}\'s street team hit the block. Fans convert to streams for 2 weeks.',
     );
     addPlayerXp(16);
-    notifyListeners();
+    pulsePlayerCatalogOnCharts();
     saveGame();
     return null;
   }
@@ -1556,11 +1569,11 @@ class GameStateService extends ChangeNotifier {
       description: debutStack
           ? '"${song.title}" hit playlists in its debut window. Extra week, extra viral, stacked recency.'
           : '"${song.title}" is on a mid-day playlist for $weeks weeks. Streams get a bump while it lasts.',
-      type: EventType.opportunity,
-      severity: debutStack ? EventSeverity.high : EventSeverity.medium,
-    ));
+        type: EventType.opportunity,
+        severity: debutStack ? EventSeverity.high : EventSeverity.medium,
+      ));
     addPlayerXp(20);
-    notifyListeners();
+    pulsePlayerCatalogOnCharts();
     saveGame();
     return null;
   }
@@ -1623,7 +1636,7 @@ class GameStateService extends ChangeNotifier {
       severity: EventSeverity.medium,
     ));
     addPlayerXp(25);
-    notifyListeners();
+    pulsePlayerCatalogOnCharts();
     saveGame();
     return null;
   }
@@ -4086,12 +4099,22 @@ class GameStateService extends ChangeNotifier {
     if (_player == null) return 'No player';
     final cleanTitle = title.trim();
     if (cleanTitle.isEmpty) return 'Name the album';
-    if (songIds.length < 3) return 'Need at least 3 of your songs';
+    if (songIds.length < 3) return 'Need at least 3 tracks';
     if (songIds.length > 8) return 'Max 8 tracks';
-    final owned = songIds.every(
-      (id) => worldSongs.any((s) => s.id == id && s.artistId == _player!.id),
-    );
-    if (!owned) return 'All tracks must be yours';
+    final tracks = <Song>[];
+    for (final id in songIds) {
+      Song? found;
+      for (final s in worldSongs) {
+        if (s.id == id) {
+          found = s;
+          break;
+        }
+      }
+      if (found == null || !_canIncludeOnAlbum(found)) {
+        return 'Tracks must be yours or from artists you signed';
+      }
+      tracks.add(found);
+    }
     final alreadyUsed = playerAlbums.any(
       (a) => a.songIds.any(songIds.contains),
     );
@@ -4109,10 +4132,13 @@ class GameStateService extends ChangeNotifier {
       releasedMonth: month,
       releasedYear: year,
     ));
-    for (final id in songIds) {
-      final song = worldSongs.firstWhere((s) => s.id == id);
+    for (final song in tracks) {
       song.salesPotential = (song.salesPotential + 10).clamp(0.0, 100.0);
       song.viralFactor = (song.viralFactor + 6).clamp(0.0, 100.0);
+      if (song.artistId != _player!.id &&
+          !song.featuredArtistIds.contains(_player!.id)) {
+        song.featuredArtistIds.add(_player!.id);
+      }
     }
     updatePlayerFanCount(250);
     addPlayerXp(80);
@@ -4125,9 +4151,33 @@ class GameStateService extends ChangeNotifier {
       type: EventType.opportunity,
       severity: EventSeverity.high,
     ));
+    pulseAlbumOnCharts(tracks);
     notifyListeners();
     saveGame();
     return null;
+  }
+
+  bool _canIncludeOnAlbum(Song song) {
+    if (_player == null) return false;
+    if (song.artistId == _player!.id) return true;
+    return isOnRoster(song.artistId);
+  }
+
+  /// Player songs plus released catalog from signed roster artists.
+  List<Song> get albumEligibleSongs {
+    final seen = <String>{};
+    final out = <Song>[];
+    for (final song in playerSongs) {
+      if (seen.add(song.id)) out.add(song);
+    }
+    for (final signing in activeRoster) {
+      for (final song in catalogSongsFor(signing.artistId)) {
+        if (song.artistId != signing.artistId) continue;
+        if (!song.released) continue;
+        if (seen.add(song.id)) out.add(song);
+      }
+    }
+    return out;
   }
 
   String? requestCollab(String artistId) {
@@ -6266,7 +6316,7 @@ class GameStateService extends ChangeNotifier {
     }
   }
 
-  /// Hot-chart blend: weekly listeners lead, lifetime streams still matter, age soft-caps old hits.
+  /// Hot-chart blend: weekly heat leads, quality sets ceiling, promo/lifetime still matter.
   double chartScore(Song song) {
     final weekly = song.weeklyListeners;
     final lifetime = song.totalStreams;
@@ -6280,7 +6330,11 @@ class GameStateService extends ChangeNotifier {
                 : age <= 20
                     ? 0.55
                     : 0.35;
-    return (weekly * 3.2 + lifetime * 0.12) * agePenalty;
+    final quality = song.popularityFactor.clamp(0.0, 100.0) / 100.0;
+    final qualityWeight = 0.72 + quality * 0.58;
+    final heat = song.viralFactor.clamp(0.0, 100.0) / 100.0;
+    final heatWeight = 0.90 + heat * 0.28;
+    return (weekly * 3.2 + lifetime * 0.12) * agePenalty * qualityWeight * heatWeight;
   }
 
   int _compareByChartScore(Song a, Song b) {
@@ -6467,14 +6521,63 @@ class GameStateService extends ChangeNotifier {
 
   void addSong(Song song) {
     worldSongs.add(song);
-    // Award XP for releasing a song
     addPlayerXp(50);
     if (song.artistId == _player?.id) {
       if (song.listeningParty.isEmpty) song.listeningParty = 'pending';
       _challenges?.updateProgress(ChallengeType.releaseSongs, 1);
     }
+    debutSongOnCharts(song);
     notifyListeners();
     saveGame();
+  }
+
+  /// Place a just-released track on the live chart from quality + current promo.
+  void debutSongOnCharts(Song song) {
+    if (!song.released) return;
+    final listeners = _calculateWeeklyListenersForSong(song);
+    song.weeklyListeners = listeners;
+    if (song.totalStreams < listeners) {
+      song.totalStreams = listeners;
+    }
+    song.isNewEntry = true;
+    sortChartsNow();
+  }
+
+  /// Re-rank from current weekly numbers without advancing the calendar.
+  void sortChartsNow() {
+    worldSongs.sort(_compareByChartScore);
+    if (_player != null) {
+      for (final playerSong in playerSongs) {
+        if (!playerSong.released) continue;
+        final currentRank = worldSongs.indexOf(playerSong) + 1;
+        if (playerChartPeak == null || currentRank < playerChartPeak!) {
+          playerChartPeak = currentRank;
+        }
+      }
+    }
+    notifyListeners();
+  }
+
+  /// Promo / performance: refresh this week's listeners for owned or roster tracks.
+  void pulsePlayerCatalogOnCharts() {
+    if (_player == null) return;
+    final ids = <String>{_player!.id};
+    for (final signing in activeRoster) {
+      ids.add(signing.artistId);
+    }
+    for (final song in worldSongs) {
+      if (!song.released || !ids.contains(song.artistId)) continue;
+      song.weeklyListeners = _calculateWeeklyListenersForSong(song);
+    }
+    sortChartsNow();
+  }
+
+  void pulseAlbumOnCharts(List<Song> tracks) {
+    for (final song in tracks) {
+      if (!song.released) continue;
+      song.weeklyListeners = _calculateWeeklyListenersForSong(song);
+    }
+    sortChartsNow();
   }
   
   void checkSongAchievements(AchievementService achievementService) {
@@ -6537,9 +6640,9 @@ class GameStateService extends ChangeNotifier {
 
     double marketingBoost = 1.0 + ((song.salesPotential / 100.0) * 0.5);
 
-    // Minigame / craft quality: maps 0..100 → ~0.55..1.45 so skill actually moves charts
+    // Minigame / craft quality: maps 0..100 → ~0.48..1.62 so a hot record can debut high
     final quality = song.popularityFactor.clamp(0.0, 100.0);
-    final qualityMultiplier = 0.55 + (quality / 100.0) * 0.90;
+    final qualityMultiplier = 0.48 + (quality / 100.0) * 1.14;
 
     // Soft length preference: ~3.0–3.8 min peaks; extremes slightly hurt
     final length = song.lengthMinutes.clamp(1.0, 8.0);
@@ -7946,7 +8049,7 @@ class GameStateService extends ChangeNotifier {
       playerXp = data['playerXp'] as int? ?? 0;
       trendingGenre = data['trendingGenre'] as String? ?? 'Pop';
       currentGenreFilter = data['currentGenreFilter'] as String?;
-      chartViewMode = data['chartViewMode'] as String? ?? 'songs';
+      _chartViewMode = data['chartViewMode'] as String? ?? 'songs';
       rivalIds = List<String>.from(data['rivalIds'] as List? ?? const []);
       completedStoryBeats
         ..clear()

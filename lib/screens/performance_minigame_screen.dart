@@ -354,7 +354,10 @@ class _PerformanceMinigameScreenState extends State<PerformanceMinigameScreen>
                           decoration: BoxDecoration(
                             border: Border(
                               right: BorderSide(
-                                color: Colors.white.withValues(alpha: 0.1),
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onSurface
+                                    .withValues(alpha: 0.12),
                                 width: index < 3 ? 1 : 0,
                               ),
                             ),
@@ -366,8 +369,10 @@ class _PerformanceMinigameScreenState extends State<PerformanceMinigameScreen>
                                   decoration: BoxDecoration(
                                     border: Border(
                                       bottom: BorderSide(
-                                        color: Colors.white
-                                            .withValues(alpha: 0.05),
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface
+                                            .withValues(alpha: 0.08),
                                         width: 1,
                                       ),
                                     ),

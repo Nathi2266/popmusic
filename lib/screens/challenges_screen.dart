@@ -181,7 +181,12 @@ class _ChallengeCard extends StatelessWidget {
                             child: Text(
                               challenge.title,
                               style: TextStyle(
-                                color: isCompleted ? Colors.white70 : Colors.white,
+                                color: isCompleted
+                                    ? Theme.of(context)
+                                        .colorScheme
+                                        .onSurface
+                                        .withValues(alpha: 0.72)
+                                    : Theme.of(context).colorScheme.onSurface,
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                                 decoration: isCompleted
@@ -196,7 +201,15 @@ class _ChallengeCard extends StatelessWidget {
                       Text(
                         challenge.description,
                         style: TextStyle(
-                          color: isCompleted ? Colors.white38 : Colors.white70,
+                          color: isCompleted
+                              ? Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: 0.38)
+                              : Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: 0.72),
                           fontSize: 12,
                         ),
                       ),

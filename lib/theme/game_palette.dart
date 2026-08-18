@@ -188,6 +188,21 @@ class GamePalette extends ThemeExtension<GamePalette> {
   Brightness get brightness =>
       ThemeData.estimateBrightnessForColor(scaffold);
 
+  bool get isLight => brightness == Brightness.light;
+
+  /// Readable fill overlay (replaces hardcoded white washes).
+  Color wash(double alpha) => text.withValues(alpha: alpha);
+
+  /// Text/icon color that contrasts with [background] (banners, chips).
+  static Color contrastOn(Color background) {
+    return ThemeData.estimateBrightnessForColor(background) == Brightness.dark
+        ? Colors.white
+        : const Color(0xFF1A1A2E);
+  }
+
+  static Color contrastOnMuted(Color background) =>
+      contrastOn(background).withValues(alpha: 0.78);
+
   @override
   GamePalette copyWith({
     Color? scaffold,

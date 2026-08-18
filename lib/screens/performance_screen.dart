@@ -175,7 +175,9 @@ class PerformanceScreen extends StatelessWidget {
                     color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: locked ? Colors.white24 : const Color(0xFFFF9800),
+                      color: locked
+                          ? Theme.of(context).dividerColor
+                          : const Color(0xFFFF9800),
                     ),
                   ),
                   child: Row(
@@ -187,7 +189,12 @@ class PerformanceScreen extends StatelessWidget {
                             Text(
                               pack.name,
                               style: TextStyle(
-                                color: locked ? Colors.white38 : Colors.white,
+                                color: locked
+                                    ? Theme.of(context)
+                                        .colorScheme
+                                        .onSurface
+                                        .withValues(alpha: 0.38)
+                                    : Theme.of(context).colorScheme.onSurface,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
                               ),
@@ -322,7 +329,7 @@ class PerformanceScreen extends StatelessWidget {
     gameState.updatePlayerAttribute('performance', performanceScore > 70 ? 1.0 : 0.5); // Cast to double
     gameState.updatePlayerAttribute('stamina', -20.0); // Cast to double
     gameState.updatePlayerAttribute('popularity', fanGain / 100.0); // Cast to double
-    gameState.recalculateCharts(); // Recalculate charts after performance
+    gameState.pulsePlayerCatalogOnCharts();
     
     showDialog(
       context: context,

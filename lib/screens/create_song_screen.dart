@@ -335,7 +335,7 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
                             } else {
                               ToastService().showSuccess(pick);
                             }
-                            gameState.recalculateCharts();
+                            gameState.pulsePlayerCatalogOnCharts();
                             if (leaked && context.mounted) {
                               showDialog<void>(
                                 context: context,
@@ -499,7 +499,9 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
                               labelStyle: TextStyle(
                                 color: selected && genre == trending
                                     ? Colors.black
-                                    : Colors.white,
+                                    : selected
+                                        ? Theme.of(context).colorScheme.onPrimary
+                                        : Theme.of(context).colorScheme.onSurface,
                               ),
                             );
                           }).toList(),
@@ -592,7 +594,7 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
                           border: Border.all(
                             color: selected
                                 ? Theme.of(context).colorScheme.primary
-                                : Colors.white24,
+                                : Theme.of(context).dividerColor,
                             width: selected ? 2 : 1,
                           ),
                         ),
@@ -780,7 +782,7 @@ class _CreateSongScreenState extends State<CreateSongScreen> {
                     });
                   },
                   activeColor: Theme.of(context).colorScheme.primary,
-                  inactiveColor: Colors.white38,
+                  inactiveColor: Theme.of(context).dividerColor,
                 ),
                 const SizedBox(height: 24),
 
@@ -929,7 +931,7 @@ class _MinigameCard extends StatelessWidget {
         border: Border.all(
           color: hasPlayed
               ? const Color(0xFF4CAF50)
-              : Colors.white24,
+              : Theme.of(context).dividerColor,
           width: 2,
         ),
       ),

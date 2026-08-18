@@ -186,8 +186,8 @@ class _EventCard extends StatelessWidget {
                       (choice) => ElevatedButton(
                         onPressed: () => onChoice(choice),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: Colors.black87,
+                          backgroundColor: Theme.of(context).colorScheme.primary,
+                          foregroundColor: Theme.of(context).colorScheme.onPrimary,
                         ),
                         child: Text(choice),
                       ),

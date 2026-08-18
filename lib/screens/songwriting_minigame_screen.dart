@@ -400,12 +400,20 @@ class _SongwritingMinigameScreenState extends State<SongwritingMinigameScreen>
                         onPressed: isSelected ? null : () => _selectWord(word),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: isSelected
-                              ? Colors.white24
+                              ? Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: 0.12)
                               : onTheme
                                   ? const Color(0xFF4A148C)
                                   : Theme.of(context).colorScheme.surface,
-                          foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                          disabledBackgroundColor: Colors.white24,
+                          foregroundColor: onTheme
+                              ? Colors.white
+                              : Theme.of(context).colorScheme.onSurface,
+                          disabledBackgroundColor: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.12),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),

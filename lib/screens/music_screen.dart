@@ -10,6 +10,7 @@ import '../widgets/empty_state.dart';
 import '../widgets/glass_card.dart';
 import '../utils/animations.dart';
 import '../utils/toast_service.dart';
+import '../widgets/game_shell.dart';
 import 'labels_screen.dart';
 
 class MusicScreen extends StatelessWidget {
@@ -25,8 +26,9 @@ class MusicScreen extends StatelessWidget {
 
         return Scaffold(
           appBar: AppBar(
-            title: Text('Music'),
-                      ),
+            title: const Text('Music'),
+            leading: const GameDrawerButton(),
+          ),
           body: Column(
             children: [
               // Create Music Button
@@ -137,7 +139,8 @@ class MusicScreen extends StatelessWidget {
 }
 
 void _showAlbumDialog(BuildContext context, GameStateService game) {
-  final songs = game.playerSongs;
+  final eligible = game.albumEligibleSongs;
+  final playerId = game.player?.id;
   final selected = <String>{};
   final titleController = TextEditingController();
   showDialog(
@@ -145,13 +148,78 @@ void _showAlbumDialog(BuildContext context, GameStateService game) {
     builder: (ctx) {
       return StatefulBuilder(
         builder: (ctx, setLocal) {
+          Widget trackTile(Song s) {
+            final onAlbum = game.isSongOnAlbum(s.id);
+            final artist = game.getArtistById(s.artistId);
+            return CheckboxListTile(
+              value: selected.contains(s.id),
+              onChanged: onAlbum
+                  ? null
+                  : (v) {
+                      setLocal(() {
+                        if (v == true) {
+                          selected.add(s.id);
+                        } else {
+                          selected.remove(s.id);
+                        }
+                      });
+                    },
+              title: Text(
+                onAlbum ? '${s.title} (on album)' : s.title,
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+              ),
+              subtitle: Text(
+                artist?.name ?? 'Unknown artist',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54),
+                  fontSize: 12,
+                ),
+              ),
+            );
+          }
+
+          final yours = eligible.where((s) => s.artistId == playerId).toList();
+          final rosterTracks = eligible.where((s) => s.artistId != playerId).toList();
+          final byArtist = <String, List<Song>>{};
+          for (final song in rosterTracks) {
+            byArtist.putIfAbsent(song.artistId, () => []).add(song);
+          }
+
+          final tiles = <Widget>[];
+          void header(String label) {
+            tiles.add(
+              Padding(
+                padding: const EdgeInsets.fromLTRB(8, 10, 8, 4),
+                child: Text(
+                  label.toUpperCase(),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.62),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+              ),
+            );
+          }
+
+          if (yours.isNotEmpty) {
+            header('Your tracks');
+            tiles.addAll(yours.map(trackTile));
+          }
+          for (final entry in byArtist.entries) {
+            final name = game.getArtistById(entry.key)?.name ?? 'Signed artist';
+            header('$name (signed)');
+            tiles.addAll(entry.value.map(trackTile));
+          }
+
           return AlertDialog(
-                        title: Text('Compile Album',
+            title: Text('Compile Album',
                 style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
             content: SizedBox(
               width: 360,
+              height: 420,
               child: Column(
-                mainAxisSize: MainAxisSize.min,
                 children: [
                   TextField(
                     controller: titleController,
@@ -163,34 +231,21 @@ void _showAlbumDialog(BuildContext context, GameStateService game) {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Pick 3–8 tracks (\$1500)',
+                    'Pick 3–8 tracks (\$1500). Include your songs and tracks from artists you signed.',
                     style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72), fontSize: 12),
                   ),
-                  Flexible(
-                    child: ListView(
-                      shrinkWrap: true,
-                      children: songs.map((s) {
-                        final onAlbum = game.isSongOnAlbum(s.id);
-                        return CheckboxListTile(
-                          value: selected.contains(s.id),
-                          onChanged: onAlbum
-                              ? null
-                              : (v) {
-                                  setLocal(() {
-                                    if (v == true) {
-                                      selected.add(s.id);
-                                    } else {
-                                      selected.remove(s.id);
-                                    }
-                                  });
-                                },
-                          title: Text(
-                            onAlbum ? '${s.title} (on album)' : s.title,
-                            style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-                          ),
-                        );
-                      }).toList(),
-                    ),
+                  const SizedBox(height: 8),
+                  Expanded(
+                    child: eligible.isEmpty
+                        ? Center(
+                            child: Text(
+                              'Write songs or sign an artist first.',
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.54),
+                              ),
+                            ),
+                          )
+                        : ListView(children: tiles),
                   ),
                 ],
               ),
@@ -347,7 +402,10 @@ class _SongCard extends StatelessWidget {
                             '${game.songCredit(song)} · ${song.genre} · Weeks: ${song.weeksSinceRelease} • Weekly: ${song.weeklyListeners.toStringAsFixed(0)}${song.videoWeeksRemaining > 0 ? ' · MV ${song.videoWeeksRemaining}w' : ''}${song.playlistWeeksRemaining > 0 ? ' · PL ${song.playlistWeeksRemaining}w' : ''}${song.released && song.weeksSinceRelease <= 1 ? ' · DEBUT' : ''}${song.deluxeIssued ? ' · DELUXE' : ''}${song.sourceSongId.isNotEmpty ? ' · REMIX' : ''}${song.listeningPartyWeeks > 0 ? ' · PARTY' : ''}$demo',
                             style: TextStyle(
                               color: song.released
-                                  ? Colors.white70
+                                  ? Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      .withValues(alpha: 0.72)
                                   : const Color(0xFFFFD700),
                               fontSize: 13,
                             ),

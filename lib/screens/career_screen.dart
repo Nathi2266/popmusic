@@ -9,6 +9,7 @@ import '../screens/lifestyle_screen.dart';
 import '../screens/labels_screen.dart';
 import '../widgets/empty_state.dart';
 import '../utils/toast_service.dart';
+import '../theme/game_palette.dart';
 
 class CareerScreen extends StatelessWidget {
   const CareerScreen({super.key});
@@ -53,7 +54,9 @@ class CareerScreen extends StatelessWidget {
                       Text(
                         player.labelTier.displayName,
                         style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
+                          color: GamePalette.contrastOn(
+                            Color(player.labelTier.colorValue),
+                          ),
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
                         ),
@@ -64,7 +67,9 @@ class CareerScreen extends StatelessWidget {
                         Text(
                           gameState.labelDisplayName(player),
                           style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
+                            color: GamePalette.contrastOn(
+                              Color(player.labelTier.colorValue),
+                            ),
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
                           ),
@@ -76,7 +81,9 @@ class CareerScreen extends StatelessWidget {
                             ? 'Weekly income \$${gameState.effectiveWeeklyStipend.toStringAsFixed(0)} · keep ${(gameState.effectiveRoyaltyKeep * 100).toStringAsFixed(0)}% of streams'
                             : '${gameState.labelDealStyle.displayName} deal · stipend \$${gameState.effectiveWeeklyStipend.toStringAsFixed(0)}/wk · keep ${(gameState.effectiveRoyaltyKeep * 100).toStringAsFixed(0)}%',
                         style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72),
+                          color: GamePalette.contrastOnMuted(
+                            Color(player.labelTier.colorValue),
+                          ),
                           fontSize: 16,
                         ),
                       ),
@@ -85,7 +92,9 @@ class CareerScreen extends StatelessWidget {
                         Text(
                           'Fan club: ${gameState.fanClubMembers} members · \$${gameState.fanClubUpkeep.toStringAsFixed(0)}/wk',
                           style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72),
+                            color: GamePalette.contrastOnMuted(
+                              Color(player.labelTier.colorValue),
+                            ),
                             fontSize: 14,
                           ),
                         ),
@@ -93,7 +102,9 @@ class CareerScreen extends StatelessWidget {
                       Text(
                         'Chapter: ${gameState.currentChapter}',
                         style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
+                          color: GamePalette.contrastOn(
+                            Color(player.labelTier.colorValue),
+                          ),
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                         ),
@@ -102,7 +113,9 @@ class CareerScreen extends StatelessWidget {
                       Text(
                         '${(player.attributes['weeksSinceDebut'] ?? 0).toInt()} weeks in the industry',
                         style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface,
+                          color: GamePalette.contrastOnMuted(
+                            Color(player.labelTier.colorValue),
+                          ),
                           fontSize: 14,
                         ),
                       ),
@@ -588,6 +601,7 @@ class _StoryBeatRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final p = context.palette;
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -595,14 +609,14 @@ class _StoryBeatRow extends StatelessWidget {
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: done ? const Color(0xFF4CAF50) : Colors.white24,
+          color: done ? const Color(0xFF4CAF50) : p.divider,
         ),
       ),
       child: Row(
         children: [
           Icon(
             done ? Icons.check_circle : Icons.radio_button_unchecked,
-            color: done ? const Color(0xFF4CAF50) : Colors.white38,
+            color: done ? const Color(0xFF4CAF50) : p.textFaint,
             size: 20,
           ),
           const SizedBox(width: 10),
@@ -610,7 +624,7 @@ class _StoryBeatRow extends StatelessWidget {
             child: Text(
               title,
               style: TextStyle(
-                color: done ? Colors.white : Colors.white70,
+                color: done ? p.text : p.textMuted,
                 fontWeight: done ? FontWeight.w600 : FontWeight.normal,
               ),
             ),
@@ -639,6 +653,7 @@ class _LabelTierCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = Color(tier.colorValue);
+    final p = context.palette;
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -646,7 +661,7 @@ class _LabelTierCard extends StatelessWidget {
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isCurrent ? color : Colors.white24,
+          color: isCurrent ? color : p.divider,
           width: isCurrent ? 2 : 1,
         ),
       ),
@@ -658,7 +673,7 @@ class _LabelTierCard extends StatelessWidget {
                 : isUnlocked
                     ? Icons.lock_open
                     : Icons.lock,
-            color: isUnlocked ? color : Colors.white38,
+            color: isUnlocked ? color : p.textFaint,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -668,7 +683,7 @@ class _LabelTierCard extends StatelessWidget {
                 Text(
                   tier.displayName,
                   style: TextStyle(
-                    color: isUnlocked ? Colors.white : Colors.white54,
+                    color: isUnlocked ? p.text : p.textMuted,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
@@ -689,7 +704,7 @@ class _LabelTierCard extends StatelessWidget {
             Chip(
               label: Text('Current'),
               backgroundColor: color.withAlpha(80),
-              labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+              labelStyle: TextStyle(color: GamePalette.contrastOn(color)),
             )
           else if (onUpgrade != null)
             ElevatedButton(

@@ -191,11 +191,12 @@ class AppTheme {
         disabledColor: p.surface,
         selectedColor: p.primary.withValues(alpha: 0.24),
         labelStyle: TextStyle(color: p.text, fontSize: 12),
-        secondaryLabelStyle: TextStyle(color: p.text),
+        secondaryLabelStyle: TextStyle(color: onPrimary),
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
         ),
+        side: BorderSide(color: p.divider),
       ),
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith((states) {

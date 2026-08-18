@@ -9,8 +9,7 @@ import 'theme_music_config.dart';
 import 'theme_music_local.dart'
     if (dart.library.html) 'theme_music_local_web.dart' as local;
 
-/// Loops the main theme. Uses a bundled asset on mobile/desktop; web serves
-/// `web/audio/theme_music.mp3`. Respects Settings → Music on/off and volume.
+/// Loops the main theme until the player turns music off in Settings.
 class ThemeMusicService with WidgetsBindingObserver {
   ThemeMusicService(this._settings);
 
@@ -20,6 +19,7 @@ class ThemeMusicService with WidgetsBindingObserver {
   bool _started = false;
   bool _loading = false;
   VoidCallback? _settingsListener;
+  StreamSubscription<PlayerState>? _stateSub;
 
   Future<void> start() async {
     if (_started) return;
@@ -29,7 +29,25 @@ class ThemeMusicService with WidgetsBindingObserver {
     _settingsListener = () => unawaited(_applySettings());
     _settings.addListener(_settingsListener!);
 
-    await _player.setLoopMode(LoopMode.one);
+    _stateSub = _player.processingStateStream.listen((state) {
+      if (!_settings.musicEnabled) return;
+      if (state == ProcessingState.completed) {
+        unawaited(_restartFromStart());
+      }
+    });
+
+    try {
+      await _player.setLoopMode(LoopMode.one);
+    } catch (_) {}
+    try {
+      await _player.setAndroidAudioAttributes(
+        const AndroidAudioAttributes(
+          contentType: AndroidAudioContentType.music,
+          usage: AndroidAudioUsage.media,
+        ),
+      );
+    } catch (_) {}
+
     await _applySettings();
   }
 
@@ -42,18 +60,41 @@ class ThemeMusicService with WidgetsBindingObserver {
     await _ensurePlaying();
   }
 
-  Future<void> _ensurePlaying() async {
+  Future<void> _restartFromStart() async {
+    if (!_settings.musicEnabled) return;
+    try {
+      await _player.setLoopMode(LoopMode.one);
+      await _player.seek(Duration.zero);
+      await _player.setVolume(_settings.musicVolume);
+      await _player.play();
+    } catch (e) {
+      debugPrint('Theme music restart failed: $e');
+      await _ensurePlaying(forceReload: true);
+    }
+  }
+
+  Future<void> _ensurePlaying({bool forceReload = false}) async {
     if (!_settings.musicEnabled || _loading) return;
 
-    if (_player.playing) return;
+    if (!forceReload &&
+        _player.audioSource != null &&
+        _player.playing &&
+        _player.processingState != ProcessingState.completed) {
+      return;
+    }
 
-    if (_player.audioSource != null) {
+    if (!forceReload && _player.audioSource != null) {
       try {
+        await _player.setLoopMode(LoopMode.one);
+        if (_player.processingState == ProcessingState.completed) {
+          await _player.seek(Duration.zero);
+        }
+        await _player.setVolume(_settings.musicVolume);
         await _player.play();
+        return;
       } catch (e) {
         debugPrint('Theme music resume failed: $e');
       }
-      return;
     }
 
     _loading = true;
@@ -68,6 +109,7 @@ class ThemeMusicService with WidgetsBindingObserver {
         if (source == null) return;
         await _player.setAudioSource(source);
       }
+      await _player.setLoopMode(LoopMode.one);
       if (_settings.musicEnabled) {
         await _player.setVolume(_settings.musicVolume);
         await _player.play();
@@ -83,12 +125,9 @@ class ThemeMusicService with WidgetsBindingObserver {
     if (kIsWeb) {
       return AudioSource.uri(Uri.parse('audio/theme_music.mp3'));
     }
-
-    // Primary: bundled asset (works offline in release builds).
     return AudioSource.asset(ThemeMusicConfig.assetPath);
   }
 
-  /// Optional fallback if asset load fails (e.g. missing from bundle).
   Future<AudioSource?> _resolveFallbackSource() async {
     final localPath = await local.resolveLocalThemePath();
     if (localPath != null) {
@@ -108,15 +147,17 @@ class ThemeMusicService with WidgetsBindingObserver {
         unawaited(_ensurePlaying());
         break;
       case AppLifecycleState.inactive:
+        break;
       case AppLifecycleState.paused:
       case AppLifecycleState.hidden:
       case AppLifecycleState.detached:
-        unawaited(_player.pause());
         break;
     }
   }
 
   Future<void> dispose() async {
+    await _stateSub?.cancel();
+    _stateSub = null;
     if (_settingsListener != null) {
       _settings.removeListener(_settingsListener!);
       _settingsListener = null;

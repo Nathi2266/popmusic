@@ -22,9 +22,11 @@ void main() {
     }
   });
 
-  test('light theme uses light brightness and dark text', () {
+      test('light theme uses light brightness and dark text', () {
     final theme = AppTheme.fromId(AppThemeId.light);
     expect(theme.brightness, Brightness.light);
     expect(theme.colorScheme.onSurface, GamePalette.light.text);
+    expect(GamePalette.contrastOn(Colors.white), const Color(0xFF1A1A2E));
+    expect(GamePalette.contrastOn(const Color(0xFF1A1A2E)), Colors.white);
   });
 }

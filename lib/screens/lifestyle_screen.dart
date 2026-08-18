@@ -146,7 +146,9 @@ class _TabChip extends StatelessWidget {
             label,
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: selected ? Colors.white : Colors.white70,
+              color: selected
+                  ? Theme.of(context).colorScheme.onPrimary
+                  : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72),
               fontWeight: FontWeight.w700,
               letterSpacing: 1,
             ),
@@ -228,7 +230,7 @@ class _AssetCard extends StatelessWidget {
         border: Border.all(
           color: owned
               ? const Color(0xFFFFD700)
-              : Colors.white24,
+              : Theme.of(context).dividerColor,
         ),
       ),
       child: Column(
@@ -251,7 +253,7 @@ class _AssetCard extends StatelessWidget {
                 style: TextStyle(
                   color: canPay || owned
                       ? const Color(0xFFFFD700)
-                      : Colors.white38,
+                      : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.38),
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -296,7 +298,10 @@ class _AssetCard extends StatelessWidget {
                       gated ? 'Locked' : 'Buy',
                       style: TextStyle(
                         color: gated
-                            ? Colors.white38
+                            ? Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withValues(alpha: 0.38)
                             : Theme.of(context).colorScheme.primary,
                         fontWeight: FontWeight.bold,
                       ),
@@ -377,7 +382,7 @@ class _InvestCard extends StatelessWidget {
         border: Border.all(
           color: owned != null
               ? const Color(0xFF4CAF50).withAlpha(180)
-              : Colors.white24,
+              : Theme.of(context).dividerColor,
         ),
       ),
       child: Column(
@@ -437,7 +442,12 @@ class _InvestCard extends StatelessWidget {
                           ? 'Invest'
                           : 'Add cash',
                   style: TextStyle(
-                    color: gated ? Colors.white38 : Theme.of(context).colorScheme.primary,
+                    color: gated
+                        ? Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.38)
+                        : Theme.of(context).colorScheme.primary,
                     fontWeight: FontWeight.bold,
                   ),
                 ),

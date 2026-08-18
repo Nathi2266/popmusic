@@ -98,7 +98,12 @@ class _SignContractScreenState extends State<SignContractScreen> {
                     selected: selected,
                     selectedColor: Theme.of(context).colorScheme.primary,
                     labelStyle: TextStyle(
-                      color: selected ? Colors.white : Colors.white70,
+                      color: selected
+                          ? Theme.of(context).colorScheme.onPrimary
+                          : Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.72),
                     ),
                     backgroundColor: Theme.of(context).colorScheme.surface,
                     onSelected: (_) => setState(() => _artistKeep = keep),

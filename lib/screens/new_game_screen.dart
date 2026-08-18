@@ -97,7 +97,10 @@ class _NewGameScreenState extends State<NewGameScreen> {
                         decoration: InputDecoration(
                           hintText: 'Enter your stage name',
                           hintStyle: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.35),
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withValues(alpha: 0.35),
                           ),
                           filled: true,
                           fillColor: Theme.of(context).colorScheme.surface,
@@ -140,7 +143,12 @@ class _NewGameScreenState extends State<NewGameScreen> {
                             onSelected: (_) => setState(() => _homeGenre = g),
                             selectedColor: Theme.of(context).colorScheme.primary,
                             labelStyle: TextStyle(
-                              color: selected ? Colors.white : Colors.white70,
+                              color: selected
+                                  ? Theme.of(context).colorScheme.onPrimary
+                                  : Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      .withValues(alpha: 0.72),
                             ),
                             backgroundColor: Theme.of(context).colorScheme.surface,
                           );
@@ -308,11 +316,13 @@ class _CharacterPreviewCard extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.white.withValues(alpha: 0.08),
-            Colors.white.withValues(alpha: 0.03),
+            Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08),
+            Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.03),
           ],
         ),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.12),
+        ),
         boxShadow: [
           BoxShadow(
             color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
@@ -326,7 +336,7 @@ class _CharacterPreviewCard extends StatelessWidget {
           Text(
             'YOUR ARTIST',
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.55),
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.55),
               fontSize: 11,
               fontWeight: FontWeight.w700,
               letterSpacing: 3,
@@ -382,14 +392,16 @@ class _PreviewTag extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.06),
+        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(99),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.12),
+        ),
       ),
       child: Text(
         label,
         style: TextStyle(
-          color: Colors.white.withValues(alpha: 0.75),
+          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.75),
           fontSize: 11,
           fontWeight: FontWeight.w600,
         ),
@@ -412,9 +424,11 @@ class _CustomizationPanel extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.04),
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.12),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -422,7 +436,7 @@ class _CustomizationPanel extends StatelessWidget {
           Text(
             title,
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.45),
+              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.55),
               fontSize: 11,
               fontWeight: FontWeight.w800,
               letterSpacing: 2.5,
@@ -454,7 +468,11 @@ class _DiffChip extends StatelessWidget {
       selected: selected,
       onSelected: (_) => onTap(),
       selectedColor: const Color(0xFFFFB347),
-      labelStyle: TextStyle(color: selected ? Colors.black : Colors.white70),
+      labelStyle: TextStyle(
+        color: selected
+            ? Colors.black
+            : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72),
+      ),
       backgroundColor: Theme.of(context).colorScheme.surface,
     );
   }
