@@ -1073,7 +1073,7 @@ class DashboardScreen extends StatelessWidget {
                     runSpacing: 12,
                     children: [
                       _ActionButton(
-                        label: 'Create Music',
+                        label: 'Write Song',
                         icon: Icons.music_note,
                         onPressed: () {
                           Navigator.push(

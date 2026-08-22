@@ -19,7 +19,7 @@ class ThemeMusicService with WidgetsBindingObserver {
   bool _started = false;
   bool _loading = false;
   VoidCallback? _settingsListener;
-  StreamSubscription<PlayerState>? _stateSub;
+  StreamSubscription<ProcessingState>? _stateSub;
 
   Future<void> start() async {
     if (_started) return;
@@ -38,14 +38,6 @@ class ThemeMusicService with WidgetsBindingObserver {
 
     try {
       await _player.setLoopMode(LoopMode.one);
-    } catch (_) {}
-    try {
-      await _player.setAndroidAudioAttributes(
-        const AndroidAudioAttributes(
-          contentType: AndroidAudioContentType.music,
-          usage: AndroidAudioUsage.media,
-        ),
-      );
     } catch (_) {}
 
     await _applySettings();

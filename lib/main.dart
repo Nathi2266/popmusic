@@ -1,6 +1,8 @@
 // ignore_for_file: unused_element_parameter
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'screens/main_menu_screen.dart';
@@ -16,6 +18,9 @@ import 'theme/game_palette.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  if (kIsWeb) {
+    SemanticsBinding.instance.ensureSemantics();
+  }
   runApp(const _BootstrapApp());
 }
 

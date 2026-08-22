@@ -293,7 +293,11 @@ class _MenuButtonState extends State<_MenuButton> {
       scale: scale,
       duration: const Duration(milliseconds: 120),
       curve: Curves.easeOutCubic,
-      child: GestureDetector(
+      child: Semantics(
+        button: true,
+        label: widget.text,
+        enabled: _isEnabled,
+        child: GestureDetector(
         onTapDown: _handleTapDown,
         onTapUp: _handleTapUp,
         onTapCancel: _handleTapCancel,
@@ -349,6 +353,7 @@ class _MenuButtonState extends State<_MenuButton> {
             ),
           ),
         ),
+      ),
       ),
     );
   }

@@ -1,0 +1,33 @@
+{
+  "mission": "AEOS Council — Uptodown Assets v2",
+  "status": "COMPLETE",
+  "timestamp": "2026-08-22",
+  "screenshots": {
+    "format": "PNG",
+    "dimensions": "1024x500",
+    "count": 10,
+    "uniqueScreens": [
+      "main-menu",
+      "create-artist",
+      "dashboard",
+      "music-catalog",
+      "create-song",
+      "charts",
+      "perform",
+      "artists",
+      "career",
+      "lifestyle"
+    ]
+  },
+  "video": {
+    "format": "MP4",
+    "file": "popmusic-gameplay-full.mp4",
+    "codec": "H.264"
+  },
+  "fixes": [
+    "Renamed dashboard hustle 'Create Music' → 'Write Song' (Playwright collision fix)",
+    "Each screenshot verified with unique mustSee text before capture",
+    "sharp resize to exact 1024×500 cover crop",
+    "ffmpeg WEBM → MP4 conversion for Uptodown"
+  ]
+}

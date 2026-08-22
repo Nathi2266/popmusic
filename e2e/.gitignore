@@ -1,0 +1,12 @@
+node_modules
+.env    
+tests/      # test files    
+output/     # test output folder
+reports/    # test reports
+screenshots/# test screenshots
+videos/     # test videos
+logs/       # test logs
+errors/     # test errors
+warnings/   # test warnings
+failures/   # test failures
+successes/  # test successes
